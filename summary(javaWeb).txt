@@ -1,0 +1,85 @@
+TCP/IP协议层级结构：
+链路层（物理接口）
+网络层(IP,ICMP,IGMP)
+运输层(TCP,UDP)
+应用层(FTP,HTTP)
+
+
+java ee for eclipse
+
+1.在eclipse中，windows->show view ->可以打开工具栏
+2.在servers中双击服务器可以配置服务器
+3.想要在项目中使用jstl标签库需要在\apache-tomcat-7.0.63\webapps\WebTest3\lib下手动拷入jstl的jar包，并且在eclipse中导入该jar包
+
+
+
+虽然可以再jsp中使用<%%>来运行java代码但是主要是在servlet中执行运算操作，再把数据封存到域中，再转发到jsp中，再使用EL表达式在jsp中对数据读取并显示
+
+
+转发网页和重定向网页是不同的，
+转发网页有一条request，浏览器地址栏最后显示的地址还是原网页
+重定向网页有两条request，浏览器地址栏最后显示的地址是最后被指向的网页
+
+给.jsp传参数：key为username，values为xxx，加了参数的地址即使Login.jsp中没有处理对应的代码，页面也照常显示
+http://localhost:8080/WebTest3/SessionTest/Login.jsp?username=xxx
+key为username，values为xxx，还有key为password，values为ddd
+http://localhost:8080/WebTest3/SessionTest/Login.jsp?username=xxx&password=ddd
+
+javaWeb 三大重要部分servlet，filter，listener
+
+使用tomcat服务器时默认端口8080，网页浏览器默认端口80
+在conf的server的Connector中修改默认端口号，可以不用输入端口号
+
+server.xml的结构：
+根元素：<Service>
+<Service>中有<Connector>负责网络协议
+有<Engine>负责处理各种请求
+<Engine>中有多个主机<host>
+<host>可以有多个上下文<Context>(web项目)
+
+chrome抓包：
+在设置的更多工具的开发者工具
+network，可以看到工程，在name中右键web项目可以复制请求报文和响应报文
+key/value格式
+相应报文：相应行的状态码：200成功，300转接，400客户端错误（例如打错网址），500服务器错误
+
+URL中问号之后的是为参数部分
+getRequestURI()：获取请求URI，等于项目名+Servlet路径。/day10_2/AServlet
+getRequestURL()：获取请求URL，等于不包含参数的整个请求路径。http://localhost:8080/day10_2/AServlet
+
+
+执行
+super.doPost(req, resp);
+会使resp被提交，这时不能请求转发和请求包含。
+
+在tomcat/work可以查看生成出来的.java文件
+
+
+一般情况下，如果需要输入参数作为时间，int类型一般都是秒，long类型一般都是毫秒
+
+
+响应头：Content-Type，内容类型，一般是指网页中存在的Content-Type，用于定义网络文件的类型和网页的编码，
+决定浏览器将以什么形式、什么编码读取这个文件，这就是经常看到一些Asp网页点击的结果却是下载到的一个文件或一张图片的原因。
+
+
+javaBean的规范：
+  1. 必须要有一个默认构造器
+  2. 提供get/set方法，如果只有get方法，那么这个属性是只读属性！
+  3. 属性：有get/set方法的成员，还可以没有成员，只有get/set方法。属性名称由get/set方法来决定！而不是成员名称！
+  4. 方法名称满足一定的规范，那么它就是属性！boolean类型的属性，它的读方法可以是is开头，也可以是get开头！
+  
+  
+继承java.lang.Object类，重写：
+	@Override
+	public String toString() {
+		return "";
+		//源码：return getClass().getName() + "@" + Integer.toHexString(hashCode());
+	}
+可以在System.out.println中直接输出toString方法返回的字符串
+		OutputString outputString = new OutputString();//类名
+		System.out.println(outputString);
+	
+	
+	
+ 
+  

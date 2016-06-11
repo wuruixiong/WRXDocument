@@ -1,0 +1,9 @@
+cmd下输入以下命令：
+创建连接，ssid是WiFi名，key是密码
+netsh wlan set hostednetwork mode=allow ssid=wifiTest key=123456789
+启动连接，发射WiFi
+netsh wlan start hostednetwork
+关闭连接，停止发射WiFi
+netsh wlan stop hostednetwork
+删除连接
+netsh wlan set hostednetwork mode=disallow

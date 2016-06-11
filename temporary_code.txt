@@ -1,0 +1,122 @@
+﻿hevdata_smileys_normal
+hevdata_smileys_pressed
+
+hevdata_animals_normal
+hevdata_animals_pressed
+
+hevdata_foods_normal
+hevdata_foods_pressed
+
+hevdata_storts_normal
+hevdata_storts_pressed
+
+hevdata_places_normal
+hevdata_places_pressed
+
+hevdata_objects_normal
+hevdata_objects_pressed
+
+hevdata_symbols_normal
+hevdata_symbols_pressed
+
+hevdata_flags_normal
+hevdata_flags_pressed
+
+
+前缀：
+emojiplugin_u
+emoji_sam_u
+emoji_tw
+
+insteadEmojiDataListIcons()
+
+
+有问题的插件包
+com.crazygame.emojiplugin.twemoji（老 twitter 插件包）
+res里有分类图标，但是和json中的图片名不对应，（当插件包的图片找不到时，会去本工程中查找图片，本工程下恰好有对应的图标）
+nodpi中emoji有1600多个，hdpi中有emoji800多个，但是json的提供的emoji有800多个
+
+com.crazygame.emojiplugin.emojione（老 emoji one 插件包）
+res里有分类图标，但是和json中的图片名不对应，（当插件包的图片找不到时，会去本工程中查找图片，本工程下恰好有对应的图标）
+
+com.crazygame.emojiplugin.samemoji （老 sam 插件包）
+没有 json 数据，没有错误
+
+com.hevdata.samsungemoji（新 sam 插件包）
+没有错误
+
+com.hevdata.googleemoji （新 Android 插件包）
+分类图片中 sports （运动分类） 的图片名是错误的， json中的图片名错误， "storts" 应该为 "sports"
+
+com.hevdata.emojione （新 emoji one 插件包）
+分类图片中 sports （运动分类） 的图片名是错误的， json中的图片名错误， "storts" 应该为 "sports"
+
+原本的旧分类名称
+Smileys_icon = [ "flat9_ic_emoji_smile_normal", "flat9_ic_emoji_smile_clicked" ]
+Flowerys_icon = [ "flat9_ic_emoji_flower_normal", "flat9_ic_emoji_flower_clicked" ]
+Bellys_icon = [ "flat9_ic_emoji_ring_normal", "flat9_ic_emoji_ring_clicked" ]
+Vehicleys_icon = [ "flat9_ic_emoji_car_normal", "flat9_ic_emoji_car_clicked" ]
+Numberys_icon = [ "flat9_ic_emoji_symbol_normal", "flat9_ic_emoji_symbol_clicked" ]
+
+改成新的分类名称，这样会和8个分类统一
+Smileys_icon = [ "hevdata_smileys_normal", "hevdata_smileys_pressed" ]
+Animals_icon = [ "hevdata_animals_normal", "hevdata_animals_pressed" ]
+Objects_icon = [ "hevdata_objects_normal", "hevdata_objects_pressed" ]
+Places_icon = [ "hevdata_places_normal", "hevdata_places_pressed" ]
+Symbols_icon = [ "hevdata_symbols_normal", "hevdata_symbols_pressed" ]
+
+新的8个分类
+Smileys_icon = [ "hevdata_smileys_normal", "hevdata_smileys_pressed" ]
+Animals_icon = [ "hevdata_animals_normal", "hevdata_animals_pressed" ]
+Foods_icon = [ "hevdata_foods_normal", "hevdata_foods_pressed" ]
+Sports_icon = [ "hevdata_sports_normal", "hevdata_sports_pressed" ]
+Places_icon = [ "hevdata_places_normal", "hevdata_places_pressed" ]
+Objects_icon = [ "hevdata_objects_normal", "hevdata_objects_pressed" ]
+Symbols_icon = [ "hevdata_symbols_normal", "hevdata_symbols_pressed" ]
+Flags_icon = [ "hevdata_flags_normal", "hevdata_flags_pressed" ]
+
+
+为keyboard6的Emoji keyboard增加classics风格并适配不同的插件包
+修正插件包json数据和图标不对应BUG
+
+
+
+
+
+release.keystore
+
+b3b3b3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

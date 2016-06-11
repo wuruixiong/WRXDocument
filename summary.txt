@@ -1,0 +1,1385 @@
+http://192.168.0.105/crazyemoji/
+ffmpeg
+SIP
+HorizontalScrollView
+Anychat for Android
+Android系统的编译、定制、开发和调试过程
+
+黄金比例：(√5-1)/2  约等于 0.618， 约等于6:10，约等于5:8
+
+访问控制符(access specifier):public private protected
+ANRs (“Application Not Responding”)
+
+new A() 是为匿名对象
+
+InputStream指的是在数据流中的数据读入到指定object是为Input，通常使用InputStream.read
+OutputStream指的是将数据输出到OutputStream中，是为Output，通常使用OutputStream.write
+
+float浮点类型，只有在数值后面加f就是浮点数值，例如0.5f
+
+java三目运算：
+a ? b:c
+a为真返回b，为假返回c
+
+
+三角函数公式使用，Math.PI为圆周率，1度为π/180弧度
+Math.sin((30) * Math.PI / 180) = 0.49999999 //sin30度，约等于0.5
+Math.sin(30) 是指sin30弧度
+Math.asin(0.49999999)可以得到反sin的数值：0.52359877(这就是30度的值：30*Math.PI/180 == 0.52359877)
+Math.asin(0.49999999)*180/Math.PI = 30   //也可以使用toDegrees()来得到角度，toDegrees()也是使用了 数值乘以180再除以圆周率的计算公式的
+
+
+java整型的与、或、非、异或运算：
+计算之前将10进制转为2进制，对每位进行运算
+例如：1与2就是2进制的：1与10结果为0
+129-->10000001
+128-->10000000
+128|129 -->10000001 结果129
+异或就是相同为真不相同为假，1和1、0和0异或都为真
+
+
+将字符串转为整型，资源
+    Field field=R.drawable.class.getField("icon");
+    int drawable= field.getInt(new R.drawable());
+	
+	
+	
+如果自定义layout中有EditText，点击EditText会弹出输入法，此时会调用自定义layout或view的onMeasure方法，
+所以，使用此策略可以监听输入法弹出
+
+
+修改代码时，若想要获取之前view的配置，例如图片、颜色、字号等，可以调试，获取之前view的信息，通过view查找配置
+	
+
+public
+protected
+private
+abstract
+static
+final
+transient
+volatile
+synchronized
+native
+strictfp
+
+整型没初始化值为0
+字符串没有初始化值为null
+即：
+    String mText;//值为0
+    int mInt;	 //值为null
+
+字符串操作：
+StringClip.isEmpty();  // 判断为空
+
+StringClip.length() ; //长度
+
+StringClip.equals(new String); //比较是否相等
+
+字符串和char数组互转
+String str = "ggg";
+char[] bm;
+bm = str.toCharArray();
+str = String.valueOf(bm);
+
+浮点除法运算，加(float)强转是关键
+float wratio = (float)mViewWidth / mBackgroundBitmap.getWidth();
+int转float
+Math.round(mBackgroundBitmap.getHeight() * wratio))
+
+Double转int
+       Double d = 10d;
+       int mBorderRadius = d.intValue();
+
+
+listview继承自AbsListView，AbsListView中封装了对view的回收处理，使用setRecyclerListener对view被回收时做出处理
+
+在使用listview，recycleview等进行嵌套时，系统本身不会对里面的listview进行宽高计算，所以要手动计算宽高，并设置里面的listview
+
+即使是在自定义view中重写onTouchEvent，他所响应到的区间也是他的父布局，即所产生的坐标是父布局的相对坐标而不是整个屏幕绝对的坐标，
+所以对自定义view的TouchEvent做出响应，应该判断是不是view的区间
+在view 的OnTouchListener事件中，若返回FALSE则继续向上传递，若返回TRUE则又监听方法处理
+即如果想要处理move移动事件或者up弹起事件要返回TRUE
+有些控件，例如checkbox，即使不设置click监听也会对点击作出响应，这时需要在控件中加入
+android:focusable="false"
+android:focusableInTouchMode="false"
+此时就会和listview本身的点击互不影响
+
+
+可以在canvas中通过控制矩阵Matrix来控制旋转rotate和缩放scale
+在使用Matrix处理bitmap旋转、缩放、平移时，平移会和旋转、缩放冲突，导致只能执行其中一个，
+可以先使用Matrix.setTranslate设置平移距离，再使用Matrix.postRotate、Matrix.postScale来处理冲突问题
+
+
+实例化数组： String res_randomstr[?];//问号是表示创建几个元素，
+	    res_randomstr=new String[10];//例如：下标为res_randomstr[0]到res_randomstr[9]共10个
+		
+数组定义： 1.private String[] text = {"t", "t", "t"}; //可以在类之内方法之外如此定义，数组text会有3个元素   
+
+		   2.private String[] text;			     //此时text数组为空
+		     text = new String[]{"t", "t", "t"}; //在方法之内 实例化, text数组有三个元素  
+			 
+		   3.private String[] text;	// 定义数组text, 此时text数组为空
+		     text = new String[2];  //也可以在方法之内实例化, text数组有三个元素, 但是三个元素都为空 
+			 text[0] = "t"			// 对第一个元素赋值
+ 
+数组长度：int grid_id[][];
+	grid_id.length//有几个数据就有几个,即第一维的长度
+2维数组元素长度:   grid_id[].length
+输出2维数组所有数据：     
+           for(int i=0;i<grid_id.length;i++)
+                {
+                    for(int j=0;j<grid_id[i].length;j++) {
+                        Log.v(String.valueOf(grid_id[i][j]),String.valueOf(grid_id[i][j]));
+                    }
+                }
+
+				
+
+在线程的使用过程中，要特别注意线程同步的问题，
+例如：在线程中遍历列表list，如果其他线程对列表list进行 删除操作，则可能出现 下标溢出、空指针等错误
+方法1：如果列表list在主线程创建，则在主线程中复制多个列表list，再作为参数赋给各个线程
+
+方法2：使用线程同步synchronized锁住list，在使用到list的地方都将list使用synchronized锁住
+
+方法3：使用线程同步synchronized锁住方法，封装list，将list用另外的类A 封装，在该类A的实例化对象中对list操作，
+	   其他线程通过操作类A的实例化对象来对list操作， 在类A中的操作list的方法method前加入synchronized，将操作list的方法锁住，
+	   可以防止多个线程同时操作该方法，这样也就是对list操作实现了线程同步
+				
+				
+实例化表： ArrayList list;
+	 list=new ArrayList();
+增加操作：add（n）；从0开始加入
+删除操作：remove（n）
+取出操作：get（n）；从0开始取出例如：get（0），get（1），get（2）
+计算长度：list.size();有几个数据就有几个，如果add3次，list.size（）就是3
+表中的元素转换int类型：Integer.valueOf(String.valueOf(list.get(n))).intValue();
+表中的元素转换String类型：String.valueOf(list.get(n));
+
+生成随机数： Random r = new Random();
+	     r.nextInt(9);//生成从0到8
+	   r.nextInt(n);//生成从0到n-1
+
+创建线程：  
+  private class Mythread extends Thread
+    {
+        int scount;
+        int slevel;
+//构造方法
+        private Mythread(int count,int level)
+        {
+           scount=count;
+            slevel=level;
+        }
+//重写run方法
+        @Override
+        public void run(){
+            
+        }
+    }
+
+最后：Mythread实例化之后.start
+
+创建线程2
+       //实例化借口
+　　class MutliThread implements Runnable{
+      @Override
+　　public void run(){}
+　　}
+      MutliThread m3=new MutliThread();
+      Thread t1=new Thread(m1);
+      t1.start；
+
+
+主线程中创建handler，主要用来修改UI界面
+Handler handler;
+onCreate
+{
+	handler=new Handler();
+}
+//接着在任意地方
+handler.post(new runable(可以传入参数));
+//定义一个Runnable
+private class runable implements Runnable
+    {
+        //构造方法
+        private runable()
+        {
+        }
+//实例化Runnable借口必须实现的
+        @Override
+        public void run(){
+        }
+    }
+	
+	
+
+通过使用message调用handle
+        Handler mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+            }
+        };
+调用：
+mHandler.sendEmptyMessage(0);
+注：一般发送的是Message，在handleMessage()方法中判断Message，执行不同的代码段
+
+
+在android使用handler.post(runnable)，并不会开启新的线程，而是将消息压到main线程使用的消息池中，
+所以handler.post还是在主线程中，
+可以使用Thread.currentThread().getId()或者Thread.currentThread().getName()来确定当前线程，
+
+而使用  Thread thread = new Thread(runnable);thread.start(); 才是开启一个新的线程，
+ 
+  而使用以下发送Message的方法也是在主线程当做执行
+            Handler handler = new Handler(new Handler.Callback() {
+                @Override
+                public boolean handleMessage(Message msg) {
+                    Log.w("sendEmptyMessage",Thread.currentThread().getName());
+                    return false;
+                }
+            });
+            handler.sendEmptyMessage(1);
+
+即使是在线程中发送消息，最后handle的执行也是在主线程当中
+            final Handler handler = new Handler(new Handler.Callback() {
+                @Override
+                public boolean handleMessage(Message msg) {
+                    Log.w("runnable2",Thread.currentThread().getName());
+                    return false;
+                }
+            });
+            Runnable runnable2 = new Runnable() {
+                @Override
+                public void run() {
+                    handler.sendEmptyMessage(1);
+                }
+            };
+            Thread thread = new Thread(runnable2);
+            thread.start();
+
+可以使用特殊线程HandlerThread,可以很好的和handle结合在一起使用
+            mWorkThread = new HandlerThread("threadname");
+            mWorkThread.start();
+            Handler workHandler = new Handler(mWorkThread.getLooper(), new Handler.Callback() {
+                @Override
+                public boolean handleMessage(Message msg) {
+                    return false;
+                }
+            });
+            workHandler.sendEmptyMessage(1);
+			
+			
+综上，加载数据使用Thread开启一个线程，加载完成之后，在线程当中send或者post，handle消息，
+通知主线程修改界面。
+
+
+周报：
+2014.12.15-2014.12.19 周报——xxx
+
+------------------ Original ------------------
+From:  "吴锐雄"<wuruixiong@emojikeyboard.mobi>;
+Date:  Fri, Dec 19, 2014 02:32 PM
+To:  "houhuihua"<houhuihua@emojikeyboard.mobi>;
+Subject:  一周工作总结报告-吴锐雄
+
+xxx先生
+　　您好：
+我因学校课业原因，于2015年4月17日将在学校进行体能考试，无法按时上班，特向xxx先生在2015年4月17日请假一天，请xxx先生批准。
+　　　　　　　　　　　　　　　　　　　　　　　　　　　——请假人：吴锐雄
+　　　　　　　　　　　　　　　　　　　　　　　　　　　　2015年4月16日
+ 
+
+Math.max(13,90)//返回90
+Math.min(13,90)//返回13
+
+
+改变背景颜色：
+这样输入：              layout.setBackgroundColor(Color.parseColor("#ffff00"));
+或者这样输入：           layout.setBackgroundColor(0xFF6db7ff);
+0xFF6db7ff是Android中特殊的16进制颜色编码，FF表示的是透明度，6db7ff表示颜色编码
+表达式顺序是“aabbggrr”，其中“aa=alpha”（00 到 ff,00透明度为0，ff透明度为100%）；“bb=blue”（00 到 ff）；“gg=green”（00 到 ff)；“rr=red”（00 到 ff）
+
+
+return 跳出有返回值的方法       
+        return ;//可以退出void方法
+break 跳出当前循环，如果在switch中，碰到break，会退出switch
+
+
+java 代码修改控件高宽
+        RelativeLayout.LayoutParams params=new RelativeLayout.LayoutParams((gwidth-40)/glistcount,(int)((gwidth-40)/glinecount*0.99));
+//new RelativeLayout.LayoutParams(40,40);像素值
+//new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,RelativeLayout.LayoutParams.WRAP_CONTENT);自适应
+        控件.setLayoutParams(params);
+
+
+android颜色color.xml设置  
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<color name="white">#FFFFFF</color><!--白色 -->
+</resources>
+
+
+计时器控件chronometer
+chronometer.getText()得到时间
+chronometer.stop();结束
+chronometer.start();开始
+chronometer.setBase(SystemClock.elapsedRealtime());设施开始时间为00:00
+
+沉睡：
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace(); 
+        }
+
+
+
+WindowManager：
+//使用时加入许可
+//<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    WindowManager wmManager;
+    WindowManager.LayoutParams wmParams;
+        wmManager=(WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        wmParams = new WindowManager.LayoutParams();
+        /**
+         *以下都是WindowManager.LayoutParams的相关属性
+         * 具体用途请参考SDK文档
+         */
+        wmParams.type=2002;   //这里是关键，你也可以试试2003
+        wmParams.format=1;
+        /**
+         *这里的flags也很关键
+         *代码实际是wmParams.flags |= FLAG_NOT_FOCUSABLE;
+         *40的由来是wmParams的默认属性（32）+ FLAG_NOT_FOCUSABLE（8）
+         */
+        wmParams.flags=80;
+
+	Button bb=new Button(getApplicationContext());
+
+                if(mm.getParent()!=null) {
+                    wmManager.removeView(bb);
+                }
+                else
+                {
+                    if(mm.getParent()==null)
+                    {
+                        wmManager.addView(bb, wmParams);
+
+                    }
+                }
+
+
+
+导航栏高度：
+ActionBar actionBar;
+actionBar=getActionBar();
+actionBar.getHeight();
+
+//得到gridview的子视图
+gridview.getChildAt(填入下标)
+
+PreferenceScreen点击之后没有actionbar是因为没有设置title属性的原因
+当工程失去R文件时重新编译就会出现一个新的R文件
+
+    //设置全背景为一张图，包括actionbar
+    private void setBackgrounnd() {
+        Activity context =this;
+        ViewGroup root =  (ViewGroup)context.getWindow().getDecorView();
+        if (root != null) {
+            ViewGroup group = ((ViewGroup)root.getChildAt(0));
+            group.setBackgroundResource(R.drawable.background);
+        }
+    }
+
+
+自定义View的监听回调机制
+
+public class colorpick extends View{
+
+（1）在自定义View的类内预留接口
+ public interface OnColorChangedListener {
+        void colorChanged(int color);
+    }
+
+（2）在自定义View的类内创建一个该接口
+private OnColorChangedListener mListener;
+
+（3）在构造方法中对创建的接口赋值
+    public colorpick(Context context,
+                             OnColorChangedListener listener,
+                             int initialColor) {
+        mListener = listener;
+    }
+
+（5）至此，就可以在View的内部调用实例化好的接口，如下，对mListener.colorChanged输入0xff0000ff的参数，因为mListener在构造方法中被赋值，相当于外部定义的colorpick赋值给了mListener，
+        所以，mListener的colorChanged方法会有Log.w("color is "+color,"color is "+color);的语句，会在控制台输出log
+
+	mListener.colorChanged(0xff0000ff);
+}
+
+（4）在外部创建自定义View
+                colorpick colorpick1= new colorpick(testactivity.this, new colorpick.OnColorChangedListener() {
+                    @Override
+                    public void colorChanged(int color) {
+                        Log.w("color is "+color,"color is "+color);
+                    }
+                }
+                ,0xff000000);
+
+
+
+混合渲染ComposeShader显示无效果时，需要在配置文件中加入
+<activity android:hardwareAccelerated="false" />
+或者
+<application android:hardwareAccelerated="false" >
+
+
+
+
+
+
+获取自定义view的颜色值
+	int pixel;
+	View view；
+	Bitmap bitmap;
+                view.buildDrawingCache();
+                bitmap = view.getDrawingCache();
+                pixel = bitmap.getPixel((int)event.getX(),(int)event.getY());
+
+
+
+设置EditText的输入范围
+    private void setRegion_0_255(final EditText et)
+    {
+        final int MIN_MARK = 0;
+        final int MAX_MARK = 255;
+        et.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (start > 1)
+                {
+                    if (MIN_MARK != -1 && MAX_MARK != -1)
+                    {
+                        int num = Integer.parseInt(s.toString());
+                        if (num > MAX_MARK)
+                        {
+                            s = String.valueOf(MAX_MARK);
+                            et.setText(s);
+                        }
+                        else if(num < MIN_MARK)
+                            s = String.valueOf(MIN_MARK);
+                        return;
+                    }
+                }
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count,
+                                          int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s)
+            {
+                if (s != null && !s.equals(""))
+                {
+                    if (MIN_MARK != -1 && MAX_MARK != -1)
+                    {
+                        int markVal = 0;
+                        try
+                        {
+                            markVal = Integer.parseInt(s.toString());
+                        }
+                        catch (NumberFormatException e)
+                        {
+                            markVal = 0;
+                        }
+                        if (markVal > MAX_MARK)
+                        {
+                            Toast.makeText(getBaseContext(), "输入范围0-255", Toast.LENGTH_SHORT).show();
+                            et.setText(String.valueOf(MAX_MARK));
+                        }
+                        return;
+                    }
+                }
+            }
+        });
+    }
+
+
+
+判断EditText中是否有字符串
+
+                if(TextUtils.isEmpty(rEditText.getText()))
+                {
+                    Log.w("r is null","r is null");
+                }
+                else
+                {
+                    if(!TextUtils.isEmpty(rEditText.getText()))
+                    {
+                        Log.w("r is value","value is"+rEditText.getText());
+                    }
+                }
+
+
+调节边距可以尝试padding和margin
+
+
+match_parent,在android线性布局中比较可以生效，需要加上  
+android:layout_weight="1"
+
+
+自定义控件，onMeasure可以设置空间的大小,只有当所在的控件设置为match_parent时才能有数值，
+而设置wrap_content时widthMeasureSpec和heightMeasureSpec是没有数值的，因为wrap_content是自己计算宽度和高度的。
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        w=measure(widthMeasureSpec);
+        setMeasuredDimension(w,w);
+    }
+
+    private int measure(int measureSpec) {
+        int result = 0;
+        int specMode = MeasureSpec.getMode(measureSpec);
+        int specSize = MeasureSpec.getSize(measureSpec);
+
+        if (specMode == MeasureSpec.EXACTLY) {
+            result = specSize;
+        } else {
+            if (specMode == MeasureSpec.AT_MOST) {
+                result = Math.min(result, specSize);
+            }
+        }
+        return result;
+    }
+
+
+
+
+
+
+android:digits
+指定接受固定的数字，如android:digits="012345"，则只接受0～5数字的输入
+
+
+context启动Activity
+ getContext().startActivity(intent);
+或者mContext.startActivity(intent);
+
+
+    使用别的包的资源：
+不把图片放在res/drawable下，而是存放在src某个package中（如：com.drawable.resource），这种情况下的调用方法为： 
+String path = "com/drawable/resource/imageName.png"; 
+InputStream is = getClassLoader().getResourceAsStream(path); 
+Drawable.createFromStream(is, "src"); 
+
+如果还是希望直接使用res/drawable中的图片，就需要通过下面的方法了： 
+假设创建工程的时候，填写的package名字为：com.test.image 
+int resID = getResources().getIdentifier("imageName", "drawable", "com.test.image"); 
+Drawable image = getResources().getDrawable(resID);
+
+
+JSON的2种格式：
+1、对象：对象在js中表示为“{}”括起来的内容，数据结构为 {key：value,key：value,...}的键值对的结构，在面向对象的语言中，key为对象的属性，value为对应的属性值，所以很容易理解，取值方法为 对象.key 获取属性值，这个属性值的类型可以是 数字、字符串、数组、对象几种。
+2、数组：数组在js中是中括号“[]”括起来的内容，数据结构为 ["java","javascript","vb",...]，取值方式和所有语言中一样，使用索引获取，字段值的类型可以是 数字、字符串、数组、对象几种。
+
+JSON解析
+封装并存储成文件：
+            JSONObject object = new JSONObject();
+            try {
+                object.put("Common1", "#ffffffff");
+                object.put("Common2", "#ffffffff");
+                object.put("Common3", "#ffffffff");
+                object.put("Common4", "#ffffffff");
+                object.put("Common5", "#ffffffff");
+                object.put("Common6", "#ffffffff");
+                object.put("Common7", "#ffffffff");
+                object.put("Common8", "#ffffffff");
+                object.put("Common9", "#ffffffff");
+                object.put("Common10", "#ffffffff");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                OutputStream os = context.openFileOutput(FileName, Activity.MODE_PRIVATE);
+                os.write(object.toString().getBytes());
+                os.close();
+                Log.w(FileName+" is create",FileName+" is create");
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+读取JSON文件
+            try {
+                FileInputStream fis =context.openFileInput(FileName);
+                byte[] buff=new byte[1024];
+                int hasRead=0;
+                StringBuilder sd=new StringBuilder("");
+                while ((hasRead=fis.read(buff))>0)
+                {
+                    sd.append(new String(buff,0,hasRead));
+                }
+                fis.close();
+//                Log.w("JSON",sd.toString());
+                return sd.toString();
+            }
+            catch (Exception e)
+            {
+            }
+
+将上面的返回值（字符串型）转成JSONTokener ，使用JSONObject 查找数据，sd.toString()就是JSON的数据格式
+        try {
+            JSONTokener jsonTokener = new JSONTokener(sd.toString());
+            JSONObject jsonObject = (JSONObject) jsonTokener.nextValue();
+            jsonObject.getString("Common"+CommonNumber);
+        } catch (JSONException ex) {
+        }
+		
+		
+JSON数组封装：
+JSONObject person = new JSONObject();  
+JSONArray phone = new JSONArray();  
+phone.put("12345678").put("87654321");  
+person.put("phone", phone); 
+
+JSON数组读取：
+String t={"initial":"R","name":"reiz","likes":["JavaScript","Skiing","Apple Pie"]}
+JSONObject.fromObject(t)
+JSONArray likes=jo.getJSONArray("likes"); //得到likes数组
+like.getString(2);                        //得到likes数组第三个
+
+
+自定义layout
+使用以下方法加载布局，为控件找到ID
+       LayoutInflater inflater=(LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      inflater.inflate(R.layout.editkeyboard_layout, this);
+        upButton = (Button)findViewById(R.id.up) ;
+或者（其实都一样）
+       LayoutInflater inflater=LayoutInflater.from(mContext);
+        View contextVie=inflater.inflate(R.layout.editkeyboard_layout, EditKeyboardLayout.this);
+        upButton = (Button)contextVie.findViewById(R.id.up) ;
+		
+在自定义layout中使用merge标签来包含子控件，例如：
+<merge
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageButton/>
+    <LinearLayout/>
+    <LinearLayout>
+        <TextView/>
+    </LinearLayout>
+    <ImageButton/>
+</merge>
+
+
+
+输入法和EditText的光标移动，选择，粘贴，删除：
+
+
+	EditText:
+
+        editKeyboardLayout.setLeftButton(new EditKeyboardListener.leftClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (editKeyboardLayout.getIsSelection()) {
+                    Selection.extendLeft(editText.getText(), editText.getLayout());
+                } else {
+                    Selection.moveLeft(editText.getText(), editText.getLayout());
+                }
+            }
+        });
+
+        editKeyboardLayout.setRightButton(new EditKeyboardListener.rightClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (editKeyboardLayout.getIsSelection()) {
+                    Selection.extendRight(editText.getText(), editText.getLayout());
+                } else {
+                    Selection.moveRight(editText.getText(), editText.getLayout());
+                }
+            }
+        });
+
+        editKeyboardLayout.setUpButton(new EditKeyboardListener.upClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (editKeyboardLayout.getIsSelection()) {
+                    Selection.extendUp(editText.getText(), editText.getLayout());
+                } else {
+                    Selection.moveUp(editText.getText(), editText.getLayout());
+                }
+            }
+        });
+
+
+        editKeyboardLayout.setDownButton(new EditKeyboardListener.downClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (editKeyboardLayout.getIsSelection()) {
+                    Selection.extendDown(editText.getText(), editText.getLayout());
+                } else {
+                    Selection.moveDown(editText.getText(), editText.getLayout());
+                }
+            }
+        });
+
+        editKeyboardLayout.setChooseButton(new EditKeyboardListener.chooseClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (editKeyboardLayout.getIsSelection() == false) {
+                    editKeyboardLayout.setIsSelection(true);
+                } else {
+                    if (editKeyboardLayout.getIsSelection() == true) {
+                        editKeyboardLayout.setIsSelection(false);
+                    }
+                }
+            }
+        });
+
+        editKeyboardLayout.setCopyButton(new EditKeyboardListener.copyClickListener() {
+            @Override
+            public void onClick(View v) {
+                int start = Math.min(editText.getSelectionStart(), editText.getSelectionEnd());
+                int end = Math.max(editText.getSelectionStart(), editText.getSelectionEnd());
+                if (editKeyboardLayout.getIsSelection() && start != end) {
+                    selectText = editText.getText().subSequence(start, end).toString();
+                }
+                mClipBoardLayout.setClipText(selectText);
+            }
+        });
+
+        editKeyboardLayout.setPasteButton(new EditKeyboardListener.pasteClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (selectText != null) {
+                    editText.getText().insert(Selection.getSelectionStart(editText.getText()), selectText);
+                }
+
+            }
+        });
+
+        editKeyboardLayout.setCutButton(new EditKeyboardListener.cutClickListener() {
+            @Override
+            public void onClick(View v) {
+                int start = Math.min(editText.getSelectionStart(), editText.getSelectionEnd());
+                int end = Math.max(editText.getSelectionStart(), editText.getSelectionEnd());
+                if (editKeyboardLayout.getIsSelection() && start != end) {
+                    selectText = editText.getText().subSequence(start, end).toString();
+                    editText.getText().delete(start, end);
+                }
+            }
+        });
+
+        editKeyboardLayout.setDeleteButton(new EditKeyboardListener.deleteClickListener() {
+            @Override
+            public void onClick(View v) {
+                int start = Math.min(editText.getSelectionStart(), editText.getSelectionEnd());
+                int end = Math.max(editText.getSelectionStart(), editText.getSelectionEnd());
+                if (editKeyboardLayout.getIsSelection()) {
+                    editText.getText().delete(start, end);
+                } else {
+                    editText.getText().delete(end - 1, end);
+                }
+
+            }
+        });
+
+
+
+	输入法:
+	通过发送KeyEvent执行光标移动操作，通过得到getCurrentInputConnection而得到当前光标位置并可执行插入粘贴板字符串的操作
+
+    public void startSelect(){
+        thisInputConnection = mLatinIME.getCurrentInputConnection();
+        if(thisInputConnection != null)
+            thisInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_SHIFT_LEFT));
+    }
+
+    public void endSelect(){
+        if(thisInputConnection != null){
+            thisInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_SHIFT_LEFT));
+        }
+    }
+
+
+	
+	editLayout.setUpButton(new EditKeyboardListener.upClickListener() {
+            @Override
+            public void onClick(View v) {
+                setPopEditKeyboard();
+                thisInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP));
+            }
+        });
+        editLayout.setDownButton(new EditKeyboardListener.downClickListener() {
+            @Override
+            public void onClick(View v) {
+                setPopEditKeyboard();
+                thisInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN));
+            }
+        });
+        editLayout.setRightButton(new EditKeyboardListener.rightClickListener() {
+            @Override
+            public void onClick(View v) {
+                setPopEditKeyboard();
+                thisInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT));
+            }
+        });
+        editLayout.setLeftButton(new EditKeyboardListener.leftClickListener() {
+            @Override
+            public void onClick(View v) {
+                setPopEditKeyboard();
+                thisInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT));
+            }
+        });
+        editLayout.setChooseButton(new EditKeyboardListener.chooseClickListener() {
+            @Override
+            public void onClick(View v) {
+                ChooseView = v;
+                if (ChooseFlag == false) {
+                    startSelect();
+                    Toast.makeText(getContext(), "Start Choosing", Toast.LENGTH_SHORT).show();
+                    ChooseFlag = true;
+                    v.setBackgroundResource(R.drawable.choose_highlight);
+                } else {
+                    endSelect();
+                    Toast.makeText(getContext(), "Stop Choosing", Toast.LENGTH_SHORT).show();
+                    v.setBackgroundResource(R.drawable.choose_bt);
+                    ChooseFlag = false;
+                }
+            }
+        });
+        editLayout.setCopyButton(new EditKeyboardListener.copyClickListener() {
+            @Override
+            public void onClick(View v) {
+                setPopEditKeyboard();
+                if (thisInputConnection.getSelectedText(1000) != null) {
+                    Toast.makeText(getContext(), "Complete copy", Toast.LENGTH_SHORT).show();
+                    clipboardManager.setText(thisInputConnection.getSelectedText(1000));
+                }
+            }
+        });
+        editLayout.setPasteButton(new EditKeyboardListener.pasteClickListener() {
+            @Override
+            public void onClick(View v) {
+                setPopEditKeyboard();
+                if (clipboardManager.getText().length() > 0) {
+                    thisInputConnection.setComposingText(clipboardManager.getText(), 1);
+                }
+//                else {
+//                    thisInputConnection.setComposingText("PASTE", 1);
+//                }
+            }
+        });
+        editLayout.setDeleteButton(new EditKeyboardListener.deleteClickListener() {
+            @Override
+            public void onClick(View v) {
+                setPopEditKeyboard();
+                thisInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL));
+            }
+        });
+        editLayout.setCutButton(new EditKeyboardListener.cutClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (thisInputConnection.getSelectedText(1000) != null) {
+                    setPopEditKeyboard();
+                    Toast.makeText(getContext(), "Complete cut", Toast.LENGTH_SHORT).show();
+                    clipboardManager.setText(thisInputConnection.getSelectedText(1000));
+                    thisInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL));
+                }
+            }
+        });
+        editLayout.setSelectAllButton(new EditKeyboardListener.selectAllClickListener() {
+            @Override
+            public void onClick(View v) {
+                setPopEditKeyboard();
+                //to using selectALL
+                thisInputConnection.performContextMenuAction(16908319);
+                thisInputConnection.performContextMenuAction(16908319);
+            }
+        });
+        editLayout.setBackButton(new EditKeyboardListener.backClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (popEditKeyboard != null && popEditKeyboard.isShowing()) {
+                    popEditKeyboard.dismiss();
+                }
+            }
+        });
+
+
+
+在AndroidManifest中
+android:launchMode 控制activitiy弹出方式 
+
+
+
+Time t=new Time(); 
+t.setToNow(); 
+int year = t.year;  
+int month = t.month;  
+int date = t.monthDay;  
+int hour = t.hour; // 0-23  
+int minute = t.minute;  
+int second = t.second;  
+
+1月份t.month为0，第一天t.yearDay为0
+
+
+
+
+反射机制：
+			方法无参数：
+				获取方法：
+                Class iInputMethodWrapper = service.getClass();
+                try {
+                    Method getInternalInputMethod = iInputMethodWrapper.getMethod("getInternalInputMethod",null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+				
+				 执行方法：
+				 getInternalInputMethod.invoke("iInputMethodWrapper",null)
+
+
+
+
+子View脱离父View再加入新View：
+        InputView view = (InputView)mKeyboardSwitcher.getInputView();
+        if (view.getParent() != null) {
+            ViewGroup parent = (ViewGroup)view.getParent();
+            parent.removeView(view);
+        }
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+        mLinearLayout.addView(view, p);
+
+
+	
+屏幕宽度：	
+	WindowManager wm = (WindowManager) getContext()
+                    .getSystemService(Context.WINDOW_SERVICE);
+ 
+     int width = wm.getDefaultDisplay().getWidth();
+     int height = wm.getDefaultDisplay().getHeight();
+
+	 
+TextView文字居中：
+1.在xml文件设置：android:gravity="center"
+2.在程序中设置：m_TxtTitle.setGravity(Gravity.CENTER);
+
+TextViews从dimen中获取字号
+        mGetPaintTextView = new TextView(mContext);
+        mGetPaintTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, mContext.getResources().getDimension(R.dimen.yantext_size));
+
+
+popupwindow:
+创建：
+view是什么布局参数2和3的LayoutParams可以采用什么，也可以填入固定整型数值
+mPopupWindow = new PopupWindow(view, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+附着锚点显示：mPopupWindow.showAsDropDown(mButton);
+showAsDropDown有不同的函数提供重载
+mPopupWindow.dismiss();隐藏
+
+ 创建PopupWindow
+     步骤1：初始化
+	 PopupWindow popupWindow = new PopupWindow();
+	 步骤2：设置ContentView
+        LayoutInflater layoutInflater = LayoutInflater.from(mContext);
+        View view1 = layoutInflater.inflate(R.layout.yantext_listview_item_layout, null);
+        TextView textView = (TextView) view1.findViewById(R.id.yantext_view1);
+        textView.setText("sfksidfxdhgsdghsrhgrg");
+        popupWindow.setContentView(view1);
+	步骤3：设置宽高
+        popupWindow.setHeight(200);
+        popupWindow.setWidth(200);
+	步骤4：显示
+        popupWindow.showAsDropDown(mAnchor);
+	步骤5：消失
+		popupWindow.dismiss();
+
+LinearLayout设置控件居中，要在LinearLayout中设置：
+android:gravity="center"
+
+//点击外部PopupWindow消失
+        mSharePopupWindow.setBackgroundDrawable(new BitmapDrawable());
+        mSharePopupWindow.setOutsideTouchable(true);
+
+
+ImageView设置 android:scaleType="centerInside"
+如果设置了view的width和height大于wrap_content，内部的图片会wrap_content
+ListView设置
+xml：
+//去除ListView滑到顶部和底部时边缘的黑色阴影：
+android:fadingEdge="none"
+//去除拖动时默认的黑色背景：
+android:cacheColorHint="#00000000"
+//去除选中时的黄色底色：
+android:listSelector="#00000000"  
+java：
+//去除行与行之间的黑线：
+msgList.setDivider(null);  
+//ListView刷新后自动滚到最底部：
+msgList.setSelection(msgList.getAdapter().getCount()-1);
+
+
+字符串"R.drawable" 转换资源整型：
+方法1：
+try{  
+ Field field=R.drawable.class.getField("icon");  
+ int i= field.getInt(new R.drawable());  
+  Log.d("icon",i+"");  
+}catch(Exception e){  
+ Log.e("icon",e.toString());  
+}
+
+方法2：
+Resources res=getResources();  
+int i=res.getIdentifier("icon","drawable",getPackageName());  
+Log.i("res",Integer.toString(i));
+
+
+
+检测apk是否安装在手机上：
+
+获得包名列表：
+        PackageManager packageManager = mContext.getPackageManager();
+        List<ApplicationInfo> appList = packageManager.getInstalledApplications(PackageManager.GET_UNINSTALLED_PACKAGES);
+检测报名：
+ for (ApplicationInfo applicationInfo : appList) { 
+	String pkgName = applicationInfo.packageName;
+	//对比前缀
+	if (pkgName.startsWith("prefix name")) {}
+ }
+
+ 获取其他pkg下的Resource
+ Resources res = packageManager.getResourcesForApplication(pkgName);
+ 获取其他pkg下的Drawable
+ int mDrawableResID = res.getIdentifier(drawableName, "drawable", pkgName);
+ mTestDrawable = res.getDrawable(mDrawableResID);
+ 得到Asset资源
+ InputStream is = res.getAssets().open(fileName);
+ 
+ 
+ 在循环中，break是退出循环体，continue是结束当前这次循环开始下一次循环
+
+ 
+在viewpager中如果删除页面并删除页面的数据，再显示控件，会有部分页面显示数据为空，
+mYanPagerAdapter = mViewPager.getAdapter(); 得到Adapter
+mViewPager.setAdapter(null); 			设置Adapter为空
+mViewPager.setAdapter(mYanPagerAdapter); 再把Adapter设置回去可解决
+
+
+获得安装的包的信息列表
+        PackageManager packageManager = mContext.getPackageManager();
+        List<ApplicationInfo> appList = packageManager.getInstalledApplications(PackageManager.GET_UNINSTALLED_PACKAGES); 
+
+		
+		
+设置view的可见性：
+View.setVisibility 
+GONE：不可见，不占据位置，即原来的位置会被有fill_parent的控件占据
+INVISIBLE：不可见，占据位置，即还有宽高
+VISIBLE：可见
+
+
+在ui thread中调用view的invalidate方法可以通知view重绘制(刷新)，重绘制将调用onDraw()方法来重新绘制view
+
+得到acticity中的contentview： content=(ViewGroup)this.findViewById(android.R.id.content)
+
+在FrameLayout中，放在下面的子控件是叠在上面的，即第一个子控件是位于最底层的
+
+在android的try，catch中可以利用Exception来输出类似于程序崩溃时的错误信息，包括了错误类型(Exception类)，
+具体的错误java文件和错误行数
+	try {
+	} catch (Exception e) {
+		Log.e("getDrawable error", "Exception", e); //输出log level为error
+		e.printStackTrace();			//输出log level为warn
+	}
+	
+	
+scroll的三大状态(能滑动的控件，listview，gridview，recycleview都有)： SCROLL_STATE_IDLE, SCROLL_STATE_DRAGGING or SCROLL_STATE_SETTLING.
+IDLE指的是控件没有在滑动(SCROLL_STATE_IDLE为0)
+DRAGGING指的是控件在滑动，手指在屏幕上移动(SCROLL_STATE_DRAGGING为1)
+SETTLING指的是控件在滑动，手指已经放开屏幕，控件处于自动的动画滑动中(SCROLL_STATE_SETTLING为2)
+
+
+在recycleview中，在getItemViewType返回position就可以在onCreateViewHolder中的viewType得到position，
+这种使用方法并不是对viewType的正确使用
+        @Override
+        public int getItemViewType(int position) {
+            return position;
+        }
+
+        @Override
+        public EmojiSelectViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+        }
+		
+recycleview滑动监听，onScrolled不是滑动之后才会调用，而是在滑动时就会调用，
+个人认为应该是从一个点移动到另一个点就会调用（有待研究）
+        mScrollListener = new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+            }
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                Log.e("onScrolled", "onScrolled");
+            }
+        };
+        mRecyclerView.setOnScrollListener(mScrollListener);
+		
+
+自定义xml属性：
+(1)建立res/values/attrs.xml文件
+(2)在attrs.xml写入
+<resources>
+   <declare-styleable name="PieChart">
+       <attr name="showText" format="boolean" />
+       <attr name="labelPosition" format="enum">
+           <enum name="left" value="0"/>
+           <enum name="right" value="1"/>
+       </attr>
+   </declare-styleable>
+</resources>
+(3)使用，特别注意在gradle工程中使用： xmlns:custom="http://schemas.android.com/apk/res-auto"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:custom="http://schemas.android.com/apk/res/com.example.customviews">
+ <com.example.customviews.charting.PieChart
+     custom:showText="true"
+     custom:labelPosition="left" />
+</LinearLayout>
+(4)在带有AttributeSet的系统提供的构造方法中获取数值：
+public PieChart(Context context, AttributeSet attrs) {
+   super(context, attrs);
+   TypedArray a = context.getTheme().obtainStyledAttributes(
+        attrs,
+        R.styleable.PieChart,
+        0, 0);
+
+   try {
+       mShowText = a.getBoolean(R.styleable.PieChart_showText, false);
+       mTextPos = a.getInteger(R.styleable.PieChart_labelPosition, 0);
+   } finally {
+       a.recycle();
+   }
+}
+(5)TypedArray.getResourceId();
+可以取得format="reference" 的数值
+
+
+多点触控：
+使用 onTouchEvent方法来实现，
+action由MotionEventCompat.getActionMasked(event)方法来获取，不再使用event.getAction()方法来获取：
+action = MotionEventCompat.getActionMasked(event);
+switch (action)
+	case MotionEvent.ACTION_DOWN: //第一个点按下
+	case MotionEvent.ACTION_POINTER_DOWN: //第二个点或者之后的点按下，这时候要判断2 <= event.getPointerCount()，通常会有2个以上
+	case MotionEvent.ACTION_MOVE: 		//遍历所有的点
+		for(int i = 0; i < event.getPointerCount(); i++){
+            event.getX(i);
+            event.getY(i);
+			} 
+	case MotionEvent.ACTION_POINTER_UP: //有点离开就会调用，event.getActionIndex()获取离开的点，触点的排列顺序的从第一个按下排列到最后一个
+										//例如upPointIndex为0，就是第一个按下的点离开了屏幕；upPointIndex为2，就是第三个按下的点离开了屏幕，
+		int upPointIndex = event.getActionIndex();
+	case MotionEvent.ACTION_UP: //最后一个点离开屏幕
+
+
+
+分享图片：
+获取bitmap的URI
+                Bitmap bitmap = mDesignContainer.getDrawingCache();
+                String pathofBmp = MediaStore.Images.Media.insertImage(EditActivity.this.getContentResolver(), bitmap, null, null);
+                Uri bmpUri = Uri.parse(pathofBmp);
+
+指定包名的分享：
+                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                    shareIntent.setType("image/*");
+                    shareIntent.setPackage("com.facebook.katana");
+                    shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    shareIntent.putExtra(Intent.EXTRA_STREAM, mBitmapUri);
+                    mContext.startActivity(shareIntent);
+
+打开系统的分享列表，选择指定的分享应用：
+                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                    shareIntent.setType("image/*");
+                    shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    shareIntent.putExtra(Intent.EXTRA_STREAM, mBitmapUri);
+                    mContext.startActivity(Intent.createChooser(shareIntent, "share imger"));
+
+获取响应该分享的应用列表：
+					  Intent intent = new Intent(Intent.ACTION_SEND, null);
+					intent.addCategory(Intent.CATEGORY_DEFAULT);
+					intent.setType("image/*");
+					PackageManager pManager = EditActivity.this.getPackageManager();
+					mShareImgList = pManager.queryIntentActivities(intent, PackageManager.COMPONENT_ENABLED_STATE_DEFAULT);
+
+					
+					
+在gridview，recycleview等view中如果设置一个带有按下状态的drawable给每个item会产生按下状态混乱的BUG，
+需要给每个item都配置一个带有按下状态的drawable，例如在每次设置item时调用以下方法，赋值一个新的drawable
+
+    public static Drawable cloneDrawableWithState(Context context, Drawable origin) {
+        final Drawable.ConstantState constantStateDrawable = origin.getConstantState();
+        return (constantStateDrawable != null)
+            ? constantStateDrawable.newDrawable(context.getResources()).mutate()
+            : origin;
+    }
+					
+					
+					
+
+给edittext或searchview设置提示字符串和提示图标:
+1.构建SpannableStringBuilder或者spannableString
+SpannableStringBuilder ssb = new SpannableStringBuilder("title");
+或者 SpannableString spannableString = new SpannableString("title");
+
+2.构建ImageSpan
+ImageSpan imageHint = new ImageSpan(drawable);
+
+3.字号(可以不设)
+int textSize = (int) (searchAutoComplete.getTextSize() * 1.25);
+searchIcon.setBounds(0, 0, textSize, textSize);
+
+4.将包含了图标的ImageSpan设进去
+ssb.setSpan(new ImageSpan(searchIcon), 1, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+spannableString.setSpan(imageHint, 0, 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+
+5.设置
+mEditor.setHint(spannableString);
+
+SearchView.SearchAutoComplete searchAutoComplete = (SearchView.SearchAutoComplete) mSearchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
+searchAutoComplete.setHint(spannableString);
+
+总体：
+SpannableStringBuilder ssb = new SpannableStringBuilder("    ");
+ssb.append("hint");
+ int textSize = (int) (searchAutoComplete.getTextSize() * 1.25);
+searchIcon.setBounds(0, 0, textSize, textSize);
+ssb.setSpan(new ImageSpan(searchIcon), 1, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);	
+ searchAutoComplete.setHint(ssb);		
+ 
+注：在开发过程中遇到过想要去除searchview提示图标去除不了的情况，直接把一个字符串的id设置就可以了，例如：
+searchAutoComplete.setHint(R.string.mediapicker_gif_title);
+					
+					
+SearchView
+关闭edittext collapseActionView()
+展开edittext expandActionView()
+
+也可以对SearchView对应的MenuItem调用collapseActionView()，也可以关闭
+mSearchItem = menu.findItem(R.id.action_gif_search);
+mSearchView = (SearchView) mSearchItem.getActionView();
+
+
+onSizeChanged()方法可以获取高宽，但是不合适在获取高宽之后再利用获取的数值进行子控件的设置
+
+
+
+Fragment
+放置在Activity中，可以通过FragmentManager进行交互和管理Fragment，
+
+使用方法1：在xml中放置，Activity的onCreateView()方法设置即可 
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <fragment android:name="com.example.news.ArticleListFragment"
+            android:id="@+id/list"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+    <fragment android:name="com.example.news.ArticleReaderFragment"
+            android:id="@+id/viewer"
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+</LinearLayout>
+
+方法2：使用FragmentTransaction，其中R.id.fragment_container是一个放置fragment的layout
+
+FragmentManager fragmentManager = getFragmentManager();
+FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+ExampleFragment fragment = new ExampleFragment();
+fragmentTransaction.add(R.id.fragment_container, fragment);
+fragmentTransaction.commit();
+
+
+获取：使用find id和find tag获取fragment
+findFragmentById() 
+
+
+在设置visible时，设置layout为gone，layout的子布局的visible并不会为gone
+
+
+
+span:
+SpannableString 在setSpan时需要指定flag，以下四种中的其中一种，
+如果设置了SPAN_EXCLUSIVE_EXCLUSIVE指的是如果设置SpannableString改变字体颜色，那么在SpannableString的
+之前和之后再输入字符都不会出现改变字体颜色的效果。
+如果设置了SPAN_INCLUSIVE_INCLUSIVE指的是如果设置SpannableString改变字体颜色，那么在SpannableString的
+之前和之后再输入字符都会出现改变字体颜色的效果。
+Spanned.SPAN_EXCLUSIVE_EXCLUSIVE(前后都不包括)
+Spanned.SPAN_INCLUSIVE_EXCLUSIVE(前面包括，后面不包括)
+Spanned.SPAN_EXCLUSIVE_INCLUSIVE(前面不包括，后面包括)
+Spanned.SPAN_INCLUSIVE_INCLUSIVE(前后都包括)
+
+
+private abstract void print();  //抽象方法定义，继承该方法所在的类必须实现该方法
+
+
+在自定义的layout或者普通layout中如果设置了高宽为wrap_content，这时候再设置padding那么会挤压外部的空间
+如果设置了高宽为固定大小例如20dp，那么会挤压内部子view
+例如:
+1.wrap_content下,设置paddingTop为100dp那么layout会包裹住子view之外再变大100dp,这样会把layout之外的view挤下去
+2.设置高度10dp下,设置paddingTop为100dp那么所有子view会看不见,设置paddingTop为5dp子view会只能在layout的下半部看到,而layout的上半部会是空白的
+
+
+// 得到缩放比例，scale乘以具体的dp数等于像素值
+final float scale = context.getResources().getDisplayMetrics().density;  
+scale * dp = px
+
+
+//得到APP的内部存储空间：/data/data/your.package.name/files
+getContext().getFilesDir()
+
+
+//Adapter.notifyDataSetChanged() 调用会重新计算，即调用onMeasure
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+					
+					
+					
+					
+					
