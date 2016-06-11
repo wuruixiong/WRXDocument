@@ -1,0 +1,11 @@
+﻿
+git init 创建一个本地git仓库
+git add README.md 添加一个README.md文件
+git commit -m "first commit" 第一次提交
+git remote add origin https://github.com/wuruixiong/WRXDocument.git  将这个仓库和远程仓库绑定
+git push -u origin master  提交到远程仓库
+
+将已有的仓库和远程仓库绑定:
+git remote add origin https://github.com/wuruixiong/WRXDocument.git
+git push -u origin master
+
