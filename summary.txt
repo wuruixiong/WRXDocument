@@ -1350,7 +1350,7 @@ getContext().getFilesDir()
 
 //Adapter.notifyDataSetChanged() 调用会重新计算，即调用onMeasure
 
-
+//如果一个View由gone变为visible就会调用onMeasure
 
 
 
