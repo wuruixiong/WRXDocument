@@ -1,54 +1,54 @@
-http://192.168.0.105/crazyemoji/
+ï»¿http://192.168.0.105/crazyemoji/
 ffmpeg
 SIP
 HorizontalScrollView
 Anychat for Android
-AndroidÏµÍ³µÄ±àÒë¡¢¶¨ÖÆ¡¢¿ª·¢ºÍµ÷ÊÔ¹ı³Ì
+Androidç³»ç»Ÿçš„ç¼–è¯‘ã€å®šåˆ¶ã€å¼€å‘å’Œè°ƒè¯•è¿‡ç¨‹
 
-»Æ½ğ±ÈÀı£º(¡Ì5-1)/2  Ô¼µÈÓÚ 0.618£¬ Ô¼µÈÓÚ6:10£¬Ô¼µÈÓÚ5:8
+é»„é‡‘æ¯”ä¾‹ï¼š(âˆš5-1)/2  çº¦ç­‰äº 0.618ï¼Œ çº¦ç­‰äº6:10ï¼Œçº¦ç­‰äº5:8
 
-·ÃÎÊ¿ØÖÆ·û(access specifier):public private protected
-ANRs (¡°Application Not Responding¡±)
+è®¿é—®æ§åˆ¶ç¬¦(access specifier):public private protected
+ANRs (â€œApplication Not Respondingâ€)
 
-new A() ÊÇÎªÄäÃû¶ÔÏó
+new A() æ˜¯ä¸ºåŒ¿åå¯¹è±¡
 
-InputStreamÖ¸µÄÊÇÔÚÊı¾İÁ÷ÖĞµÄÊı¾İ¶ÁÈëµ½Ö¸¶¨objectÊÇÎªInput£¬Í¨³£Ê¹ÓÃInputStream.read
-OutputStreamÖ¸µÄÊÇ½«Êı¾İÊä³öµ½OutputStreamÖĞ£¬ÊÇÎªOutput£¬Í¨³£Ê¹ÓÃOutputStream.write
+InputStreamæŒ‡çš„æ˜¯åœ¨æ•°æ®æµä¸­çš„æ•°æ®è¯»å…¥åˆ°æŒ‡å®šobjectæ˜¯ä¸ºInputï¼Œé€šå¸¸ä½¿ç”¨InputStream.read
+OutputStreamæŒ‡çš„æ˜¯å°†æ•°æ®è¾“å‡ºåˆ°OutputStreamä¸­ï¼Œæ˜¯ä¸ºOutputï¼Œé€šå¸¸ä½¿ç”¨OutputStream.write
 
-float¸¡µãÀàĞÍ£¬Ö»ÓĞÔÚÊıÖµºóÃæ¼Óf¾ÍÊÇ¸¡µãÊıÖµ£¬ÀıÈç0.5f
+floatæµ®ç‚¹ç±»å‹ï¼Œåªæœ‰åœ¨æ•°å€¼åé¢åŠ få°±æ˜¯æµ®ç‚¹æ•°å€¼ï¼Œä¾‹å¦‚0.5f
 
-javaÈıÄ¿ÔËËã£º
+javaä¸‰ç›®è¿ç®—ï¼š
 a ? b:c
-aÎªÕæ·µ»Øb£¬Îª¼Ù·µ»Øc
+aä¸ºçœŸè¿”å›bï¼Œä¸ºå‡è¿”å›c
 
 
-Èı½Çº¯Êı¹«Ê½Ê¹ÓÃ£¬Math.PIÎªÔ²ÖÜÂÊ£¬1¶ÈÎª¦Ğ/180»¡¶È
-Math.sin((30) * Math.PI / 180) = 0.49999999 //sin30¶È£¬Ô¼µÈÓÚ0.5
-Math.sin(30) ÊÇÖ¸sin30»¡¶È
-Math.asin(0.49999999)¿ÉÒÔµÃµ½·´sinµÄÊıÖµ£º0.52359877(Õâ¾ÍÊÇ30¶ÈµÄÖµ£º30*Math.PI/180 == 0.52359877)
-Math.asin(0.49999999)*180/Math.PI = 30   //Ò²¿ÉÒÔÊ¹ÓÃtoDegrees()À´µÃµ½½Ç¶È£¬toDegrees()Ò²ÊÇÊ¹ÓÃÁË ÊıÖµ³ËÒÔ180ÔÙ³ıÒÔÔ²ÖÜÂÊµÄ¼ÆËã¹«Ê½µÄ
+ä¸‰è§’å‡½æ•°å…¬å¼ä½¿ç”¨ï¼ŒMath.PIä¸ºåœ†å‘¨ç‡ï¼Œ1åº¦ä¸ºÏ€/180å¼§åº¦
+Math.sin((30) * Math.PI / 180) = 0.49999999 //sin30åº¦ï¼Œçº¦ç­‰äº0.5
+Math.sin(30) æ˜¯æŒ‡sin30å¼§åº¦
+Math.asin(0.49999999)å¯ä»¥å¾—åˆ°åsinçš„æ•°å€¼ï¼š0.52359877(è¿™å°±æ˜¯30åº¦çš„å€¼ï¼š30*Math.PI/180 == 0.52359877)
+Math.asin(0.49999999)*180/Math.PI = 30   //ä¹Ÿå¯ä»¥ä½¿ç”¨toDegrees()æ¥å¾—åˆ°è§’åº¦ï¼ŒtoDegrees()ä¹Ÿæ˜¯ä½¿ç”¨äº† æ•°å€¼ä¹˜ä»¥180å†é™¤ä»¥åœ†å‘¨ç‡çš„è®¡ç®—å…¬å¼çš„
 
 
-javaÕûĞÍµÄÓë¡¢»ò¡¢·Ç¡¢Òì»òÔËËã£º
-¼ÆËãÖ®Ç°½«10½øÖÆ×ªÎª2½øÖÆ£¬¶ÔÃ¿Î»½øĞĞÔËËã
-ÀıÈç£º1Óë2¾ÍÊÇ2½øÖÆµÄ£º1Óë10½á¹ûÎª0
+javaæ•´å‹çš„ä¸ã€æˆ–ã€éã€å¼‚æˆ–è¿ç®—ï¼š
+è®¡ç®—ä¹‹å‰å°†10è¿›åˆ¶è½¬ä¸º2è¿›åˆ¶ï¼Œå¯¹æ¯ä½è¿›è¡Œè¿ç®—
+ä¾‹å¦‚ï¼š1ä¸2å°±æ˜¯2è¿›åˆ¶çš„ï¼š1ä¸10ç»“æœä¸º0
 129-->10000001
 128-->10000000
-128|129 -->10000001 ½á¹û129
-Òì»ò¾ÍÊÇÏàÍ¬ÎªÕæ²»ÏàÍ¬Îª¼Ù£¬1ºÍ1¡¢0ºÍ0Òì»ò¶¼ÎªÕæ
+128|129 -->10000001 ç»“æœ129
+å¼‚æˆ–å°±æ˜¯ç›¸åŒä¸ºçœŸä¸ç›¸åŒä¸ºå‡ï¼Œ1å’Œ1ã€0å’Œ0å¼‚æˆ–éƒ½ä¸ºçœŸ
 
 
-½«×Ö·û´®×ªÎªÕûĞÍ£¬×ÊÔ´
+å°†å­—ç¬¦ä¸²è½¬ä¸ºæ•´å‹ï¼Œèµ„æº
     Field field=R.drawable.class.getField("icon");
     int drawable= field.getInt(new R.drawable());
 	
 	
 	
-Èç¹û×Ô¶¨ÒålayoutÖĞÓĞEditText£¬µã»÷EditText»áµ¯³öÊäÈë·¨£¬´ËÊ±»áµ÷ÓÃ×Ô¶¨Òålayout»òviewµÄonMeasure·½·¨£¬
-ËùÒÔ£¬Ê¹ÓÃ´Ë²ßÂÔ¿ÉÒÔ¼àÌıÊäÈë·¨µ¯³ö
+å¦‚æœè‡ªå®šä¹‰layoutä¸­æœ‰EditTextï¼Œç‚¹å‡»EditTextä¼šå¼¹å‡ºè¾“å…¥æ³•ï¼Œæ­¤æ—¶ä¼šè°ƒç”¨è‡ªå®šä¹‰layoutæˆ–viewçš„onMeasureæ–¹æ³•ï¼Œ
+æ‰€ä»¥ï¼Œä½¿ç”¨æ­¤ç­–ç•¥å¯ä»¥ç›‘å¬è¾“å…¥æ³•å¼¹å‡º
 
 
-ĞŞ¸Ä´úÂëÊ±£¬ÈôÏëÒª»ñÈ¡Ö®Ç°viewµÄÅäÖÃ£¬ÀıÈçÍ¼Æ¬¡¢ÑÕÉ«¡¢×ÖºÅµÈ£¬¿ÉÒÔµ÷ÊÔ£¬»ñÈ¡Ö®Ç°viewµÄĞÅÏ¢£¬Í¨¹ıview²éÕÒÅäÖÃ
+ä¿®æ”¹ä»£ç æ—¶ï¼Œè‹¥æƒ³è¦è·å–ä¹‹å‰viewçš„é…ç½®ï¼Œä¾‹å¦‚å›¾ç‰‡ã€é¢œè‰²ã€å­—å·ç­‰ï¼Œå¯ä»¥è°ƒè¯•ï¼Œè·å–ä¹‹å‰viewçš„ä¿¡æ¯ï¼Œé€šè¿‡viewæŸ¥æ‰¾é…ç½®
 	
 
 public
@@ -63,70 +63,70 @@ synchronized
 native
 strictfp
 
-ÕûĞÍÃ»³õÊ¼»¯ÖµÎª0
-×Ö·û´®Ã»ÓĞ³õÊ¼»¯ÖµÎªnull
-¼´£º
-    String mText;//ÖµÎª0
-    int mInt;	 //ÖµÎªnull
+æ•´å‹æ²¡åˆå§‹åŒ–å€¼ä¸º0
+å­—ç¬¦ä¸²æ²¡æœ‰åˆå§‹åŒ–å€¼ä¸ºnull
+å³ï¼š
+    String mText;//å€¼ä¸º0
+    int mInt;	 //å€¼ä¸ºnull
 
-×Ö·û´®²Ù×÷£º
-StringClip.isEmpty();  // ÅĞ¶ÏÎª¿Õ
+å­—ç¬¦ä¸²æ“ä½œï¼š
+StringClip.isEmpty();  // åˆ¤æ–­ä¸ºç©º
 
-StringClip.length() ; //³¤¶È
+StringClip.length() ; //é•¿åº¦
 
-StringClip.equals(new String); //±È½ÏÊÇ·ñÏàµÈ
+StringClip.equals(new String); //æ¯”è¾ƒæ˜¯å¦ç›¸ç­‰
 
-×Ö·û´®ºÍcharÊı×é»¥×ª
+å­—ç¬¦ä¸²å’Œcharæ•°ç»„äº’è½¬
 String str = "ggg";
 char[] bm;
 bm = str.toCharArray();
 str = String.valueOf(bm);
 
-¸¡µã³ı·¨ÔËËã£¬¼Ó(float)Ç¿×ªÊÇ¹Ø¼ü
+æµ®ç‚¹é™¤æ³•è¿ç®—ï¼ŒåŠ (float)å¼ºè½¬æ˜¯å…³é”®
 float wratio = (float)mViewWidth / mBackgroundBitmap.getWidth();
-int×ªfloat
+intè½¬float
 Math.round(mBackgroundBitmap.getHeight() * wratio))
 
-Double×ªint
+Doubleè½¬int
        Double d = 10d;
        int mBorderRadius = d.intValue();
 
 
-listview¼Ì³Ğ×ÔAbsListView£¬AbsListViewÖĞ·â×°ÁË¶ÔviewµÄ»ØÊÕ´¦Àí£¬Ê¹ÓÃsetRecyclerListener¶Ôview±»»ØÊÕÊ±×ö³ö´¦Àí
+listviewç»§æ‰¿è‡ªAbsListViewï¼ŒAbsListViewä¸­å°è£…äº†å¯¹viewçš„å›æ”¶å¤„ç†ï¼Œä½¿ç”¨setRecyclerListenerå¯¹viewè¢«å›æ”¶æ—¶åšå‡ºå¤„ç†
 
-ÔÚÊ¹ÓÃlistview£¬recycleviewµÈ½øĞĞÇ¶Ì×Ê±£¬ÏµÍ³±¾Éí²»»á¶ÔÀïÃæµÄlistview½øĞĞ¿í¸ß¼ÆËã£¬ËùÒÔÒªÊÖ¶¯¼ÆËã¿í¸ß£¬²¢ÉèÖÃÀïÃæµÄlistview
+åœ¨ä½¿ç”¨listviewï¼Œrecycleviewç­‰è¿›è¡ŒåµŒå¥—æ—¶ï¼Œç³»ç»Ÿæœ¬èº«ä¸ä¼šå¯¹é‡Œé¢çš„listviewè¿›è¡Œå®½é«˜è®¡ç®—ï¼Œæ‰€ä»¥è¦æ‰‹åŠ¨è®¡ç®—å®½é«˜ï¼Œå¹¶è®¾ç½®é‡Œé¢çš„listview
 
-¼´Ê¹ÊÇÔÚ×Ô¶¨ÒåviewÖĞÖØĞ´onTouchEvent£¬ËûËùÏìÓ¦µ½µÄÇø¼äÒ²ÊÇËûµÄ¸¸²¼¾Ö£¬¼´Ëù²úÉúµÄ×ø±êÊÇ¸¸²¼¾ÖµÄÏà¶Ô×ø±ê¶ø²»ÊÇÕû¸öÆÁÄ»¾ø¶ÔµÄ×ø±ê£¬
-ËùÒÔ¶Ô×Ô¶¨ÒåviewµÄTouchEvent×ö³öÏìÓ¦£¬Ó¦¸ÃÅĞ¶ÏÊÇ²»ÊÇviewµÄÇø¼ä
-ÔÚview µÄOnTouchListenerÊÂ¼şÖĞ£¬Èô·µ»ØFALSEÔò¼ÌĞøÏòÉÏ´«µİ£¬Èô·µ»ØTRUEÔòÓÖ¼àÌı·½·¨´¦Àí
-¼´Èç¹ûÏëÒª´¦ÀímoveÒÆ¶¯ÊÂ¼ş»òÕßupµ¯ÆğÊÂ¼şÒª·µ»ØTRUE
-ÓĞĞ©¿Ø¼ş£¬ÀıÈçcheckbox£¬¼´Ê¹²»ÉèÖÃclick¼àÌıÒ²»á¶Ôµã»÷×÷³öÏìÓ¦£¬ÕâÊ±ĞèÒªÔÚ¿Ø¼şÖĞ¼ÓÈë
+å³ä½¿æ˜¯åœ¨è‡ªå®šä¹‰viewä¸­é‡å†™onTouchEventï¼Œä»–æ‰€å“åº”åˆ°çš„åŒºé—´ä¹Ÿæ˜¯ä»–çš„çˆ¶å¸ƒå±€ï¼Œå³æ‰€äº§ç”Ÿçš„åæ ‡æ˜¯çˆ¶å¸ƒå±€çš„ç›¸å¯¹åæ ‡è€Œä¸æ˜¯æ•´ä¸ªå±å¹•ç»å¯¹çš„åæ ‡ï¼Œ
+æ‰€ä»¥å¯¹è‡ªå®šä¹‰viewçš„TouchEventåšå‡ºå“åº”ï¼Œåº”è¯¥åˆ¤æ–­æ˜¯ä¸æ˜¯viewçš„åŒºé—´
+åœ¨view çš„OnTouchListeneräº‹ä»¶ä¸­ï¼Œè‹¥è¿”å›FALSEåˆ™ç»§ç»­å‘ä¸Šä¼ é€’ï¼Œè‹¥è¿”å›TRUEåˆ™åˆç›‘å¬æ–¹æ³•å¤„ç†
+å³å¦‚æœæƒ³è¦å¤„ç†moveç§»åŠ¨äº‹ä»¶æˆ–è€…upå¼¹èµ·äº‹ä»¶è¦è¿”å›TRUE
+æœ‰äº›æ§ä»¶ï¼Œä¾‹å¦‚checkboxï¼Œå³ä½¿ä¸è®¾ç½®clickç›‘å¬ä¹Ÿä¼šå¯¹ç‚¹å‡»ä½œå‡ºå“åº”ï¼Œè¿™æ—¶éœ€è¦åœ¨æ§ä»¶ä¸­åŠ å…¥
 android:focusable="false"
 android:focusableInTouchMode="false"
-´ËÊ±¾Í»áºÍlistview±¾ÉíµÄµã»÷»¥²»Ó°Ïì
+æ­¤æ—¶å°±ä¼šå’Œlistviewæœ¬èº«çš„ç‚¹å‡»äº’ä¸å½±å“
 
 
-¿ÉÒÔÔÚcanvasÖĞÍ¨¹ı¿ØÖÆ¾ØÕóMatrixÀ´¿ØÖÆĞı×ªrotateºÍËõ·Åscale
-ÔÚÊ¹ÓÃMatrix´¦ÀíbitmapĞı×ª¡¢Ëõ·Å¡¢Æ½ÒÆÊ±£¬Æ½ÒÆ»áºÍĞı×ª¡¢Ëõ·Å³åÍ»£¬µ¼ÖÂÖ»ÄÜÖ´ĞĞÆäÖĞÒ»¸ö£¬
-¿ÉÒÔÏÈÊ¹ÓÃMatrix.setTranslateÉèÖÃÆ½ÒÆ¾àÀë£¬ÔÙÊ¹ÓÃMatrix.postRotate¡¢Matrix.postScaleÀ´´¦Àí³åÍ»ÎÊÌâ
+å¯ä»¥åœ¨canvasä¸­é€šè¿‡æ§åˆ¶çŸ©é˜µMatrixæ¥æ§åˆ¶æ—‹è½¬rotateå’Œç¼©æ”¾scale
+åœ¨ä½¿ç”¨Matrixå¤„ç†bitmapæ—‹è½¬ã€ç¼©æ”¾ã€å¹³ç§»æ—¶ï¼Œå¹³ç§»ä¼šå’Œæ—‹è½¬ã€ç¼©æ”¾å†²çªï¼Œå¯¼è‡´åªèƒ½æ‰§è¡Œå…¶ä¸­ä¸€ä¸ªï¼Œ
+å¯ä»¥å…ˆä½¿ç”¨Matrix.setTranslateè®¾ç½®å¹³ç§»è·ç¦»ï¼Œå†ä½¿ç”¨Matrix.postRotateã€Matrix.postScaleæ¥å¤„ç†å†²çªé—®é¢˜
 
 
-ÊµÀı»¯Êı×é£º String res_randomstr[?];//ÎÊºÅÊÇ±íÊ¾´´½¨¼¸¸öÔªËØ£¬
-	    res_randomstr=new String[10];//ÀıÈç£ºÏÂ±êÎªres_randomstr[0]µ½res_randomstr[9]¹²10¸ö
+å®ä¾‹åŒ–æ•°ç»„ï¼š String res_randomstr[?];//é—®å·æ˜¯è¡¨ç¤ºåˆ›å»ºå‡ ä¸ªå…ƒç´ ï¼Œ
+	    res_randomstr=new String[10];//ä¾‹å¦‚ï¼šä¸‹æ ‡ä¸ºres_randomstr[0]åˆ°res_randomstr[9]å…±10ä¸ª
 		
-Êı×é¶¨Òå£º 1.private String[] text = {"t", "t", "t"}; //¿ÉÒÔÔÚÀàÖ®ÄÚ·½·¨Ö®ÍâÈç´Ë¶¨Òå£¬Êı×étext»áÓĞ3¸öÔªËØ   
+æ•°ç»„å®šä¹‰ï¼š 1.private String[] text = {"t", "t", "t"}; //å¯ä»¥åœ¨ç±»ä¹‹å†…æ–¹æ³•ä¹‹å¤–å¦‚æ­¤å®šä¹‰ï¼Œæ•°ç»„textä¼šæœ‰3ä¸ªå…ƒç´    
 
-		   2.private String[] text;			     //´ËÊ±textÊı×éÎª¿Õ
-		     text = new String[]{"t", "t", "t"}; //ÔÚ·½·¨Ö®ÄÚ ÊµÀı»¯, textÊı×éÓĞÈı¸öÔªËØ  
+		   2.private String[] text;			     //æ­¤æ—¶textæ•°ç»„ä¸ºç©º
+		     text = new String[]{"t", "t", "t"}; //åœ¨æ–¹æ³•ä¹‹å†… å®ä¾‹åŒ–, textæ•°ç»„æœ‰ä¸‰ä¸ªå…ƒç´   
 			 
-		   3.private String[] text;	// ¶¨ÒåÊı×étext, ´ËÊ±textÊı×éÎª¿Õ
-		     text = new String[2];  //Ò²¿ÉÒÔÔÚ·½·¨Ö®ÄÚÊµÀı»¯, textÊı×éÓĞÈı¸öÔªËØ, µ«ÊÇÈı¸öÔªËØ¶¼Îª¿Õ 
-			 text[0] = "t"			// ¶ÔµÚÒ»¸öÔªËØ¸³Öµ
+		   3.private String[] text;	// å®šä¹‰æ•°ç»„text, æ­¤æ—¶textæ•°ç»„ä¸ºç©º
+		     text = new String[2];  //ä¹Ÿå¯ä»¥åœ¨æ–¹æ³•ä¹‹å†…å®ä¾‹åŒ–, textæ•°ç»„æœ‰ä¸‰ä¸ªå…ƒç´ , ä½†æ˜¯ä¸‰ä¸ªå…ƒç´ éƒ½ä¸ºç©º 
+			 text[0] = "t"			// å¯¹ç¬¬ä¸€ä¸ªå…ƒç´ èµ‹å€¼
  
-Êı×é³¤¶È£ºint grid_id[][];
-	grid_id.length//ÓĞ¼¸¸öÊı¾İ¾ÍÓĞ¼¸¸ö,¼´µÚÒ»Î¬µÄ³¤¶È
-2Î¬Êı×éÔªËØ³¤¶È:   grid_id[].length
-Êä³ö2Î¬Êı×éËùÓĞÊı¾İ£º     
+æ•°ç»„é•¿åº¦ï¼šint grid_id[][];
+	grid_id.length//æœ‰å‡ ä¸ªæ•°æ®å°±æœ‰å‡ ä¸ª,å³ç¬¬ä¸€ç»´çš„é•¿åº¦
+2ç»´æ•°ç»„å…ƒç´ é•¿åº¦:   grid_id[].length
+è¾“å‡º2ç»´æ•°ç»„æ‰€æœ‰æ•°æ®ï¼š     
            for(int i=0;i<grid_id.length;i++)
                 {
                     for(int j=0;j<grid_id[i].length;j++) {
@@ -136,77 +136,77 @@ android:focusableInTouchMode="false"
 
 				
 
-ÔÚÏß³ÌµÄÊ¹ÓÃ¹ı³ÌÖĞ£¬ÒªÌØ±ğ×¢ÒâÏß³ÌÍ¬²½µÄÎÊÌâ£¬
-ÀıÈç£ºÔÚÏß³ÌÖĞ±éÀúÁĞ±ílist£¬Èç¹ûÆäËûÏß³Ì¶ÔÁĞ±ílist½øĞĞ É¾³ı²Ù×÷£¬Ôò¿ÉÄÜ³öÏÖ ÏÂ±êÒç³ö¡¢¿ÕÖ¸ÕëµÈ´íÎó
-·½·¨1£ºÈç¹ûÁĞ±ílistÔÚÖ÷Ïß³Ì´´½¨£¬ÔòÔÚÖ÷Ïß³ÌÖĞ¸´ÖÆ¶à¸öÁĞ±ílist£¬ÔÙ×÷Îª²ÎÊı¸³¸ø¸÷¸öÏß³Ì
+åœ¨çº¿ç¨‹çš„ä½¿ç”¨è¿‡ç¨‹ä¸­ï¼Œè¦ç‰¹åˆ«æ³¨æ„çº¿ç¨‹åŒæ­¥çš„é—®é¢˜ï¼Œ
+ä¾‹å¦‚ï¼šåœ¨çº¿ç¨‹ä¸­éå†åˆ—è¡¨listï¼Œå¦‚æœå…¶ä»–çº¿ç¨‹å¯¹åˆ—è¡¨listè¿›è¡Œ åˆ é™¤æ“ä½œï¼Œåˆ™å¯èƒ½å‡ºç° ä¸‹æ ‡æº¢å‡ºã€ç©ºæŒ‡é’ˆç­‰é”™è¯¯
+æ–¹æ³•1ï¼šå¦‚æœåˆ—è¡¨liståœ¨ä¸»çº¿ç¨‹åˆ›å»ºï¼Œåˆ™åœ¨ä¸»çº¿ç¨‹ä¸­å¤åˆ¶å¤šä¸ªåˆ—è¡¨listï¼Œå†ä½œä¸ºå‚æ•°èµ‹ç»™å„ä¸ªçº¿ç¨‹
 
-·½·¨2£ºÊ¹ÓÃÏß³ÌÍ¬²½synchronizedËø×¡list£¬ÔÚÊ¹ÓÃµ½listµÄµØ·½¶¼½«listÊ¹ÓÃsynchronizedËø×¡
+æ–¹æ³•2ï¼šä½¿ç”¨çº¿ç¨‹åŒæ­¥synchronizedé”ä½listï¼Œåœ¨ä½¿ç”¨åˆ°listçš„åœ°æ–¹éƒ½å°†listä½¿ç”¨synchronizedé”ä½
 
-·½·¨3£ºÊ¹ÓÃÏß³ÌÍ¬²½synchronizedËø×¡·½·¨£¬·â×°list£¬½«listÓÃÁíÍâµÄÀàA ·â×°£¬ÔÚ¸ÃÀàAµÄÊµÀı»¯¶ÔÏóÖĞ¶Ôlist²Ù×÷£¬
-	   ÆäËûÏß³ÌÍ¨¹ı²Ù×÷ÀàAµÄÊµÀı»¯¶ÔÏóÀ´¶Ôlist²Ù×÷£¬ ÔÚÀàAÖĞµÄ²Ù×÷listµÄ·½·¨methodÇ°¼ÓÈësynchronized£¬½«²Ù×÷listµÄ·½·¨Ëø×¡£¬
-	   ¿ÉÒÔ·ÀÖ¹¶à¸öÏß³ÌÍ¬Ê±²Ù×÷¸Ã·½·¨£¬ÕâÑùÒ²¾ÍÊÇ¶Ôlist²Ù×÷ÊµÏÖÁËÏß³ÌÍ¬²½
+æ–¹æ³•3ï¼šä½¿ç”¨çº¿ç¨‹åŒæ­¥synchronizedé”ä½æ–¹æ³•ï¼Œå°è£…listï¼Œå°†listç”¨å¦å¤–çš„ç±»A å°è£…ï¼Œåœ¨è¯¥ç±»Açš„å®ä¾‹åŒ–å¯¹è±¡ä¸­å¯¹listæ“ä½œï¼Œ
+	   å…¶ä»–çº¿ç¨‹é€šè¿‡æ“ä½œç±»Açš„å®ä¾‹åŒ–å¯¹è±¡æ¥å¯¹listæ“ä½œï¼Œ åœ¨ç±»Aä¸­çš„æ“ä½œlistçš„æ–¹æ³•methodå‰åŠ å…¥synchronizedï¼Œå°†æ“ä½œlistçš„æ–¹æ³•é”ä½ï¼Œ
+	   å¯ä»¥é˜²æ­¢å¤šä¸ªçº¿ç¨‹åŒæ—¶æ“ä½œè¯¥æ–¹æ³•ï¼Œè¿™æ ·ä¹Ÿå°±æ˜¯å¯¹listæ“ä½œå®ç°äº†çº¿ç¨‹åŒæ­¥
 				
 				
-ÊµÀı»¯±í£º ArrayList list;
+å®ä¾‹åŒ–è¡¨ï¼š ArrayList list;
 	 list=new ArrayList();
-Ôö¼Ó²Ù×÷£ºadd£¨n£©£»´Ó0¿ªÊ¼¼ÓÈë
-É¾³ı²Ù×÷£ºremove£¨n£©
-È¡³ö²Ù×÷£ºget£¨n£©£»´Ó0¿ªÊ¼È¡³öÀıÈç£ºget£¨0£©£¬get£¨1£©£¬get£¨2£©
-¼ÆËã³¤¶È£ºlist.size();ÓĞ¼¸¸öÊı¾İ¾ÍÓĞ¼¸¸ö£¬Èç¹ûadd3´Î£¬list.size£¨£©¾ÍÊÇ3
-±íÖĞµÄÔªËØ×ª»»intÀàĞÍ£ºInteger.valueOf(String.valueOf(list.get(n))).intValue();
-±íÖĞµÄÔªËØ×ª»»StringÀàĞÍ£ºString.valueOf(list.get(n));
+å¢åŠ æ“ä½œï¼šaddï¼ˆnï¼‰ï¼›ä»0å¼€å§‹åŠ å…¥
+åˆ é™¤æ“ä½œï¼šremoveï¼ˆnï¼‰
+å–å‡ºæ“ä½œï¼šgetï¼ˆnï¼‰ï¼›ä»0å¼€å§‹å–å‡ºä¾‹å¦‚ï¼šgetï¼ˆ0ï¼‰ï¼Œgetï¼ˆ1ï¼‰ï¼Œgetï¼ˆ2ï¼‰
+è®¡ç®—é•¿åº¦ï¼šlist.size();æœ‰å‡ ä¸ªæ•°æ®å°±æœ‰å‡ ä¸ªï¼Œå¦‚æœadd3æ¬¡ï¼Œlist.sizeï¼ˆï¼‰å°±æ˜¯3
+è¡¨ä¸­çš„å…ƒç´ è½¬æ¢intç±»å‹ï¼šInteger.valueOf(String.valueOf(list.get(n))).intValue();
+è¡¨ä¸­çš„å…ƒç´ è½¬æ¢Stringç±»å‹ï¼šString.valueOf(list.get(n));
 
-Éú³ÉËæ»úÊı£º Random r = new Random();
-	     r.nextInt(9);//Éú³É´Ó0µ½8
-	   r.nextInt(n);//Éú³É´Ó0µ½n-1
+ç”Ÿæˆéšæœºæ•°ï¼š Random r = new Random();
+	     r.nextInt(9);//ç”Ÿæˆä»0åˆ°8
+	   r.nextInt(n);//ç”Ÿæˆä»0åˆ°n-1
 
-´´½¨Ïß³Ì£º  
+åˆ›å»ºçº¿ç¨‹ï¼š  
   private class Mythread extends Thread
     {
         int scount;
         int slevel;
-//¹¹Ôì·½·¨
+//æ„é€ æ–¹æ³•
         private Mythread(int count,int level)
         {
            scount=count;
             slevel=level;
         }
-//ÖØĞ´run·½·¨
+//é‡å†™runæ–¹æ³•
         @Override
         public void run(){
             
         }
     }
 
-×îºó£ºMythreadÊµÀı»¯Ö®ºó.start
+æœ€åï¼šMythreadå®ä¾‹åŒ–ä¹‹å.start
 
-´´½¨Ïß³Ì2
-       //ÊµÀı»¯½è¿Ú
-¡¡¡¡class MutliThread implements Runnable{
+åˆ›å»ºçº¿ç¨‹2
+       //å®ä¾‹åŒ–å€Ÿå£
+ã€€ã€€class MutliThread implements Runnable{
       @Override
-¡¡¡¡public void run(){}
-¡¡¡¡}
+ã€€ã€€public void run(){}
+ã€€ã€€}
       MutliThread m3=new MutliThread();
       Thread t1=new Thread(m1);
-      t1.start£»
+      t1.startï¼›
 
 
-Ö÷Ïß³ÌÖĞ´´½¨handler£¬Ö÷ÒªÓÃÀ´ĞŞ¸ÄUI½çÃæ
+ä¸»çº¿ç¨‹ä¸­åˆ›å»ºhandlerï¼Œä¸»è¦ç”¨æ¥ä¿®æ”¹UIç•Œé¢
 Handler handler;
 onCreate
 {
 	handler=new Handler();
 }
-//½Ó×ÅÔÚÈÎÒâµØ·½
-handler.post(new runable(¿ÉÒÔ´«Èë²ÎÊı));
-//¶¨ÒåÒ»¸öRunnable
+//æ¥ç€åœ¨ä»»æ„åœ°æ–¹
+handler.post(new runable(å¯ä»¥ä¼ å…¥å‚æ•°));
+//å®šä¹‰ä¸€ä¸ªRunnable
 private class runable implements Runnable
     {
-        //¹¹Ôì·½·¨
+        //æ„é€ æ–¹æ³•
         private runable()
         {
         }
-//ÊµÀı»¯Runnable½è¿Ú±ØĞëÊµÏÖµÄ
+//å®ä¾‹åŒ–Runnableå€Ÿå£å¿…é¡»å®ç°çš„
         @Override
         public void run(){
         }
@@ -214,24 +214,24 @@ private class runable implements Runnable
 	
 	
 
-Í¨¹ıÊ¹ÓÃmessageµ÷ÓÃhandle
+é€šè¿‡ä½¿ç”¨messageè°ƒç”¨handle
         Handler mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
             }
         };
-µ÷ÓÃ£º
+è°ƒç”¨ï¼š
 mHandler.sendEmptyMessage(0);
-×¢£ºÒ»°ã·¢ËÍµÄÊÇMessage£¬ÔÚhandleMessage()·½·¨ÖĞÅĞ¶ÏMessage£¬Ö´ĞĞ²»Í¬µÄ´úÂë¶Î
+æ³¨ï¼šä¸€èˆ¬å‘é€çš„æ˜¯Messageï¼Œåœ¨handleMessage()æ–¹æ³•ä¸­åˆ¤æ–­Messageï¼Œæ‰§è¡Œä¸åŒçš„ä»£ç æ®µ
 
 
-ÔÚandroidÊ¹ÓÃhandler.post(runnable)£¬²¢²»»á¿ªÆôĞÂµÄÏß³Ì£¬¶øÊÇ½«ÏûÏ¢Ñ¹µ½mainÏß³ÌÊ¹ÓÃµÄÏûÏ¢³ØÖĞ£¬
-ËùÒÔhandler.post»¹ÊÇÔÚÖ÷Ïß³ÌÖĞ£¬
-¿ÉÒÔÊ¹ÓÃThread.currentThread().getId()»òÕßThread.currentThread().getName()À´È·¶¨µ±Ç°Ïß³Ì£¬
+åœ¨androidä½¿ç”¨handler.post(runnable)ï¼Œå¹¶ä¸ä¼šå¼€å¯æ–°çš„çº¿ç¨‹ï¼Œè€Œæ˜¯å°†æ¶ˆæ¯å‹åˆ°mainçº¿ç¨‹ä½¿ç”¨çš„æ¶ˆæ¯æ± ä¸­ï¼Œ
+æ‰€ä»¥handler.postè¿˜æ˜¯åœ¨ä¸»çº¿ç¨‹ä¸­ï¼Œ
+å¯ä»¥ä½¿ç”¨Thread.currentThread().getId()æˆ–è€…Thread.currentThread().getName()æ¥ç¡®å®šå½“å‰çº¿ç¨‹ï¼Œ
 
-¶øÊ¹ÓÃ  Thread thread = new Thread(runnable);thread.start(); ²ÅÊÇ¿ªÆôÒ»¸öĞÂµÄÏß³Ì£¬
+è€Œä½¿ç”¨  Thread thread = new Thread(runnable);thread.start(); æ‰æ˜¯å¼€å¯ä¸€ä¸ªæ–°çš„çº¿ç¨‹ï¼Œ
  
-  ¶øÊ¹ÓÃÒÔÏÂ·¢ËÍMessageµÄ·½·¨Ò²ÊÇÔÚÖ÷Ïß³Ìµ±×öÖ´ĞĞ
+  è€Œä½¿ç”¨ä»¥ä¸‹å‘é€Messageçš„æ–¹æ³•ä¹Ÿæ˜¯åœ¨ä¸»çº¿ç¨‹å½“åšæ‰§è¡Œ
             Handler handler = new Handler(new Handler.Callback() {
                 @Override
                 public boolean handleMessage(Message msg) {
@@ -241,7 +241,7 @@ mHandler.sendEmptyMessage(0);
             });
             handler.sendEmptyMessage(1);
 
-¼´Ê¹ÊÇÔÚÏß³ÌÖĞ·¢ËÍÏûÏ¢£¬×îºóhandleµÄÖ´ĞĞÒ²ÊÇÔÚÖ÷Ïß³Ìµ±ÖĞ
+å³ä½¿æ˜¯åœ¨çº¿ç¨‹ä¸­å‘é€æ¶ˆæ¯ï¼Œæœ€åhandleçš„æ‰§è¡Œä¹Ÿæ˜¯åœ¨ä¸»çº¿ç¨‹å½“ä¸­
             final Handler handler = new Handler(new Handler.Callback() {
                 @Override
                 public boolean handleMessage(Message msg) {
@@ -258,7 +258,7 @@ mHandler.sendEmptyMessage(0);
             Thread thread = new Thread(runnable2);
             thread.start();
 
-¿ÉÒÔÊ¹ÓÃÌØÊâÏß³ÌHandlerThread,¿ÉÒÔºÜºÃµÄºÍhandle½áºÏÔÚÒ»ÆğÊ¹ÓÃ
+å¯ä»¥ä½¿ç”¨ç‰¹æ®Šçº¿ç¨‹HandlerThread,å¯ä»¥å¾ˆå¥½çš„å’Œhandleç»“åˆåœ¨ä¸€èµ·ä½¿ç”¨
             mWorkThread = new HandlerThread("threadname");
             mWorkThread.start();
             Handler workHandler = new Handler(mWorkThread.getLooper(), new Handler.Callback() {
@@ -270,63 +270,63 @@ mHandler.sendEmptyMessage(0);
             workHandler.sendEmptyMessage(1);
 			
 			
-×ÛÉÏ£¬¼ÓÔØÊı¾İÊ¹ÓÃThread¿ªÆôÒ»¸öÏß³Ì£¬¼ÓÔØÍê³ÉÖ®ºó£¬ÔÚÏß³Ìµ±ÖĞsend»òÕßpost£¬handleÏûÏ¢£¬
-Í¨ÖªÖ÷Ïß³ÌĞŞ¸Ä½çÃæ¡£
+ç»¼ä¸Šï¼ŒåŠ è½½æ•°æ®ä½¿ç”¨Threadå¼€å¯ä¸€ä¸ªçº¿ç¨‹ï¼ŒåŠ è½½å®Œæˆä¹‹åï¼Œåœ¨çº¿ç¨‹å½“ä¸­sendæˆ–è€…postï¼Œhandleæ¶ˆæ¯ï¼Œ
+é€šçŸ¥ä¸»çº¿ç¨‹ä¿®æ”¹ç•Œé¢ã€‚
 
 
-ÖÜ±¨£º
-2014.12.15-2014.12.19 ÖÜ±¨¡ª¡ªxxx
+å‘¨æŠ¥ï¼š
+2014.12.15-2014.12.19 å‘¨æŠ¥â€”â€”xxx
 
 ------------------ Original ------------------
-From:  "ÎâÈñĞÛ"<wuruixiong@emojikeyboard.mobi>;
+From:  "å´é”é›„"<wuruixiong@emojikeyboard.mobi>;
 Date:  Fri, Dec 19, 2014 02:32 PM
 To:  "houhuihua"<houhuihua@emojikeyboard.mobi>;
-Subject:  Ò»ÖÜ¹¤×÷×Ü½á±¨¸æ-ÎâÈñĞÛ
+Subject:  ä¸€å‘¨å·¥ä½œæ€»ç»“æŠ¥å‘Š-å´é”é›„
 
-xxxÏÈÉú
-¡¡¡¡ÄúºÃ£º
-ÎÒÒòÑ§Ğ£¿ÎÒµÔ­Òò£¬ÓÚ2015Äê4ÔÂ17ÈÕ½«ÔÚÑ§Ğ£½øĞĞÌåÄÜ¿¼ÊÔ£¬ÎŞ·¨°´Ê±ÉÏ°à£¬ÌØÏòxxxÏÈÉúÔÚ2015Äê4ÔÂ17ÈÕÇë¼ÙÒ»Ìì£¬ÇëxxxÏÈÉúÅú×¼¡£
-¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡ª¡ªÇë¼ÙÈË£ºÎâÈñĞÛ
-¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡2015Äê4ÔÂ16ÈÕ
+xxxå…ˆç”Ÿ
+ã€€ã€€æ‚¨å¥½ï¼š
+æˆ‘å› å­¦æ ¡è¯¾ä¸šåŸå› ï¼Œäº2015å¹´4æœˆ17æ—¥å°†åœ¨å­¦æ ¡è¿›è¡Œä½“èƒ½è€ƒè¯•ï¼Œæ— æ³•æŒ‰æ—¶ä¸Šç­ï¼Œç‰¹å‘xxxå…ˆç”Ÿåœ¨2015å¹´4æœˆ17æ—¥è¯·å‡ä¸€å¤©ï¼Œè¯·xxxå…ˆç”Ÿæ‰¹å‡†ã€‚
+ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€â€”â€”è¯·å‡äººï¼šå´é”é›„
+ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€ã€€2015å¹´4æœˆ16æ—¥
  
 
-Math.max(13,90)//·µ»Ø90
-Math.min(13,90)//·µ»Ø13
+Math.max(13,90)//è¿”å›90
+Math.min(13,90)//è¿”å›13
 
 
-¸Ä±ä±³¾°ÑÕÉ«£º
-ÕâÑùÊäÈë£º              layout.setBackgroundColor(Color.parseColor("#ffff00"));
-»òÕßÕâÑùÊäÈë£º           layout.setBackgroundColor(0xFF6db7ff);
-0xFF6db7ffÊÇAndroidÖĞÌØÊâµÄ16½øÖÆÑÕÉ«±àÂë£¬FF±íÊ¾µÄÊÇÍ¸Ã÷¶È£¬6db7ff±íÊ¾ÑÕÉ«±àÂë
-±í´ïÊ½Ë³ĞòÊÇ¡°aabbggrr¡±£¬ÆäÖĞ¡°aa=alpha¡±£¨00 µ½ ff,00Í¸Ã÷¶ÈÎª0£¬ffÍ¸Ã÷¶ÈÎª100%£©£»¡°bb=blue¡±£¨00 µ½ ff£©£»¡°gg=green¡±£¨00 µ½ ff)£»¡°rr=red¡±£¨00 µ½ ff£©
+æ”¹å˜èƒŒæ™¯é¢œè‰²ï¼š
+è¿™æ ·è¾“å…¥ï¼š              layout.setBackgroundColor(Color.parseColor("#ffff00"));
+æˆ–è€…è¿™æ ·è¾“å…¥ï¼š           layout.setBackgroundColor(0xFF6db7ff);
+0xFF6db7ffæ˜¯Androidä¸­ç‰¹æ®Šçš„16è¿›åˆ¶é¢œè‰²ç¼–ç ï¼ŒFFè¡¨ç¤ºçš„æ˜¯é€æ˜åº¦ï¼Œ6db7ffè¡¨ç¤ºé¢œè‰²ç¼–ç 
+è¡¨è¾¾å¼é¡ºåºæ˜¯â€œaabbggrrâ€ï¼Œå…¶ä¸­â€œaa=alphaâ€ï¼ˆ00 åˆ° ff,00é€æ˜åº¦ä¸º0ï¼Œffé€æ˜åº¦ä¸º100%ï¼‰ï¼›â€œbb=blueâ€ï¼ˆ00 åˆ° ffï¼‰ï¼›â€œgg=greenâ€ï¼ˆ00 åˆ° ff)ï¼›â€œrr=redâ€ï¼ˆ00 åˆ° ffï¼‰
 
 
-return Ìø³öÓĞ·µ»ØÖµµÄ·½·¨       
-        return ;//¿ÉÒÔÍË³övoid·½·¨
-break Ìø³öµ±Ç°Ñ­»·£¬Èç¹ûÔÚswitchÖĞ£¬Åöµ½break£¬»áÍË³öswitch
+return è·³å‡ºæœ‰è¿”å›å€¼çš„æ–¹æ³•       
+        return ;//å¯ä»¥é€€å‡ºvoidæ–¹æ³•
+break è·³å‡ºå½“å‰å¾ªç¯ï¼Œå¦‚æœåœ¨switchä¸­ï¼Œç¢°åˆ°breakï¼Œä¼šé€€å‡ºswitch
 
 
-java ´úÂëĞŞ¸Ä¿Ø¼ş¸ß¿í
+java ä»£ç ä¿®æ”¹æ§ä»¶é«˜å®½
         RelativeLayout.LayoutParams params=new RelativeLayout.LayoutParams((gwidth-40)/glistcount,(int)((gwidth-40)/glinecount*0.99));
-//new RelativeLayout.LayoutParams(40,40);ÏñËØÖµ
-//new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,RelativeLayout.LayoutParams.WRAP_CONTENT);×ÔÊÊÓ¦
-        ¿Ø¼ş.setLayoutParams(params);
+//new RelativeLayout.LayoutParams(40,40);åƒç´ å€¼
+//new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,RelativeLayout.LayoutParams.WRAP_CONTENT);è‡ªé€‚åº”
+        æ§ä»¶.setLayoutParams(params);
 
 
-androidÑÕÉ«color.xmlÉèÖÃ  
+androidé¢œè‰²color.xmlè®¾ç½®  
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<color name="white">#FFFFFF</color><!--°×É« -->
+<color name="white">#FFFFFF</color><!--ç™½è‰² -->
 </resources>
 
 
-¼ÆÊ±Æ÷¿Ø¼şchronometer
-chronometer.getText()µÃµ½Ê±¼ä
-chronometer.stop();½áÊø
-chronometer.start();¿ªÊ¼
-chronometer.setBase(SystemClock.elapsedRealtime());ÉèÊ©¿ªÊ¼Ê±¼äÎª00:00
+è®¡æ—¶å™¨æ§ä»¶chronometer
+chronometer.getText()å¾—åˆ°æ—¶é—´
+chronometer.stop();ç»“æŸ
+chronometer.start();å¼€å§‹
+chronometer.setBase(SystemClock.elapsedRealtime());è®¾æ–½å¼€å§‹æ—¶é—´ä¸º00:00
 
-³ÁË¯£º
+æ²‰ç¡ï¼š
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -335,23 +335,23 @@ chronometer.setBase(SystemClock.elapsedRealtime());ÉèÊ©¿ªÊ¼Ê±¼äÎª00:00
 
 
 
-WindowManager£º
-//Ê¹ÓÃÊ±¼ÓÈëĞí¿É
+WindowManagerï¼š
+//ä½¿ç”¨æ—¶åŠ å…¥è®¸å¯
 //<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     WindowManager wmManager;
     WindowManager.LayoutParams wmParams;
         wmManager=(WindowManager) getSystemService(Context.WINDOW_SERVICE);
         wmParams = new WindowManager.LayoutParams();
         /**
-         *ÒÔÏÂ¶¼ÊÇWindowManager.LayoutParamsµÄÏà¹ØÊôĞÔ
-         * ¾ßÌåÓÃÍ¾Çë²Î¿¼SDKÎÄµµ
+         *ä»¥ä¸‹éƒ½æ˜¯WindowManager.LayoutParamsçš„ç›¸å…³å±æ€§
+         * å…·ä½“ç”¨é€”è¯·å‚è€ƒSDKæ–‡æ¡£
          */
-        wmParams.type=2002;   //ÕâÀïÊÇ¹Ø¼ü£¬ÄãÒ²¿ÉÒÔÊÔÊÔ2003
+        wmParams.type=2002;   //è¿™é‡Œæ˜¯å…³é”®ï¼Œä½ ä¹Ÿå¯ä»¥è¯•è¯•2003
         wmParams.format=1;
         /**
-         *ÕâÀïµÄflagsÒ²ºÜ¹Ø¼ü
-         *´úÂëÊµ¼ÊÊÇwmParams.flags |= FLAG_NOT_FOCUSABLE;
-         *40µÄÓÉÀ´ÊÇwmParamsµÄÄ¬ÈÏÊôĞÔ£¨32£©+ FLAG_NOT_FOCUSABLE£¨8£©
+         *è¿™é‡Œçš„flagsä¹Ÿå¾ˆå…³é”®
+         *ä»£ç å®é™…æ˜¯wmParams.flags |= FLAG_NOT_FOCUSABLE;
+         *40çš„ç”±æ¥æ˜¯wmParamsçš„é»˜è®¤å±æ€§ï¼ˆ32ï¼‰+ FLAG_NOT_FOCUSABLEï¼ˆ8ï¼‰
          */
         wmParams.flags=80;
 
@@ -371,18 +371,18 @@ WindowManager£º
 
 
 
-µ¼º½À¸¸ß¶È£º
+å¯¼èˆªæ é«˜åº¦ï¼š
 ActionBar actionBar;
 actionBar=getActionBar();
 actionBar.getHeight();
 
-//µÃµ½gridviewµÄ×ÓÊÓÍ¼
-gridview.getChildAt(ÌîÈëÏÂ±ê)
+//å¾—åˆ°gridviewçš„å­è§†å›¾
+gridview.getChildAt(å¡«å…¥ä¸‹æ ‡)
 
-PreferenceScreenµã»÷Ö®ºóÃ»ÓĞactionbarÊÇÒòÎªÃ»ÓĞÉèÖÃtitleÊôĞÔµÄÔ­Òò
-µ±¹¤³ÌÊ§È¥RÎÄ¼şÊ±ÖØĞÂ±àÒë¾Í»á³öÏÖÒ»¸öĞÂµÄRÎÄ¼ş
+PreferenceScreenç‚¹å‡»ä¹‹åæ²¡æœ‰actionbaræ˜¯å› ä¸ºæ²¡æœ‰è®¾ç½®titleå±æ€§çš„åŸå› 
+å½“å·¥ç¨‹å¤±å»Ræ–‡ä»¶æ—¶é‡æ–°ç¼–è¯‘å°±ä¼šå‡ºç°ä¸€ä¸ªæ–°çš„Ræ–‡ä»¶
 
-    //ÉèÖÃÈ«±³¾°ÎªÒ»ÕÅÍ¼£¬°üÀ¨actionbar
+    //è®¾ç½®å…¨èƒŒæ™¯ä¸ºä¸€å¼ å›¾ï¼ŒåŒ…æ‹¬actionbar
     private void setBackgrounnd() {
         Activity context =this;
         ViewGroup root =  (ViewGroup)context.getWindow().getDecorView();
@@ -393,32 +393,32 @@ PreferenceScreenµã»÷Ö®ºóÃ»ÓĞactionbarÊÇÒòÎªÃ»ÓĞÉèÖÃtitleÊôĞÔµÄÔ­Òò
     }
 
 
-×Ô¶¨ÒåViewµÄ¼àÌı»Øµ÷»úÖÆ
+è‡ªå®šä¹‰Viewçš„ç›‘å¬å›è°ƒæœºåˆ¶
 
 public class colorpick extends View{
 
-£¨1£©ÔÚ×Ô¶¨ÒåViewµÄÀàÄÚÔ¤Áô½Ó¿Ú
+ï¼ˆ1ï¼‰åœ¨è‡ªå®šä¹‰Viewçš„ç±»å†…é¢„ç•™æ¥å£
  public interface OnColorChangedListener {
         void colorChanged(int color);
     }
 
-£¨2£©ÔÚ×Ô¶¨ÒåViewµÄÀàÄÚ´´½¨Ò»¸ö¸Ã½Ó¿Ú
+ï¼ˆ2ï¼‰åœ¨è‡ªå®šä¹‰Viewçš„ç±»å†…åˆ›å»ºä¸€ä¸ªè¯¥æ¥å£
 private OnColorChangedListener mListener;
 
-£¨3£©ÔÚ¹¹Ôì·½·¨ÖĞ¶Ô´´½¨µÄ½Ó¿Ú¸³Öµ
+ï¼ˆ3ï¼‰åœ¨æ„é€ æ–¹æ³•ä¸­å¯¹åˆ›å»ºçš„æ¥å£èµ‹å€¼
     public colorpick(Context context,
                              OnColorChangedListener listener,
                              int initialColor) {
         mListener = listener;
     }
 
-£¨5£©ÖÁ´Ë£¬¾Í¿ÉÒÔÔÚViewµÄÄÚ²¿µ÷ÓÃÊµÀı»¯ºÃµÄ½Ó¿Ú£¬ÈçÏÂ£¬¶ÔmListener.colorChangedÊäÈë0xff0000ffµÄ²ÎÊı£¬ÒòÎªmListenerÔÚ¹¹Ôì·½·¨ÖĞ±»¸³Öµ£¬Ïàµ±ÓÚÍâ²¿¶¨ÒåµÄcolorpick¸³Öµ¸øÁËmListener£¬
-        ËùÒÔ£¬mListenerµÄcolorChanged·½·¨»áÓĞLog.w("color is "+color,"color is "+color);µÄÓï¾ä£¬»áÔÚ¿ØÖÆÌ¨Êä³ölog
+ï¼ˆ5ï¼‰è‡³æ­¤ï¼Œå°±å¯ä»¥åœ¨Viewçš„å†…éƒ¨è°ƒç”¨å®ä¾‹åŒ–å¥½çš„æ¥å£ï¼Œå¦‚ä¸‹ï¼Œå¯¹mListener.colorChangedè¾“å…¥0xff0000ffçš„å‚æ•°ï¼Œå› ä¸ºmListeneråœ¨æ„é€ æ–¹æ³•ä¸­è¢«èµ‹å€¼ï¼Œç›¸å½“äºå¤–éƒ¨å®šä¹‰çš„colorpickèµ‹å€¼ç»™äº†mListenerï¼Œ
+        æ‰€ä»¥ï¼ŒmListenerçš„colorChangedæ–¹æ³•ä¼šæœ‰Log.w("color is "+color,"color is "+color);çš„è¯­å¥ï¼Œä¼šåœ¨æ§åˆ¶å°è¾“å‡ºlog
 
 	mListener.colorChanged(0xff0000ff);
 }
 
-£¨4£©ÔÚÍâ²¿´´½¨×Ô¶¨ÒåView
+ï¼ˆ4ï¼‰åœ¨å¤–éƒ¨åˆ›å»ºè‡ªå®šä¹‰View
                 colorpick colorpick1= new colorpick(testactivity.this, new colorpick.OnColorChangedListener() {
                     @Override
                     public void colorChanged(int color) {
@@ -429,9 +429,9 @@ private OnColorChangedListener mListener;
 
 
 
-»ìºÏäÖÈ¾ComposeShaderÏÔÊ¾ÎŞĞ§¹ûÊ±£¬ĞèÒªÔÚÅäÖÃÎÄ¼şÖĞ¼ÓÈë
+æ··åˆæ¸²æŸ“ComposeShaderæ˜¾ç¤ºæ— æ•ˆæœæ—¶ï¼Œéœ€è¦åœ¨é…ç½®æ–‡ä»¶ä¸­åŠ å…¥
 <activity android:hardwareAccelerated="false" />
-»òÕß
+æˆ–è€…
 <application android:hardwareAccelerated="false" >
 
 
@@ -439,9 +439,9 @@ private OnColorChangedListener mListener;
 
 
 
-»ñÈ¡×Ô¶¨ÒåviewµÄÑÕÉ«Öµ
+è·å–è‡ªå®šä¹‰viewçš„é¢œè‰²å€¼
 	int pixel;
-	View view£»
+	View viewï¼›
 	Bitmap bitmap;
                 view.buildDrawingCache();
                 bitmap = view.getDrawingCache();
@@ -449,7 +449,7 @@ private OnColorChangedListener mListener;
 
 
 
-ÉèÖÃEditTextµÄÊäÈë·¶Î§
+è®¾ç½®EditTextçš„è¾“å…¥èŒƒå›´
     private void setRegion_0_255(final EditText et)
     {
         final int MIN_MARK = 0;
@@ -497,7 +497,7 @@ private OnColorChangedListener mListener;
                         }
                         if (markVal > MAX_MARK)
                         {
-                            Toast.makeText(getBaseContext(), "ÊäÈë·¶Î§0-255", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getBaseContext(), "è¾“å…¥èŒƒå›´0-255", Toast.LENGTH_SHORT).show();
                             et.setText(String.valueOf(MAX_MARK));
                         }
                         return;
@@ -509,7 +509,7 @@ private OnColorChangedListener mListener;
 
 
 
-ÅĞ¶ÏEditTextÖĞÊÇ·ñÓĞ×Ö·û´®
+åˆ¤æ–­EditTextä¸­æ˜¯å¦æœ‰å­—ç¬¦ä¸²
 
                 if(TextUtils.isEmpty(rEditText.getText()))
                 {
@@ -524,15 +524,15 @@ private OnColorChangedListener mListener;
                 }
 
 
-µ÷½Ú±ß¾à¿ÉÒÔ³¢ÊÔpaddingºÍmargin
+è°ƒèŠ‚è¾¹è·å¯ä»¥å°è¯•paddingå’Œmargin
 
 
-match_parent,ÔÚandroidÏßĞÔ²¼¾ÖÖĞ±È½Ï¿ÉÒÔÉúĞ§£¬ĞèÒª¼ÓÉÏ  
+match_parent,åœ¨androidçº¿æ€§å¸ƒå±€ä¸­æ¯”è¾ƒå¯ä»¥ç”Ÿæ•ˆï¼Œéœ€è¦åŠ ä¸Š  
 android:layout_weight="1"
 
 
-×Ô¶¨Òå¿Ø¼ş£¬onMeasure¿ÉÒÔÉèÖÃ¿Õ¼äµÄ´óĞ¡,Ö»ÓĞµ±ËùÔÚµÄ¿Ø¼şÉèÖÃÎªmatch_parentÊ±²ÅÄÜÓĞÊıÖµ£¬
-¶øÉèÖÃwrap_contentÊ±widthMeasureSpecºÍheightMeasureSpecÊÇÃ»ÓĞÊıÖµµÄ£¬ÒòÎªwrap_contentÊÇ×Ô¼º¼ÆËã¿í¶ÈºÍ¸ß¶ÈµÄ¡£
+è‡ªå®šä¹‰æ§ä»¶ï¼ŒonMeasureå¯ä»¥è®¾ç½®ç©ºé—´çš„å¤§å°,åªæœ‰å½“æ‰€åœ¨çš„æ§ä»¶è®¾ç½®ä¸ºmatch_parentæ—¶æ‰èƒ½æœ‰æ•°å€¼ï¼Œ
+è€Œè®¾ç½®wrap_contentæ—¶widthMeasureSpecå’ŒheightMeasureSpecæ˜¯æ²¡æœ‰æ•°å€¼çš„ï¼Œå› ä¸ºwrap_contentæ˜¯è‡ªå·±è®¡ç®—å®½åº¦å’Œé«˜åº¦çš„ã€‚
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         w=measure(widthMeasureSpec);
@@ -560,32 +560,32 @@ android:layout_weight="1"
 
 
 android:digits
-Ö¸¶¨½ÓÊÜ¹Ì¶¨µÄÊı×Ö£¬Èçandroid:digits="012345"£¬ÔòÖ»½ÓÊÜ0¡«5Êı×ÖµÄÊäÈë
+æŒ‡å®šæ¥å—å›ºå®šçš„æ•°å­—ï¼Œå¦‚android:digits="012345"ï¼Œåˆ™åªæ¥å—0ï½5æ•°å­—çš„è¾“å…¥
 
 
-contextÆô¶¯Activity
+contextå¯åŠ¨Activity
  getContext().startActivity(intent);
-»òÕßmContext.startActivity(intent);
+æˆ–è€…mContext.startActivity(intent);
 
 
-    Ê¹ÓÃ±ğµÄ°üµÄ×ÊÔ´£º
-²»°ÑÍ¼Æ¬·ÅÔÚres/drawableÏÂ£¬¶øÊÇ´æ·ÅÔÚsrcÄ³¸öpackageÖĞ£¨Èç£ºcom.drawable.resource£©£¬ÕâÖÖÇé¿öÏÂµÄµ÷ÓÃ·½·¨Îª£º 
+    ä½¿ç”¨åˆ«çš„åŒ…çš„èµ„æºï¼š
+ä¸æŠŠå›¾ç‰‡æ”¾åœ¨res/drawableä¸‹ï¼Œè€Œæ˜¯å­˜æ”¾åœ¨srcæŸä¸ªpackageä¸­ï¼ˆå¦‚ï¼šcom.drawable.resourceï¼‰ï¼Œè¿™ç§æƒ…å†µä¸‹çš„è°ƒç”¨æ–¹æ³•ä¸ºï¼š 
 String path = "com/drawable/resource/imageName.png"; 
 InputStream is = getClassLoader().getResourceAsStream(path); 
 Drawable.createFromStream(is, "src"); 
 
-Èç¹û»¹ÊÇÏ£ÍûÖ±½ÓÊ¹ÓÃres/drawableÖĞµÄÍ¼Æ¬£¬¾ÍĞèÒªÍ¨¹ıÏÂÃæµÄ·½·¨ÁË£º 
-¼ÙÉè´´½¨¹¤³ÌµÄÊ±ºò£¬ÌîĞ´µÄpackageÃû×ÖÎª£ºcom.test.image 
+å¦‚æœè¿˜æ˜¯å¸Œæœ›ç›´æ¥ä½¿ç”¨res/drawableä¸­çš„å›¾ç‰‡ï¼Œå°±éœ€è¦é€šè¿‡ä¸‹é¢çš„æ–¹æ³•äº†ï¼š 
+å‡è®¾åˆ›å»ºå·¥ç¨‹çš„æ—¶å€™ï¼Œå¡«å†™çš„packageåå­—ä¸ºï¼šcom.test.image 
 int resID = getResources().getIdentifier("imageName", "drawable", "com.test.image"); 
 Drawable image = getResources().getDrawable(resID);
 
 
-JSONµÄ2ÖÖ¸ñÊ½£º
-1¡¢¶ÔÏó£º¶ÔÏóÔÚjsÖĞ±íÊ¾Îª¡°{}¡±À¨ÆğÀ´µÄÄÚÈİ£¬Êı¾İ½á¹¹Îª {key£ºvalue,key£ºvalue,...}µÄ¼üÖµ¶ÔµÄ½á¹¹£¬ÔÚÃæÏò¶ÔÏóµÄÓïÑÔÖĞ£¬keyÎª¶ÔÏóµÄÊôĞÔ£¬valueÎª¶ÔÓ¦µÄÊôĞÔÖµ£¬ËùÒÔºÜÈİÒ×Àí½â£¬È¡Öµ·½·¨Îª ¶ÔÏó.key »ñÈ¡ÊôĞÔÖµ£¬Õâ¸öÊôĞÔÖµµÄÀàĞÍ¿ÉÒÔÊÇ Êı×Ö¡¢×Ö·û´®¡¢Êı×é¡¢¶ÔÏó¼¸ÖÖ¡£
-2¡¢Êı×é£ºÊı×éÔÚjsÖĞÊÇÖĞÀ¨ºÅ¡°[]¡±À¨ÆğÀ´µÄÄÚÈİ£¬Êı¾İ½á¹¹Îª ["java","javascript","vb",...]£¬È¡Öµ·½Ê½ºÍËùÓĞÓïÑÔÖĞÒ»Ñù£¬Ê¹ÓÃË÷Òı»ñÈ¡£¬×Ö¶ÎÖµµÄÀàĞÍ¿ÉÒÔÊÇ Êı×Ö¡¢×Ö·û´®¡¢Êı×é¡¢¶ÔÏó¼¸ÖÖ¡£
+JSONçš„2ç§æ ¼å¼ï¼š
+1ã€å¯¹è±¡ï¼šå¯¹è±¡åœ¨jsä¸­è¡¨ç¤ºä¸ºâ€œ{}â€æ‹¬èµ·æ¥çš„å†…å®¹ï¼Œæ•°æ®ç»“æ„ä¸º {keyï¼švalue,keyï¼švalue,...}çš„é”®å€¼å¯¹çš„ç»“æ„ï¼Œåœ¨é¢å‘å¯¹è±¡çš„è¯­è¨€ä¸­ï¼Œkeyä¸ºå¯¹è±¡çš„å±æ€§ï¼Œvalueä¸ºå¯¹åº”çš„å±æ€§å€¼ï¼Œæ‰€ä»¥å¾ˆå®¹æ˜“ç†è§£ï¼Œå–å€¼æ–¹æ³•ä¸º å¯¹è±¡.key è·å–å±æ€§å€¼ï¼Œè¿™ä¸ªå±æ€§å€¼çš„ç±»å‹å¯ä»¥æ˜¯ æ•°å­—ã€å­—ç¬¦ä¸²ã€æ•°ç»„ã€å¯¹è±¡å‡ ç§ã€‚
+2ã€æ•°ç»„ï¼šæ•°ç»„åœ¨jsä¸­æ˜¯ä¸­æ‹¬å·â€œ[]â€æ‹¬èµ·æ¥çš„å†…å®¹ï¼Œæ•°æ®ç»“æ„ä¸º ["java","javascript","vb",...]ï¼Œå–å€¼æ–¹å¼å’Œæ‰€æœ‰è¯­è¨€ä¸­ä¸€æ ·ï¼Œä½¿ç”¨ç´¢å¼•è·å–ï¼Œå­—æ®µå€¼çš„ç±»å‹å¯ä»¥æ˜¯ æ•°å­—ã€å­—ç¬¦ä¸²ã€æ•°ç»„ã€å¯¹è±¡å‡ ç§ã€‚
 
-JSON½âÎö
-·â×°²¢´æ´¢³ÉÎÄ¼ş£º
+JSONè§£æ
+å°è£…å¹¶å­˜å‚¨æˆæ–‡ä»¶ï¼š
             JSONObject object = new JSONObject();
             try {
                 object.put("Common1", "#ffffffff");
@@ -612,7 +612,7 @@ JSON½âÎö
                 e.printStackTrace();
             }
 
-¶ÁÈ¡JSONÎÄ¼ş
+è¯»å–JSONæ–‡ä»¶
             try {
                 FileInputStream fis =context.openFileInput(FileName);
                 byte[] buff=new byte[1024];
@@ -630,7 +630,7 @@ JSON½âÎö
             {
             }
 
-½«ÉÏÃæµÄ·µ»ØÖµ£¨×Ö·û´®ĞÍ£©×ª³ÉJSONTokener £¬Ê¹ÓÃJSONObject ²éÕÒÊı¾İ£¬sd.toString()¾ÍÊÇJSONµÄÊı¾İ¸ñÊ½
+å°†ä¸Šé¢çš„è¿”å›å€¼ï¼ˆå­—ç¬¦ä¸²å‹ï¼‰è½¬æˆJSONTokener ï¼Œä½¿ç”¨JSONObject æŸ¥æ‰¾æ•°æ®ï¼Œsd.toString()å°±æ˜¯JSONçš„æ•°æ®æ ¼å¼
         try {
             JSONTokener jsonTokener = new JSONTokener(sd.toString());
             JSONObject jsonObject = (JSONObject) jsonTokener.nextValue();
@@ -639,30 +639,30 @@ JSON½âÎö
         }
 		
 		
-JSONÊı×é·â×°£º
+JSONæ•°ç»„å°è£…ï¼š
 JSONObject person = new JSONObject();  
 JSONArray phone = new JSONArray();  
 phone.put("12345678").put("87654321");  
 person.put("phone", phone); 
 
-JSONÊı×é¶ÁÈ¡£º
+JSONæ•°ç»„è¯»å–ï¼š
 String t={"initial":"R","name":"reiz","likes":["JavaScript","Skiing","Apple Pie"]}
 JSONObject.fromObject(t)
-JSONArray likes=jo.getJSONArray("likes"); //µÃµ½likesÊı×é
-like.getString(2);                        //µÃµ½likesÊı×éµÚÈı¸ö
+JSONArray likes=jo.getJSONArray("likes"); //å¾—åˆ°likesæ•°ç»„
+like.getString(2);                        //å¾—åˆ°likesæ•°ç»„ç¬¬ä¸‰ä¸ª
 
 
-×Ô¶¨Òålayout
-Ê¹ÓÃÒÔÏÂ·½·¨¼ÓÔØ²¼¾Ö£¬Îª¿Ø¼şÕÒµ½ID
+è‡ªå®šä¹‰layout
+ä½¿ç”¨ä»¥ä¸‹æ–¹æ³•åŠ è½½å¸ƒå±€ï¼Œä¸ºæ§ä»¶æ‰¾åˆ°ID
        LayoutInflater inflater=(LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       inflater.inflate(R.layout.editkeyboard_layout, this);
         upButton = (Button)findViewById(R.id.up) ;
-»òÕß£¨ÆäÊµ¶¼Ò»Ñù£©
+æˆ–è€…ï¼ˆå…¶å®éƒ½ä¸€æ ·ï¼‰
        LayoutInflater inflater=LayoutInflater.from(mContext);
         View contextVie=inflater.inflate(R.layout.editkeyboard_layout, EditKeyboardLayout.this);
         upButton = (Button)contextVie.findViewById(R.id.up) ;
 		
-ÔÚ×Ô¶¨ÒålayoutÖĞÊ¹ÓÃmerge±êÇ©À´°üº¬×Ó¿Ø¼ş£¬ÀıÈç£º
+åœ¨è‡ªå®šä¹‰layoutä¸­ä½¿ç”¨mergeæ ‡ç­¾æ¥åŒ…å«å­æ§ä»¶ï¼Œä¾‹å¦‚ï¼š
 <merge
     xmlns:android="http://schemas.android.com/apk/res/android">
     <ImageButton/>
@@ -675,7 +675,7 @@ like.getString(2);                        //µÃµ½likesÊı×éµÚÈı¸ö
 
 
 
-ÊäÈë·¨ºÍEditTextµÄ¹â±êÒÆ¶¯£¬Ñ¡Ôñ£¬Õ³Ìù£¬É¾³ı£º
+è¾“å…¥æ³•å’ŒEditTextçš„å…‰æ ‡ç§»åŠ¨ï¼Œé€‰æ‹©ï¼Œç²˜è´´ï¼Œåˆ é™¤ï¼š
 
 
 	EditText:
@@ -788,8 +788,8 @@ like.getString(2);                        //µÃµ½likesÊı×éµÚÈı¸ö
 
 
 
-	ÊäÈë·¨:
-	Í¨¹ı·¢ËÍKeyEventÖ´ĞĞ¹â±êÒÆ¶¯²Ù×÷£¬Í¨¹ıµÃµ½getCurrentInputConnection¶øµÃµ½µ±Ç°¹â±êÎ»ÖÃ²¢¿ÉÖ´ĞĞ²åÈëÕ³Ìù°å×Ö·û´®µÄ²Ù×÷
+	è¾“å…¥æ³•:
+	é€šè¿‡å‘é€KeyEventæ‰§è¡Œå…‰æ ‡ç§»åŠ¨æ“ä½œï¼Œé€šè¿‡å¾—åˆ°getCurrentInputConnectionè€Œå¾—åˆ°å½“å‰å…‰æ ‡ä½ç½®å¹¶å¯æ‰§è¡Œæ’å…¥ç²˜è´´æ¿å­—ç¬¦ä¸²çš„æ“ä½œ
 
     public void startSelect(){
         thisInputConnection = mLatinIME.getCurrentInputConnection();
@@ -910,8 +910,8 @@ like.getString(2);                        //µÃµ½likesÊı×éµÚÈı¸ö
 
 
 
-ÔÚAndroidManifestÖĞ
-android:launchMode ¿ØÖÆactivitiyµ¯³ö·½Ê½ 
+åœ¨AndroidManifestä¸­
+android:launchMode æ§åˆ¶activitiyå¼¹å‡ºæ–¹å¼ 
 
 
 
@@ -924,14 +924,14 @@ int hour = t.hour; // 0-23
 int minute = t.minute;  
 int second = t.second;  
 
-1ÔÂ·İt.monthÎª0£¬µÚÒ»Ììt.yearDayÎª0
+1æœˆä»½t.monthä¸º0ï¼Œç¬¬ä¸€å¤©t.yearDayä¸º0
 
 
 
 
-·´Éä»úÖÆ£º
-			·½·¨ÎŞ²ÎÊı£º
-				»ñÈ¡·½·¨£º
+åå°„æœºåˆ¶ï¼š
+			æ–¹æ³•æ— å‚æ•°ï¼š
+				è·å–æ–¹æ³•ï¼š
                 Class iInputMethodWrapper = service.getClass();
                 try {
                     Method getInternalInputMethod = iInputMethodWrapper.getMethod("getInternalInputMethod",null);
@@ -939,13 +939,13 @@ int second = t.second;
                     e.printStackTrace();
                 }
 				
-				 Ö´ĞĞ·½·¨£º
+				 æ‰§è¡Œæ–¹æ³•ï¼š
 				 getInternalInputMethod.invoke("iInputMethodWrapper",null)
 
 
 
 
-×ÓViewÍÑÀë¸¸ViewÔÙ¼ÓÈëĞÂView£º
+å­Viewè„±ç¦»çˆ¶Viewå†åŠ å…¥æ–°Viewï¼š
         InputView view = (InputView)mKeyboardSwitcher.getInputView();
         if (view.getParent() != null) {
             ViewGroup parent = (ViewGroup)view.getParent();
@@ -956,7 +956,7 @@ int second = t.second;
 
 
 	
-ÆÁÄ»¿í¶È£º	
+å±å¹•å®½åº¦ï¼š	
 	WindowManager wm = (WindowManager) getContext()
                     .getSystemService(Context.WINDOW_SERVICE);
  
@@ -964,68 +964,68 @@ int second = t.second;
      int height = wm.getDefaultDisplay().getHeight();
 
 	 
-TextViewÎÄ×Ö¾ÓÖĞ£º
-1.ÔÚxmlÎÄ¼şÉèÖÃ£ºandroid:gravity="center"
-2.ÔÚ³ÌĞòÖĞÉèÖÃ£ºm_TxtTitle.setGravity(Gravity.CENTER);
+TextViewæ–‡å­—å±…ä¸­ï¼š
+1.åœ¨xmlæ–‡ä»¶è®¾ç½®ï¼šandroid:gravity="center"
+2.åœ¨ç¨‹åºä¸­è®¾ç½®ï¼šm_TxtTitle.setGravity(Gravity.CENTER);
 
-TextViews´ÓdimenÖĞ»ñÈ¡×ÖºÅ
+TextViewsä»dimenä¸­è·å–å­—å·
         mGetPaintTextView = new TextView(mContext);
         mGetPaintTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, mContext.getResources().getDimension(R.dimen.yantext_size));
 
 
 popupwindow:
-´´½¨£º
-viewÊÇÊ²Ã´²¼¾Ö²ÎÊı2ºÍ3µÄLayoutParams¿ÉÒÔ²ÉÓÃÊ²Ã´£¬Ò²¿ÉÒÔÌîÈë¹Ì¶¨ÕûĞÍÊıÖµ
+åˆ›å»ºï¼š
+viewæ˜¯ä»€ä¹ˆå¸ƒå±€å‚æ•°2å’Œ3çš„LayoutParamså¯ä»¥é‡‡ç”¨ä»€ä¹ˆï¼Œä¹Ÿå¯ä»¥å¡«å…¥å›ºå®šæ•´å‹æ•°å€¼
 mPopupWindow = new PopupWindow(view, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 
-¸½×ÅÃªµãÏÔÊ¾£ºmPopupWindow.showAsDropDown(mButton);
-showAsDropDownÓĞ²»Í¬µÄº¯ÊıÌá¹©ÖØÔØ
-mPopupWindow.dismiss();Òş²Ø
+é™„ç€é”šç‚¹æ˜¾ç¤ºï¼šmPopupWindow.showAsDropDown(mButton);
+showAsDropDownæœ‰ä¸åŒçš„å‡½æ•°æä¾›é‡è½½
+mPopupWindow.dismiss();éšè—
 
- ´´½¨PopupWindow
-     ²½Öè1£º³õÊ¼»¯
+ åˆ›å»ºPopupWindow
+     æ­¥éª¤1ï¼šåˆå§‹åŒ–
 	 PopupWindow popupWindow = new PopupWindow();
-	 ²½Öè2£ºÉèÖÃContentView
+	 æ­¥éª¤2ï¼šè®¾ç½®ContentView
         LayoutInflater layoutInflater = LayoutInflater.from(mContext);
         View view1 = layoutInflater.inflate(R.layout.yantext_listview_item_layout, null);
         TextView textView = (TextView) view1.findViewById(R.id.yantext_view1);
         textView.setText("sfksidfxdhgsdghsrhgrg");
         popupWindow.setContentView(view1);
-	²½Öè3£ºÉèÖÃ¿í¸ß
+	æ­¥éª¤3ï¼šè®¾ç½®å®½é«˜
         popupWindow.setHeight(200);
         popupWindow.setWidth(200);
-	²½Öè4£ºÏÔÊ¾
+	æ­¥éª¤4ï¼šæ˜¾ç¤º
         popupWindow.showAsDropDown(mAnchor);
-	²½Öè5£ºÏûÊ§
+	æ­¥éª¤5ï¼šæ¶ˆå¤±
 		popupWindow.dismiss();
 
-LinearLayoutÉèÖÃ¿Ø¼ş¾ÓÖĞ£¬ÒªÔÚLinearLayoutÖĞÉèÖÃ£º
+LinearLayoutè®¾ç½®æ§ä»¶å±…ä¸­ï¼Œè¦åœ¨LinearLayoutä¸­è®¾ç½®ï¼š
 android:gravity="center"
 
-//µã»÷Íâ²¿PopupWindowÏûÊ§
+//ç‚¹å‡»å¤–éƒ¨PopupWindowæ¶ˆå¤±
         mSharePopupWindow.setBackgroundDrawable(new BitmapDrawable());
         mSharePopupWindow.setOutsideTouchable(true);
 
 
-ImageViewÉèÖÃ android:scaleType="centerInside"
-Èç¹ûÉèÖÃÁËviewµÄwidthºÍheight´óÓÚwrap_content£¬ÄÚ²¿µÄÍ¼Æ¬»áwrap_content
-ListViewÉèÖÃ
-xml£º
-//È¥³ıListView»¬µ½¶¥²¿ºÍµ×²¿Ê±±ßÔµµÄºÚÉ«ÒõÓ°£º
+ImageViewè®¾ç½® android:scaleType="centerInside"
+å¦‚æœè®¾ç½®äº†viewçš„widthå’Œheightå¤§äºwrap_contentï¼Œå†…éƒ¨çš„å›¾ç‰‡ä¼šwrap_content
+ListViewè®¾ç½®
+xmlï¼š
+//å»é™¤ListViewæ»‘åˆ°é¡¶éƒ¨å’Œåº•éƒ¨æ—¶è¾¹ç¼˜çš„é»‘è‰²é˜´å½±ï¼š
 android:fadingEdge="none"
-//È¥³ıÍÏ¶¯Ê±Ä¬ÈÏµÄºÚÉ«±³¾°£º
+//å»é™¤æ‹–åŠ¨æ—¶é»˜è®¤çš„é»‘è‰²èƒŒæ™¯ï¼š
 android:cacheColorHint="#00000000"
-//È¥³ıÑ¡ÖĞÊ±µÄ»ÆÉ«µ×É«£º
+//å»é™¤é€‰ä¸­æ—¶çš„é»„è‰²åº•è‰²ï¼š
 android:listSelector="#00000000"  
-java£º
-//È¥³ıĞĞÓëĞĞÖ®¼äµÄºÚÏß£º
+javaï¼š
+//å»é™¤è¡Œä¸è¡Œä¹‹é—´çš„é»‘çº¿ï¼š
 msgList.setDivider(null);  
-//ListViewË¢ĞÂºó×Ô¶¯¹öµ½×îµ×²¿£º
+//ListViewåˆ·æ–°åè‡ªåŠ¨æ»šåˆ°æœ€åº•éƒ¨ï¼š
 msgList.setSelection(msgList.getAdapter().getCount()-1);
 
 
-×Ö·û´®"R.drawable" ×ª»»×ÊÔ´ÕûĞÍ£º
-·½·¨1£º
+å­—ç¬¦ä¸²"R.drawable" è½¬æ¢èµ„æºæ•´å‹ï¼š
+æ–¹æ³•1ï¼š
 try{  
  Field field=R.drawable.class.getField("icon");  
  int i= field.getInt(new R.drawable());  
@@ -1034,79 +1034,79 @@ try{
  Log.e("icon",e.toString());  
 }
 
-·½·¨2£º
+æ–¹æ³•2ï¼š
 Resources res=getResources();  
 int i=res.getIdentifier("icon","drawable",getPackageName());  
 Log.i("res",Integer.toString(i));
 
 
 
-¼ì²âapkÊÇ·ñ°²×°ÔÚÊÖ»úÉÏ£º
+æ£€æµ‹apkæ˜¯å¦å®‰è£…åœ¨æ‰‹æœºä¸Šï¼š
 
-»ñµÃ°üÃûÁĞ±í£º
+è·å¾—åŒ…ååˆ—è¡¨ï¼š
         PackageManager packageManager = mContext.getPackageManager();
         List<ApplicationInfo> appList = packageManager.getInstalledApplications(PackageManager.GET_UNINSTALLED_PACKAGES);
-¼ì²â±¨Ãû£º
+æ£€æµ‹æŠ¥åï¼š
  for (ApplicationInfo applicationInfo : appList) { 
 	String pkgName = applicationInfo.packageName;
-	//¶Ô±ÈÇ°×º
+	//å¯¹æ¯”å‰ç¼€
 	if (pkgName.startsWith("prefix name")) {}
  }
 
- »ñÈ¡ÆäËûpkgÏÂµÄResource
+ è·å–å…¶ä»–pkgä¸‹çš„Resource
  Resources res = packageManager.getResourcesForApplication(pkgName);
- »ñÈ¡ÆäËûpkgÏÂµÄDrawable
+ è·å–å…¶ä»–pkgä¸‹çš„Drawable
  int mDrawableResID = res.getIdentifier(drawableName, "drawable", pkgName);
  mTestDrawable = res.getDrawable(mDrawableResID);
- µÃµ½Asset×ÊÔ´
+ å¾—åˆ°Assetèµ„æº
  InputStream is = res.getAssets().open(fileName);
  
  
- ÔÚÑ­»·ÖĞ£¬breakÊÇÍË³öÑ­»·Ìå£¬continueÊÇ½áÊøµ±Ç°Õâ´ÎÑ­»·¿ªÊ¼ÏÂÒ»´ÎÑ­»·
+ åœ¨å¾ªç¯ä¸­ï¼Œbreakæ˜¯é€€å‡ºå¾ªç¯ä½“ï¼Œcontinueæ˜¯ç»“æŸå½“å‰è¿™æ¬¡å¾ªç¯å¼€å§‹ä¸‹ä¸€æ¬¡å¾ªç¯
 
  
-ÔÚviewpagerÖĞÈç¹ûÉ¾³ıÒ³Ãæ²¢É¾³ıÒ³ÃæµÄÊı¾İ£¬ÔÙÏÔÊ¾¿Ø¼ş£¬»áÓĞ²¿·ÖÒ³ÃæÏÔÊ¾Êı¾İÎª¿Õ£¬
-mYanPagerAdapter = mViewPager.getAdapter(); µÃµ½Adapter
-mViewPager.setAdapter(null); 			ÉèÖÃAdapterÎª¿Õ
-mViewPager.setAdapter(mYanPagerAdapter); ÔÙ°ÑAdapterÉèÖÃ»ØÈ¥¿É½â¾ö
+åœ¨viewpagerä¸­å¦‚æœåˆ é™¤é¡µé¢å¹¶åˆ é™¤é¡µé¢çš„æ•°æ®ï¼Œå†æ˜¾ç¤ºæ§ä»¶ï¼Œä¼šæœ‰éƒ¨åˆ†é¡µé¢æ˜¾ç¤ºæ•°æ®ä¸ºç©ºï¼Œ
+mYanPagerAdapter = mViewPager.getAdapter(); å¾—åˆ°Adapter
+mViewPager.setAdapter(null); 			è®¾ç½®Adapterä¸ºç©º
+mViewPager.setAdapter(mYanPagerAdapter); å†æŠŠAdapterè®¾ç½®å›å»å¯è§£å†³
 
 
-»ñµÃ°²×°µÄ°üµÄĞÅÏ¢ÁĞ±í
+è·å¾—å®‰è£…çš„åŒ…çš„ä¿¡æ¯åˆ—è¡¨
         PackageManager packageManager = mContext.getPackageManager();
         List<ApplicationInfo> appList = packageManager.getInstalledApplications(PackageManager.GET_UNINSTALLED_PACKAGES); 
 
 		
 		
-ÉèÖÃviewµÄ¿É¼ûĞÔ£º
+è®¾ç½®viewçš„å¯è§æ€§ï¼š
 View.setVisibility 
-GONE£º²»¿É¼û£¬²»Õ¼¾İÎ»ÖÃ£¬¼´Ô­À´µÄÎ»ÖÃ»á±»ÓĞfill_parentµÄ¿Ø¼şÕ¼¾İ
-INVISIBLE£º²»¿É¼û£¬Õ¼¾İÎ»ÖÃ£¬¼´»¹ÓĞ¿í¸ß
-VISIBLE£º¿É¼û
+GONEï¼šä¸å¯è§ï¼Œä¸å æ®ä½ç½®ï¼Œå³åŸæ¥çš„ä½ç½®ä¼šè¢«æœ‰fill_parentçš„æ§ä»¶å æ®
+INVISIBLEï¼šä¸å¯è§ï¼Œå æ®ä½ç½®ï¼Œå³è¿˜æœ‰å®½é«˜
+VISIBLEï¼šå¯è§
 
 
-ÔÚui threadÖĞµ÷ÓÃviewµÄinvalidate·½·¨¿ÉÒÔÍ¨ÖªviewÖØ»æÖÆ(Ë¢ĞÂ)£¬ÖØ»æÖÆ½«µ÷ÓÃonDraw()·½·¨À´ÖØĞÂ»æÖÆview
+åœ¨ui threadä¸­è°ƒç”¨viewçš„invalidateæ–¹æ³•å¯ä»¥é€šçŸ¥viewé‡ç»˜åˆ¶(åˆ·æ–°)ï¼Œé‡ç»˜åˆ¶å°†è°ƒç”¨onDraw()æ–¹æ³•æ¥é‡æ–°ç»˜åˆ¶view
 
-µÃµ½acticityÖĞµÄcontentview£º content=(ViewGroup)this.findViewById(android.R.id.content)
+å¾—åˆ°acticityä¸­çš„contentviewï¼š content=(ViewGroup)this.findViewById(android.R.id.content)
 
-ÔÚFrameLayoutÖĞ£¬·ÅÔÚÏÂÃæµÄ×Ó¿Ø¼şÊÇµşÔÚÉÏÃæµÄ£¬¼´µÚÒ»¸ö×Ó¿Ø¼şÊÇÎ»ÓÚ×îµ×²ãµÄ
+åœ¨FrameLayoutä¸­ï¼Œæ”¾åœ¨ä¸‹é¢çš„å­æ§ä»¶æ˜¯å åœ¨ä¸Šé¢çš„ï¼Œå³ç¬¬ä¸€ä¸ªå­æ§ä»¶æ˜¯ä½äºæœ€åº•å±‚çš„
 
-ÔÚandroidµÄtry£¬catchÖĞ¿ÉÒÔÀûÓÃExceptionÀ´Êä³öÀàËÆÓÚ³ÌĞò±ÀÀ£Ê±µÄ´íÎóĞÅÏ¢£¬°üÀ¨ÁË´íÎóÀàĞÍ(ExceptionÀà)£¬
-¾ßÌåµÄ´íÎójavaÎÄ¼şºÍ´íÎóĞĞÊı
+åœ¨androidçš„tryï¼Œcatchä¸­å¯ä»¥åˆ©ç”¨Exceptionæ¥è¾“å‡ºç±»ä¼¼äºç¨‹åºå´©æºƒæ—¶çš„é”™è¯¯ä¿¡æ¯ï¼ŒåŒ…æ‹¬äº†é”™è¯¯ç±»å‹(Exceptionç±»)ï¼Œ
+å…·ä½“çš„é”™è¯¯javaæ–‡ä»¶å’Œé”™è¯¯è¡Œæ•°
 	try {
 	} catch (Exception e) {
-		Log.e("getDrawable error", "Exception", e); //Êä³ölog levelÎªerror
-		e.printStackTrace();			//Êä³ölog levelÎªwarn
+		Log.e("getDrawable error", "Exception", e); //è¾“å‡ºlog levelä¸ºerror
+		e.printStackTrace();			//è¾“å‡ºlog levelä¸ºwarn
 	}
 	
 	
-scrollµÄÈı´ó×´Ì¬(ÄÜ»¬¶¯µÄ¿Ø¼ş£¬listview£¬gridview£¬recycleview¶¼ÓĞ)£º SCROLL_STATE_IDLE, SCROLL_STATE_DRAGGING or SCROLL_STATE_SETTLING.
-IDLEÖ¸µÄÊÇ¿Ø¼şÃ»ÓĞÔÚ»¬¶¯(SCROLL_STATE_IDLEÎª0)
-DRAGGINGÖ¸µÄÊÇ¿Ø¼şÔÚ»¬¶¯£¬ÊÖÖ¸ÔÚÆÁÄ»ÉÏÒÆ¶¯(SCROLL_STATE_DRAGGINGÎª1)
-SETTLINGÖ¸µÄÊÇ¿Ø¼şÔÚ»¬¶¯£¬ÊÖÖ¸ÒÑ¾­·Å¿ªÆÁÄ»£¬¿Ø¼ş´¦ÓÚ×Ô¶¯µÄ¶¯»­»¬¶¯ÖĞ(SCROLL_STATE_SETTLINGÎª2)
+scrollçš„ä¸‰å¤§çŠ¶æ€(èƒ½æ»‘åŠ¨çš„æ§ä»¶ï¼Œlistviewï¼Œgridviewï¼Œrecycleviewéƒ½æœ‰)ï¼š SCROLL_STATE_IDLE, SCROLL_STATE_DRAGGING or SCROLL_STATE_SETTLING.
+IDLEæŒ‡çš„æ˜¯æ§ä»¶æ²¡æœ‰åœ¨æ»‘åŠ¨(SCROLL_STATE_IDLEä¸º0)
+DRAGGINGæŒ‡çš„æ˜¯æ§ä»¶åœ¨æ»‘åŠ¨ï¼Œæ‰‹æŒ‡åœ¨å±å¹•ä¸Šç§»åŠ¨(SCROLL_STATE_DRAGGINGä¸º1)
+SETTLINGæŒ‡çš„æ˜¯æ§ä»¶åœ¨æ»‘åŠ¨ï¼Œæ‰‹æŒ‡å·²ç»æ”¾å¼€å±å¹•ï¼Œæ§ä»¶å¤„äºè‡ªåŠ¨çš„åŠ¨ç”»æ»‘åŠ¨ä¸­(SCROLL_STATE_SETTLINGä¸º2)
 
 
-ÔÚrecycleviewÖĞ£¬ÔÚgetItemViewType·µ»Øposition¾Í¿ÉÒÔÔÚonCreateViewHolderÖĞµÄviewTypeµÃµ½position£¬
-ÕâÖÖÊ¹ÓÃ·½·¨²¢²»ÊÇ¶ÔviewTypeµÄÕıÈ·Ê¹ÓÃ
+åœ¨recycleviewä¸­ï¼Œåœ¨getItemViewTypeè¿”å›positionå°±å¯ä»¥åœ¨onCreateViewHolderä¸­çš„viewTypeå¾—åˆ°positionï¼Œ
+è¿™ç§ä½¿ç”¨æ–¹æ³•å¹¶ä¸æ˜¯å¯¹viewTypeçš„æ­£ç¡®ä½¿ç”¨
         @Override
         public int getItemViewType(int position) {
             return position;
@@ -1116,8 +1116,8 @@ SETTLINGÖ¸µÄÊÇ¿Ø¼şÔÚ»¬¶¯£¬ÊÖÖ¸ÒÑ¾­·Å¿ªÆÁÄ»£¬¿Ø¼ş´¦ÓÚ×Ô¶¯µÄ¶¯»­»¬¶¯ÖĞ(SCROLL_STAT
         public EmojiSelectViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         }
 		
-recycleview»¬¶¯¼àÌı£¬onScrolled²»ÊÇ»¬¶¯Ö®ºó²Å»áµ÷ÓÃ£¬¶øÊÇÔÚ»¬¶¯Ê±¾Í»áµ÷ÓÃ£¬
-¸öÈËÈÏÎªÓ¦¸ÃÊÇ´ÓÒ»¸öµãÒÆ¶¯µ½ÁíÒ»¸öµã¾Í»áµ÷ÓÃ£¨ÓĞ´ıÑĞ¾¿£©
+recycleviewæ»‘åŠ¨ç›‘å¬ï¼ŒonScrolledä¸æ˜¯æ»‘åŠ¨ä¹‹åæ‰ä¼šè°ƒç”¨ï¼Œè€Œæ˜¯åœ¨æ»‘åŠ¨æ—¶å°±ä¼šè°ƒç”¨ï¼Œ
+ä¸ªäººè®¤ä¸ºåº”è¯¥æ˜¯ä»ä¸€ä¸ªç‚¹ç§»åŠ¨åˆ°å¦ä¸€ä¸ªç‚¹å°±ä¼šè°ƒç”¨ï¼ˆæœ‰å¾…ç ”ç©¶ï¼‰
         mScrollListener = new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
@@ -1130,9 +1130,9 @@ recycleview»¬¶¯¼àÌı£¬onScrolled²»ÊÇ»¬¶¯Ö®ºó²Å»áµ÷ÓÃ£¬¶øÊÇÔÚ»¬¶¯Ê±¾Í»áµ÷ÓÃ£¬
         mRecyclerView.setOnScrollListener(mScrollListener);
 		
 
-×Ô¶¨ÒåxmlÊôĞÔ£º
-(1)½¨Á¢res/values/attrs.xmlÎÄ¼ş
-(2)ÔÚattrs.xmlĞ´Èë
+è‡ªå®šä¹‰xmlå±æ€§ï¼š
+(1)å»ºç«‹res/values/attrs.xmlæ–‡ä»¶
+(2)åœ¨attrs.xmlå†™å…¥
 <resources>
    <declare-styleable name="PieChart">
        <attr name="showText" format="boolean" />
@@ -1142,7 +1142,7 @@ recycleview»¬¶¯¼àÌı£¬onScrolled²»ÊÇ»¬¶¯Ö®ºó²Å»áµ÷ÓÃ£¬¶øÊÇÔÚ»¬¶¯Ê±¾Í»áµ÷ÓÃ£¬
        </attr>
    </declare-styleable>
 </resources>
-(3)Ê¹ÓÃ£¬ÌØ±ğ×¢ÒâÔÚgradle¹¤³ÌÖĞÊ¹ÓÃ£º xmlns:custom="http://schemas.android.com/apk/res-auto"
+(3)ä½¿ç”¨ï¼Œç‰¹åˆ«æ³¨æ„åœ¨gradleå·¥ç¨‹ä¸­ä½¿ç”¨ï¼š xmlns:custom="http://schemas.android.com/apk/res-auto"
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:custom="http://schemas.android.com/apk/res/com.example.customviews">
@@ -1150,7 +1150,7 @@ recycleview»¬¶¯¼àÌı£¬onScrolled²»ÊÇ»¬¶¯Ö®ºó²Å»áµ÷ÓÃ£¬¶øÊÇÔÚ»¬¶¯Ê±¾Í»áµ÷ÓÃ£¬
      custom:showText="true"
      custom:labelPosition="left" />
 </LinearLayout>
-(4)ÔÚ´øÓĞAttributeSetµÄÏµÍ³Ìá¹©µÄ¹¹Ôì·½·¨ÖĞ»ñÈ¡ÊıÖµ£º
+(4)åœ¨å¸¦æœ‰AttributeSetçš„ç³»ç»Ÿæä¾›çš„æ„é€ æ–¹æ³•ä¸­è·å–æ•°å€¼ï¼š
 public PieChart(Context context, AttributeSet attrs) {
    super(context, attrs);
    TypedArray a = context.getTheme().obtainStyledAttributes(
@@ -1166,35 +1166,35 @@ public PieChart(Context context, AttributeSet attrs) {
    }
 }
 (5)TypedArray.getResourceId();
-¿ÉÒÔÈ¡µÃformat="reference" µÄÊıÖµ
+å¯ä»¥å–å¾—format="reference" çš„æ•°å€¼
 
 
-¶àµã´¥¿Ø£º
-Ê¹ÓÃ onTouchEvent·½·¨À´ÊµÏÖ£¬
-actionÓÉMotionEventCompat.getActionMasked(event)·½·¨À´»ñÈ¡£¬²»ÔÙÊ¹ÓÃevent.getAction()·½·¨À´»ñÈ¡£º
+å¤šç‚¹è§¦æ§ï¼š
+ä½¿ç”¨ onTouchEventæ–¹æ³•æ¥å®ç°ï¼Œ
+actionç”±MotionEventCompat.getActionMasked(event)æ–¹æ³•æ¥è·å–ï¼Œä¸å†ä½¿ç”¨event.getAction()æ–¹æ³•æ¥è·å–ï¼š
 action = MotionEventCompat.getActionMasked(event);
 switch (action)
-	case MotionEvent.ACTION_DOWN: //µÚÒ»¸öµã°´ÏÂ
-	case MotionEvent.ACTION_POINTER_DOWN: //µÚ¶ş¸öµã»òÕßÖ®ºóµÄµã°´ÏÂ£¬ÕâÊ±ºòÒªÅĞ¶Ï2 <= event.getPointerCount()£¬Í¨³£»áÓĞ2¸öÒÔÉÏ
-	case MotionEvent.ACTION_MOVE: 		//±éÀúËùÓĞµÄµã
+	case MotionEvent.ACTION_DOWN: //ç¬¬ä¸€ä¸ªç‚¹æŒ‰ä¸‹
+	case MotionEvent.ACTION_POINTER_DOWN: //ç¬¬äºŒä¸ªç‚¹æˆ–è€…ä¹‹åçš„ç‚¹æŒ‰ä¸‹ï¼Œè¿™æ—¶å€™è¦åˆ¤æ–­2 <= event.getPointerCount()ï¼Œé€šå¸¸ä¼šæœ‰2ä¸ªä»¥ä¸Š
+	case MotionEvent.ACTION_MOVE: 		//éå†æ‰€æœ‰çš„ç‚¹
 		for(int i = 0; i < event.getPointerCount(); i++){
             event.getX(i);
             event.getY(i);
 			} 
-	case MotionEvent.ACTION_POINTER_UP: //ÓĞµãÀë¿ª¾Í»áµ÷ÓÃ£¬event.getActionIndex()»ñÈ¡Àë¿ªµÄµã£¬´¥µãµÄÅÅÁĞË³ĞòµÄ´ÓµÚÒ»¸ö°´ÏÂÅÅÁĞµ½×îºóÒ»¸ö
-										//ÀıÈçupPointIndexÎª0£¬¾ÍÊÇµÚÒ»¸ö°´ÏÂµÄµãÀë¿ªÁËÆÁÄ»£»upPointIndexÎª2£¬¾ÍÊÇµÚÈı¸ö°´ÏÂµÄµãÀë¿ªÁËÆÁÄ»£¬
+	case MotionEvent.ACTION_POINTER_UP: //æœ‰ç‚¹ç¦»å¼€å°±ä¼šè°ƒç”¨ï¼Œevent.getActionIndex()è·å–ç¦»å¼€çš„ç‚¹ï¼Œè§¦ç‚¹çš„æ’åˆ—é¡ºåºçš„ä»ç¬¬ä¸€ä¸ªæŒ‰ä¸‹æ’åˆ—åˆ°æœ€åä¸€ä¸ª
+										//ä¾‹å¦‚upPointIndexä¸º0ï¼Œå°±æ˜¯ç¬¬ä¸€ä¸ªæŒ‰ä¸‹çš„ç‚¹ç¦»å¼€äº†å±å¹•ï¼›upPointIndexä¸º2ï¼Œå°±æ˜¯ç¬¬ä¸‰ä¸ªæŒ‰ä¸‹çš„ç‚¹ç¦»å¼€äº†å±å¹•ï¼Œ
 		int upPointIndex = event.getActionIndex();
-	case MotionEvent.ACTION_UP: //×îºóÒ»¸öµãÀë¿ªÆÁÄ»
+	case MotionEvent.ACTION_UP: //æœ€åä¸€ä¸ªç‚¹ç¦»å¼€å±å¹•
 
 
 
-·ÖÏíÍ¼Æ¬£º
-»ñÈ¡bitmapµÄURI
+åˆ†äº«å›¾ç‰‡ï¼š
+è·å–bitmapçš„URI
                 Bitmap bitmap = mDesignContainer.getDrawingCache();
                 String pathofBmp = MediaStore.Images.Media.insertImage(EditActivity.this.getContentResolver(), bitmap, null, null);
                 Uri bmpUri = Uri.parse(pathofBmp);
 
-Ö¸¶¨°üÃûµÄ·ÖÏí£º
+æŒ‡å®šåŒ…åçš„åˆ†äº«ï¼š
                     Intent shareIntent = new Intent(Intent.ACTION_SEND);
                     shareIntent.setType("image/*");
                     shareIntent.setPackage("com.facebook.katana");
@@ -1202,14 +1202,14 @@ switch (action)
                     shareIntent.putExtra(Intent.EXTRA_STREAM, mBitmapUri);
                     mContext.startActivity(shareIntent);
 
-´ò¿ªÏµÍ³µÄ·ÖÏíÁĞ±í£¬Ñ¡ÔñÖ¸¶¨µÄ·ÖÏíÓ¦ÓÃ£º
+æ‰“å¼€ç³»ç»Ÿçš„åˆ†äº«åˆ—è¡¨ï¼Œé€‰æ‹©æŒ‡å®šçš„åˆ†äº«åº”ç”¨ï¼š
                     Intent shareIntent = new Intent(Intent.ACTION_SEND);
                     shareIntent.setType("image/*");
                     shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     shareIntent.putExtra(Intent.EXTRA_STREAM, mBitmapUri);
                     mContext.startActivity(Intent.createChooser(shareIntent, "share imger"));
 
-»ñÈ¡ÏìÓ¦¸Ã·ÖÏíµÄÓ¦ÓÃÁĞ±í£º
+è·å–å“åº”è¯¥åˆ†äº«çš„åº”ç”¨åˆ—è¡¨ï¼š
 					  Intent intent = new Intent(Intent.ACTION_SEND, null);
 					intent.addCategory(Intent.CATEGORY_DEFAULT);
 					intent.setType("image/*");
@@ -1218,8 +1218,8 @@ switch (action)
 
 					
 					
-ÔÚgridview£¬recycleviewµÈviewÖĞÈç¹ûÉèÖÃÒ»¸ö´øÓĞ°´ÏÂ×´Ì¬µÄdrawable¸øÃ¿¸öitem»á²úÉú°´ÏÂ×´Ì¬»ìÂÒµÄBUG£¬
-ĞèÒª¸øÃ¿¸öitem¶¼ÅäÖÃÒ»¸ö´øÓĞ°´ÏÂ×´Ì¬µÄdrawable£¬ÀıÈçÔÚÃ¿´ÎÉèÖÃitemÊ±µ÷ÓÃÒÔÏÂ·½·¨£¬¸³ÖµÒ»¸öĞÂµÄdrawable
+åœ¨gridviewï¼Œrecycleviewç­‰viewä¸­å¦‚æœè®¾ç½®ä¸€ä¸ªå¸¦æœ‰æŒ‰ä¸‹çŠ¶æ€çš„drawableç»™æ¯ä¸ªitemä¼šäº§ç”ŸæŒ‰ä¸‹çŠ¶æ€æ··ä¹±çš„BUGï¼Œ
+éœ€è¦ç»™æ¯ä¸ªiteméƒ½é…ç½®ä¸€ä¸ªå¸¦æœ‰æŒ‰ä¸‹çŠ¶æ€çš„drawableï¼Œä¾‹å¦‚åœ¨æ¯æ¬¡è®¾ç½®itemæ—¶è°ƒç”¨ä»¥ä¸‹æ–¹æ³•ï¼Œèµ‹å€¼ä¸€ä¸ªæ–°çš„drawable
 
     public static Drawable cloneDrawableWithState(Context context, Drawable origin) {
         final Drawable.ConstantState constantStateDrawable = origin.getConstantState();
@@ -1231,29 +1231,29 @@ switch (action)
 					
 					
 
-¸øedittext»òsearchviewÉèÖÃÌáÊ¾×Ö·û´®ºÍÌáÊ¾Í¼±ê:
-1.¹¹½¨SpannableStringBuilder»òÕßspannableString
+ç»™edittextæˆ–searchviewè®¾ç½®æç¤ºå­—ç¬¦ä¸²å’Œæç¤ºå›¾æ ‡:
+1.æ„å»ºSpannableStringBuilderæˆ–è€…spannableString
 SpannableStringBuilder ssb = new SpannableStringBuilder("title");
-»òÕß SpannableString spannableString = new SpannableString("title");
+æˆ–è€… SpannableString spannableString = new SpannableString("title");
 
-2.¹¹½¨ImageSpan
+2.æ„å»ºImageSpan
 ImageSpan imageHint = new ImageSpan(drawable);
 
-3.×ÖºÅ(¿ÉÒÔ²»Éè)
+3.å­—å·(å¯ä»¥ä¸è®¾)
 int textSize = (int) (searchAutoComplete.getTextSize() * 1.25);
 searchIcon.setBounds(0, 0, textSize, textSize);
 
-4.½«°üº¬ÁËÍ¼±êµÄImageSpanÉè½øÈ¥
+4.å°†åŒ…å«äº†å›¾æ ‡çš„ImageSpanè®¾è¿›å»
 ssb.setSpan(new ImageSpan(searchIcon), 1, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 spannableString.setSpan(imageHint, 0, 1, Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
 
-5.ÉèÖÃ
+5.è®¾ç½®
 mEditor.setHint(spannableString);
 
 SearchView.SearchAutoComplete searchAutoComplete = (SearchView.SearchAutoComplete) mSearchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
 searchAutoComplete.setHint(spannableString);
 
-×ÜÌå£º
+æ€»ä½“ï¼š
 SpannableStringBuilder ssb = new SpannableStringBuilder("    ");
 ssb.append("hint");
  int textSize = (int) (searchAutoComplete.getTextSize() * 1.25);
@@ -1261,27 +1261,27 @@ searchIcon.setBounds(0, 0, textSize, textSize);
 ssb.setSpan(new ImageSpan(searchIcon), 1, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);	
  searchAutoComplete.setHint(ssb);		
  
-×¢£ºÔÚ¿ª·¢¹ı³ÌÖĞÓöµ½¹ıÏëÒªÈ¥³ısearchviewÌáÊ¾Í¼±êÈ¥³ı²»ÁËµÄÇé¿ö£¬Ö±½Ó°ÑÒ»¸ö×Ö·û´®µÄidÉèÖÃ¾Í¿ÉÒÔÁË£¬ÀıÈç£º
+æ³¨ï¼šåœ¨å¼€å‘è¿‡ç¨‹ä¸­é‡åˆ°è¿‡æƒ³è¦å»é™¤searchviewæç¤ºå›¾æ ‡å»é™¤ä¸äº†çš„æƒ…å†µï¼Œç›´æ¥æŠŠä¸€ä¸ªå­—ç¬¦ä¸²çš„idè®¾ç½®å°±å¯ä»¥äº†ï¼Œä¾‹å¦‚ï¼š
 searchAutoComplete.setHint(R.string.mediapicker_gif_title);
 					
 					
 SearchView
-¹Ø±Õedittext collapseActionView()
-Õ¹¿ªedittext expandActionView()
+å…³é—­edittext collapseActionView()
+å±•å¼€edittext expandActionView()
 
-Ò²¿ÉÒÔ¶ÔSearchView¶ÔÓ¦µÄMenuItemµ÷ÓÃcollapseActionView()£¬Ò²¿ÉÒÔ¹Ø±Õ
+ä¹Ÿå¯ä»¥å¯¹SearchViewå¯¹åº”çš„MenuItemè°ƒç”¨collapseActionView()ï¼Œä¹Ÿå¯ä»¥å…³é—­
 mSearchItem = menu.findItem(R.id.action_gif_search);
 mSearchView = (SearchView) mSearchItem.getActionView();
 
 
-onSizeChanged()·½·¨¿ÉÒÔ»ñÈ¡¸ß¿í£¬µ«ÊÇ²»ºÏÊÊÔÚ»ñÈ¡¸ß¿íÖ®ºóÔÙÀûÓÃ»ñÈ¡µÄÊıÖµ½øĞĞ×Ó¿Ø¼şµÄÉèÖÃ
+onSizeChanged()æ–¹æ³•å¯ä»¥è·å–é«˜å®½ï¼Œä½†æ˜¯ä¸åˆé€‚åœ¨è·å–é«˜å®½ä¹‹åå†åˆ©ç”¨è·å–çš„æ•°å€¼è¿›è¡Œå­æ§ä»¶çš„è®¾ç½®
 
 
 
 Fragment
-·ÅÖÃÔÚActivityÖĞ£¬¿ÉÒÔÍ¨¹ıFragmentManager½øĞĞ½»»¥ºÍ¹ÜÀíFragment£¬
+æ”¾ç½®åœ¨Activityä¸­ï¼Œå¯ä»¥é€šè¿‡FragmentManagerè¿›è¡Œäº¤äº’å’Œç®¡ç†Fragmentï¼Œ
 
-Ê¹ÓÃ·½·¨1£ºÔÚxmlÖĞ·ÅÖÃ£¬ActivityµÄonCreateView()·½·¨ÉèÖÃ¼´¿É 
+ä½¿ç”¨æ–¹æ³•1ï¼šåœ¨xmlä¸­æ”¾ç½®ï¼ŒActivityçš„onCreateView()æ–¹æ³•è®¾ç½®å³å¯ 
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
@@ -1299,7 +1299,7 @@ Fragment
             android:layout_height="match_parent" />
 </LinearLayout>
 
-·½·¨2£ºÊ¹ÓÃFragmentTransaction£¬ÆäÖĞR.id.fragment_containerÊÇÒ»¸ö·ÅÖÃfragmentµÄlayout
+æ–¹æ³•2ï¼šä½¿ç”¨FragmentTransactionï¼Œå…¶ä¸­R.id.fragment_containeræ˜¯ä¸€ä¸ªæ”¾ç½®fragmentçš„layout
 
 FragmentManager fragmentManager = getFragmentManager();
 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -1309,52 +1309,62 @@ fragmentTransaction.add(R.id.fragment_container, fragment);
 fragmentTransaction.commit();
 
 
-»ñÈ¡£ºÊ¹ÓÃfind idºÍfind tag»ñÈ¡fragment
+è·å–ï¼šä½¿ç”¨find idå’Œfind tagè·å–fragment
 findFragmentById() 
 
 
-ÔÚÉèÖÃvisibleÊ±£¬ÉèÖÃlayoutÎªgone£¬layoutµÄ×Ó²¼¾ÖµÄvisible²¢²»»áÎªgone
+åœ¨è®¾ç½®visibleæ—¶ï¼Œè®¾ç½®layoutä¸ºgoneï¼Œlayoutçš„å­å¸ƒå±€çš„visibleå¹¶ä¸ä¼šä¸ºgone
 
 
 
 span:
-SpannableString ÔÚsetSpanÊ±ĞèÒªÖ¸¶¨flag£¬ÒÔÏÂËÄÖÖÖĞµÄÆäÖĞÒ»ÖÖ£¬
-Èç¹ûÉèÖÃÁËSPAN_EXCLUSIVE_EXCLUSIVEÖ¸µÄÊÇÈç¹ûÉèÖÃSpannableString¸Ä±ä×ÖÌåÑÕÉ«£¬ÄÇÃ´ÔÚSpannableStringµÄ
-Ö®Ç°ºÍÖ®ºóÔÙÊäÈë×Ö·û¶¼²»»á³öÏÖ¸Ä±ä×ÖÌåÑÕÉ«µÄĞ§¹û¡£
-Èç¹ûÉèÖÃÁËSPAN_INCLUSIVE_INCLUSIVEÖ¸µÄÊÇÈç¹ûÉèÖÃSpannableString¸Ä±ä×ÖÌåÑÕÉ«£¬ÄÇÃ´ÔÚSpannableStringµÄ
-Ö®Ç°ºÍÖ®ºóÔÙÊäÈë×Ö·û¶¼»á³öÏÖ¸Ä±ä×ÖÌåÑÕÉ«µÄĞ§¹û¡£
-Spanned.SPAN_EXCLUSIVE_EXCLUSIVE(Ç°ºó¶¼²»°üÀ¨)
-Spanned.SPAN_INCLUSIVE_EXCLUSIVE(Ç°Ãæ°üÀ¨£¬ºóÃæ²»°üÀ¨)
-Spanned.SPAN_EXCLUSIVE_INCLUSIVE(Ç°Ãæ²»°üÀ¨£¬ºóÃæ°üÀ¨)
-Spanned.SPAN_INCLUSIVE_INCLUSIVE(Ç°ºó¶¼°üÀ¨)
+SpannableString åœ¨setSpanæ—¶éœ€è¦æŒ‡å®šflagï¼Œä»¥ä¸‹å››ç§ä¸­çš„å…¶ä¸­ä¸€ç§ï¼Œ
+å¦‚æœè®¾ç½®äº†SPAN_EXCLUSIVE_EXCLUSIVEæŒ‡çš„æ˜¯å¦‚æœè®¾ç½®SpannableStringæ”¹å˜å­—ä½“é¢œè‰²ï¼Œé‚£ä¹ˆåœ¨SpannableStringçš„
+ä¹‹å‰å’Œä¹‹åå†è¾“å…¥å­—ç¬¦éƒ½ä¸ä¼šå‡ºç°æ”¹å˜å­—ä½“é¢œè‰²çš„æ•ˆæœã€‚
+å¦‚æœè®¾ç½®äº†SPAN_INCLUSIVE_INCLUSIVEæŒ‡çš„æ˜¯å¦‚æœè®¾ç½®SpannableStringæ”¹å˜å­—ä½“é¢œè‰²ï¼Œé‚£ä¹ˆåœ¨SpannableStringçš„
+ä¹‹å‰å’Œä¹‹åå†è¾“å…¥å­—ç¬¦éƒ½ä¼šå‡ºç°æ”¹å˜å­—ä½“é¢œè‰²çš„æ•ˆæœã€‚
+Spanned.SPAN_EXCLUSIVE_EXCLUSIVE(å‰åéƒ½ä¸åŒ…æ‹¬)
+Spanned.SPAN_INCLUSIVE_EXCLUSIVE(å‰é¢åŒ…æ‹¬ï¼Œåé¢ä¸åŒ…æ‹¬)
+Spanned.SPAN_EXCLUSIVE_INCLUSIVE(å‰é¢ä¸åŒ…æ‹¬ï¼Œåé¢åŒ…æ‹¬)
+Spanned.SPAN_INCLUSIVE_INCLUSIVE(å‰åéƒ½åŒ…æ‹¬)
 
 
-private abstract void print();  //³éÏó·½·¨¶¨Òå£¬¼Ì³Ğ¸Ã·½·¨ËùÔÚµÄÀà±ØĞëÊµÏÖ¸Ã·½·¨
+private abstract void print();  //æŠ½è±¡æ–¹æ³•å®šä¹‰ï¼Œç»§æ‰¿è¯¥æ–¹æ³•æ‰€åœ¨çš„ç±»å¿…é¡»å®ç°è¯¥æ–¹æ³•
 
 
-ÔÚ×Ô¶¨ÒåµÄlayout»òÕßÆÕÍ¨layoutÖĞÈç¹ûÉèÖÃÁË¸ß¿íÎªwrap_content£¬ÕâÊ±ºòÔÙÉèÖÃpaddingÄÇÃ´»á¼·Ñ¹Íâ²¿µÄ¿Õ¼ä
-Èç¹ûÉèÖÃÁË¸ß¿íÎª¹Ì¶¨´óĞ¡ÀıÈç20dp£¬ÄÇÃ´»á¼·Ñ¹ÄÚ²¿×Óview
-ÀıÈç:
-1.wrap_contentÏÂ,ÉèÖÃpaddingTopÎª100dpÄÇÃ´layout»á°ü¹ü×¡×ÓviewÖ®ÍâÔÙ±ä´ó100dp,ÕâÑù»á°ÑlayoutÖ®ÍâµÄview¼·ÏÂÈ¥
-2.ÉèÖÃ¸ß¶È10dpÏÂ,ÉèÖÃpaddingTopÎª100dpÄÇÃ´ËùÓĞ×Óview»á¿´²»¼û,ÉèÖÃpaddingTopÎª5dp×Óview»áÖ»ÄÜÔÚlayoutµÄÏÂ°ë²¿¿´µ½,¶ølayoutµÄÉÏ°ë²¿»áÊÇ¿Õ°×µÄ
+åœ¨è‡ªå®šä¹‰çš„layoutæˆ–è€…æ™®é€šlayoutä¸­å¦‚æœè®¾ç½®äº†é«˜å®½ä¸ºwrap_contentï¼Œè¿™æ—¶å€™å†è®¾ç½®paddingé‚£ä¹ˆä¼šæŒ¤å‹å¤–éƒ¨çš„ç©ºé—´
+å¦‚æœè®¾ç½®äº†é«˜å®½ä¸ºå›ºå®šå¤§å°ä¾‹å¦‚20dpï¼Œé‚£ä¹ˆä¼šæŒ¤å‹å†…éƒ¨å­view
+ä¾‹å¦‚:
+1.wrap_contentä¸‹,è®¾ç½®paddingTopä¸º100dpé‚£ä¹ˆlayoutä¼šåŒ…è£¹ä½å­viewä¹‹å¤–å†å˜å¤§100dp,è¿™æ ·ä¼šæŠŠlayoutä¹‹å¤–çš„viewæŒ¤ä¸‹å»
+2.è®¾ç½®é«˜åº¦10dpä¸‹,è®¾ç½®paddingTopä¸º100dpé‚£ä¹ˆæ‰€æœ‰å­viewä¼šçœ‹ä¸è§,è®¾ç½®paddingTopä¸º5dpå­viewä¼šåªèƒ½åœ¨layoutçš„ä¸‹åŠéƒ¨çœ‹åˆ°,è€Œlayoutçš„ä¸ŠåŠéƒ¨ä¼šæ˜¯ç©ºç™½çš„
 
 
-// µÃµ½Ëõ·Å±ÈÀı£¬scale³ËÒÔ¾ßÌåµÄdpÊıµÈÓÚÏñËØÖµ
+// å¾—åˆ°ç¼©æ”¾æ¯”ä¾‹ï¼Œscaleä¹˜ä»¥å…·ä½“çš„dpæ•°ç­‰äºåƒç´ å€¼
 final float scale = context.getResources().getDisplayMetrics().density;  
 scale * dp = px
 
 
-//µÃµ½APPµÄÄÚ²¿´æ´¢¿Õ¼ä£º/data/data/your.package.name/files
+//å¾—åˆ°APPçš„å†…éƒ¨å­˜å‚¨ç©ºé—´ï¼š/data/data/your.package.name/files
 getContext().getFilesDir()
 
 
-//Adapter.notifyDataSetChanged() µ÷ÓÃ»áÖØĞÂ¼ÆËã£¬¼´µ÷ÓÃonMeasure
+//Adapter.notifyDataSetChanged() è°ƒç”¨ä¼šé‡æ–°è®¡ç®—ï¼Œå³è°ƒç”¨onMeasure
 
-//Èç¹ûÒ»¸öViewÓÉgone±äÎªvisible¾Í»áµ÷ÓÃonMeasure
-
-
+//å¦‚æœä¸€ä¸ªViewç”±goneå˜ä¸ºvisibleå°±ä¼šè°ƒç”¨onMeasure
 
 
+
+public class JavaClassTest {
+    public JavaClassTest() {
+    }
+    public class InternalClass{
+        public InternalClass() {
+        }
+    }
+}
+// åœ¨ç±»çš„å¤–éƒ¨ä½¿ç”¨ç±»çš„å†…éƒ¨ç±»å¿…é¡»å…ˆå®ä¾‹åŒ–ç±»ï¼Œé€šè¿‡ç±»å»å®ä¾‹åŒ–å…¶å†…éƒ¨ç±»
+JavaClassTest javaClassTest = new JavaClassTest();
+JavaClassTest.InternalClass internalClass = javaClassTest.new InternalClass();
 
 
 
