@@ -7,11 +7,11 @@
 
 
 学习unity
+软考复习(一周在图书馆至少做一套题目，复习3个章节以上，用时3小时以上)
 编写java web服务器的demo和Android交互的demo(1编写tomcat服务器 2编写android端，能浏览网页 3使pc和手机处于同一局域网内)
 了解http协议流程，学会使用cookie等，使用服务器对android发送文件、字符串等，了解和使用get和post请求
-软考复习(一周在图书馆至少做一套题目，复习3个章节以上，用时3小时以上)
 口琴学习
 练习学习python
 练习recycleview
 制作开发者模式的手机
-
+整理android开发网页书签
