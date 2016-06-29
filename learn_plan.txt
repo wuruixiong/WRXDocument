@@ -14,4 +14,5 @@
 练习学习python
 练习recycleview
 制作开发者模式的手机
+练习Animator
 
