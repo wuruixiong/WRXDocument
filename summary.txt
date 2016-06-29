@@ -63,6 +63,9 @@ synchronized
 native
 strictfp
 
+继承的父类的子类可以重写public，protected方法，必须是只有public，protected修饰符的方法，
+如果方法加了static，final等修饰符不可被重写
+
 整型没初始化值为0
 字符串没有初始化值为null
 即：
