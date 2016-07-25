@@ -9,7 +9,7 @@ idea 黑色风格：file -> settings -> appearance -> Theme,选择darcula
 
 
 Linux 终端个人常用命令：
-
+查找：grep -Irn searchName .
 
 
 window:alt+F4  关闭当前窗口
@@ -68,6 +68,9 @@ adb shell su 获取权限，可以查看data目录下的文件,只有root的手机可以使用 su 命令
 
 adb pull  从真机上拷贝文件到PC上
 adb push  从PC上复制一份文件到的手机机上
+
+adb shell am force-stop com.my.app.package 停止一个app
+
 
 有时需要将data/data下的文件导出，由于没有权限无法导出，
 方法一:使用cp 命令将data/data下的文件复制到sdcard上，再使用pull命令导出

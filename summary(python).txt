@@ -1,0 +1,222 @@
+﻿
+#while 循环
+
+count=5
+while count>0:
+    print "while is execute"
+    count=count-1
+
+#井号键注销，以上2句为while的循环体，当没有缩进时，自动设置为下一句
+#python自动换行，也可打入换行符 "\n" 如此会换2行
+print "while break"
+
+
+在python设置环境之后，在终端输入python，出现>>>之后，
+可以直接执行python语句并按回车执行，但是不能保存，所以一般创建为.py文件保存代码。
+例如：在window 下的cmd终端之中输入python
+接着输入：
+>>> x = 12
+>>> print x
+会输出：12
+
+
+使用前先import,时间：
+total = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time()))
+today = time.strftime("%Y_%m_%d",time.localtime(time.time()))
+startTime = time.strftime("%H:%M:%S",time.localtime(time.time()))
+
+
+for 循环用法一，阶数为1，从0开始走到11，执行12次，：
+	    for i in range(0,12,1):
+
+首先逐行读取文件，接着逐字读取字符串并打印每个字符
+for line in open(mTestInfoPath + "/test.txt"):
+    for linechat in line:
+        print linechat
+        
+
+
+
+对于模块和自己写的程序不在同一个目录下，可以把模块的路径通过sys.path.append(路径)添加到程序中。
+在程序开头加上：
+import sys
+sys.path.append("path")
+
+python序列：字符串、列表、元组
+
+字典操作:
+dict = {"a":a,"b":b,"c":c,"d":d,"e":e}
+字典查询时直接
+dict["key"]
+如果没有该key会报错，以下方法可以解决，
+dict.get("key", "deault")
+
+
+列表操作：
+列表：
+["",123,object,()]
+#长度
+list_length = len(sample_list)
+
+sample_list.append(var)   #追加元素
+
+#遍历
+for element in sample_list:
+    print(element)
+
+#遍历2
+for i in range(len(lst)):
+	print(lst[i])
+    
+合并:
+A.extend(B)
+A+B
+
+	
+元组：
+("","","")
+
+
+文件写入
+    fp = open(mTestInfoPath + "/MemoryInfo.txt","a")               #追加模式打开文件，没有文件会自动创建文件
+    fp.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    fp.write("\n\n")
+    fp.flush()                                                     #从缓存区中将内容写入，如果没有这句，会导致有时写入文件的字符串顺序不一样
+    fp.close
+
+
+
+
+使用exec函数可以执行动态Python代码，即将字符串当做代码执行执行，
+一开始使用到这个功能因为需要将模块名作为参数传给该文件，再导入该模块
+例如：
+exec("import " + "config720_1280 " + "as config")
+之后可以使用config720_1280中的函数，例如：
+config.finishSuggect[0]
+config.editKeyboard[1]
+
+使用eval可以类似于exec函数，可以将字符串作为计算表达式使用
+
+
+
+字符串 : 用法1
+mScritLastPath = "E:/test_result/test"
+print mScritLastPath
+print mScritLastPath.rindex("/")
+i = mScritLastPath.rindex("/")
+print mScritLastPath[:i]
+
+结果
+E:/test_result/test
+14
+E:/test_result
+
+
+
+
+当在函数中需要修改全局变量时，如果没有global关键字则会出错，
+因为python发现变量x在函数内部被赋值，则将x识别为局部变量，此时局部变量还未赋值时就被使用，所以报错。
+加上global关键字后，可以得到希望的结果，如下：
+x = 1  
+def run():     
+    global x   
+    print x  
+    x = 2  
+      
+if __name__ == '__main__':  
+    run()  
+
+
+	
+可以在函数中嵌套函数，也可以在函数中创建变量，也可以函数中导入类，用法和不在函数中一样
+	
+
+扫描目录下的文件列表名
+	
+for findPY in os.listdir(path):
+	print findPY
+
+
+
+
+
+monkeyrunner总结：
+
+android的monkeyrunner测试，指定脚本：
+monkeyrunner path+file
+
+device.drag((500,440) , (0,440) , 2.0  , 2)
+#参数 1和2是坐标，3是延迟多少秒，4是动作帧数(延迟秒数和动作帧数配合使用，控制滑动动作的缓急)
+#调整延迟秒数可以做成“快划效果”这时候动作帧数相应变大一点，
+#例如device.drag((360,1168) , (360,400) , 0.1  , 10)
+
+使用前先import,可以输入adb命令
+os.popen("adb command")
+例如输出log到一个.log文件（其他命令没试过）：
+os.popen("adb logcat -v time > e:/2015_06_15.log")
+
+
+#曲线拖动
+device.touch(70, 1000, MonkeyDevice.DOWN)
+# Move from 100, 500 to 300, 500
+for i in range(1, 11):
+    device.touch(70 + 20 * i, 1000, MonkeyDevice.MOVE)
+    print "move ", 70 + 20 * i, 1000
+    time.sleep(0.1)
+
+# Move from (300, 500 to 200, 500)
+for i in range(1, 11):
+    device.touch(270, 1000 - 10 * i, MonkeyDevice.MOVE)
+    print "move ", 270, 1000 - 10 * i
+    time.sleep(0.1)
+
+# Remove finger from screen
+device.touch(300, 400, MonkeyDevice.UP)
+
+#启动Activity，带有Extra
+device.startActivity( extras = extraDic ,component = runComponent)
+
+
+将内存信息写入文本
+shell_print = device.shell('dumpsys meminfo com.crazystudio.emoji.kitkat')
+print shell_print
+#参数a,追加模式
+fp = open("E:/test_result/2015_6_10/script_log/test.txt",'a')
+fp.write(shell_print + '\n\n\n')
+
+截图：
+newimage = device.takeSnapshot()
+newimage.writeToFile ( 'E:/source/workspace-emoji-keyboard-test/workspace/huiteng-emoji-keyboard/script_image/theme_main.png' , 'png');
+
+将log信息写入文本
+os.popen("adb logcat -v time > " + mTestInfoPath + "/" + getToday() + getNowTimeUnderline() + ".log")
+
+#！这里执行adb命令使用了os.popen和device.shell两种方式，似乎os.popen适用更加广泛，有待研究
+
+关闭开启ADB
+  adb kill-server
+  
+  adb start-server
+
+
+延伸的monkeyrecord
+
+CMD_MAP = {
+    'TOUCH': lambda dev, arg: dev.touch(**arg),
+    'DRAG': lambda dev, arg: dev.drag(**arg),
+    'PRESS': lambda dev, arg: dev.press(**arg),
+    'TYPE': lambda dev, arg: dev.type(**arg),
+    'WAIT': lambda dev, arg: MonkeyRunner.sleep(**arg)
+	#加入自定义的
+	'SHOT': lambda dev, arg: shotPhoto(),
+    'LOG':lambda dev, arg: writeLogFile(),
+     'MEMORY':lambda dev, arg: writeMemoryFile(**arg)  #带参数
+}
+
+在生成出来的文件中写入以下语句就可以调用，只能手动写入
+SHOT|{}
+LOG|{}
+MEMORY|{'message':'slide 6 theme'}  #传入参数
+
+
+

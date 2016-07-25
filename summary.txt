@@ -1370,13 +1370,21 @@ JavaClassTest javaClassTest = new JavaClassTest();
 JavaClassTest.InternalClass internalClass = javaClassTest.new InternalClass();
 
 
+调用一下代码，不用点击editText，editText也会出现光标，并且被选中
+//前面2句只是设置使能，通常只调用第三句代码，即requestFocus
+editText.setFocusable(true);
+editText.setFocusableInTouchMode(true);
+editText.requestFocus(); 
+
+// editText可以被选中并出现光标，但不弹出键盘
+editText.setTextIsSelectable.(true)
 
 
-
-
-
-
-
+"abc|asd|amsd".split("|")
+输出结果是String[6]{"","adc","|","asd","|","amsd"}
+"abc|asd|amsd".split("\\|")
+输出结果是String[3]{"adc","asd","amsd"}
+如果使用split，发现输出结果有问题，尝试加入转义符:\\
 
 
 

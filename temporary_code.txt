@@ -1,171 +1,58 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+﻿mEmojiButton
+showEmojiKeyboard
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/horizonal_linear_recycler"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:padding="5dp"
-            android:background="@android:color/holo_blue_light"
-            />
+RichChooser.OnIndicatorItemClick
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/vertical_linear_recycler"
-            android:layout_width="match_parent"
-            android:layout_height="800dp"
-            android:padding="5dp"
-            android:background="@android:color/holo_blue_light"
-            />
 
-        </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+<com.heyemoji.onelauncher.searchkeyboard.SearchKeyBoard
+		android:id="@+id/search_keyboard"
+		android:layout_width="match_parent"
+		android:layout_height="200dp"
+		android:layout_gravity="bottom"
+		android:visibility="gone"
+		android:elevation="100dp"
+		android:background="@android:color/holo_green_dark"
+		/>
+// 一遍
+07-25 11:08:35.012  11665-12003/com.wrx.test E/threadTest﹕ Jul 25,2016 11:08:33.370
+07-25 11:08:35.012  11665-12003/com.wrx.test E/threadTest﹕ Jul 25,2016 11:08:35.018
 
-package com.wrx.test;
+// 两遍
+07-25 11:05:45.147  11369-11405/com.wrx.test E/threadTest﹕ Jul 25,2016 11:05:43.892
+07-25 11:05:45.147  11369-11405/com.wrx.test E/threadTest﹕ Jul 25,2016 11:05:45.151
 
-import android.app.Activity;
-import android.graphics.Canvas;
-import android.graphics.Rect;
-import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.view.View;
 
-import com.wrx.test.recycle.MyRecycleAdapter;
 
-/**
- * Created by wuruixiong on 2016/6/24.
- */
-public class LinearRecycleViewDemo extends Activity{
 
-    private RecyclerView mHorRecyclerView;
-    private RecyclerView mVerRecyclerView;
-    private MyRecycleAdapter mHorAdapter;
-    private MyRecycleAdapter mVerAdapter;
-    private LinearLayoutManager mHorManager;
-    private LinearLayoutManager mVerManager;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.linear_recycle_view_layout);
-        mHorRecyclerView = (RecyclerView) findViewById(R.id.horizonal_linear_recycler);
-        mVerRecyclerView =  (RecyclerView) findViewById(R.id.vertical_linear_recycler);
 
-        mHorAdapter = new MyRecycleAdapter(this);
-        mHorManager = new LinearLayoutManager(this);
-        mVerAdapter = new MyRecycleAdapter(this);
-        mVerManager = new LinearLayoutManager(this);
 
-        mHorManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        mHorRecyclerView.setLayoutManager(mHorManager);
-        mHorRecyclerView.setAdapter(mHorAdapter);
-        mVerManager.setOrientation(LinearLayoutManager.VERTICAL);
-        mVerRecyclerView.setLayoutManager(mVerManager);
-        mVerRecyclerView.setAdapter(mVerAdapter);
 
-    }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-}
 
-package com.wrx.test.recycle;
 
-import android.content.Context;
-import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
-import com.wrx.test.R;
 
-import java.util.zip.Inflater;
 
-/**
- * Created by wuruixiong on 2016/6/26.
- */
-public class MyRecycleAdapter extends RecyclerView.Adapter<MyViewHolder>{
 
-    private Context mContext;
 
-    public MyRecycleAdapter(Context context) {
-        super();
-        mContext = context;
-    }
 
-    @Override
-    public int getItemViewType(int position) {
-        return super.getItemViewType(position);
-    }
 
-    @Override
-    public int getItemCount() {
-        return 10;
-    }
 
-    @Override
-    public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.recycle_item, null);
-        MyViewHolder myViewHolder = new MyViewHolder(view);
-        return myViewHolder;
-    }
 
-    @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
-        View view = holder.itemView;
-        TextView textView = (TextView) view.findViewById(R.id.item_text);
-        String text = "text";
-        for (int i = 0; i < position; i++) {
-            text = text + "text";
-        }
-        textView.setText(text);
-    }
-}
 
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center"
-    android:background="@android:color/holo_green_light"
-    android:padding="5dp"
-    >
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:background="@android:color/holo_orange_light"
-        >
-        <ImageView
-            android:id="@+id/item_image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_launcher"
-            />
 
-        <TextView
-            android:id="@+id/item_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="test"
-            />
-     </LinearLayout>
 
-</LinearLayout>
+
+
+
+
+
+
+
+
+
+
+
