@@ -1,33 +1,12 @@
-﻿mEmojiButton
-showEmojiKeyboard
-
-
-RichChooser.OnIndicatorItemClick
-
-
-<com.heyemoji.onelauncher.searchkeyboard.SearchKeyBoard
-		android:id="@+id/search_keyboard"
-		android:layout_width="match_parent"
-		android:layout_height="200dp"
-		android:layout_gravity="bottom"
-		android:visibility="gone"
-		android:elevation="100dp"
-		android:background="@android:color/holo_green_dark"
-		/>
-// 一遍
-07-25 11:08:35.012  11665-12003/com.wrx.test E/threadTest﹕ Jul 25,2016 11:08:33.370
-07-25 11:08:35.012  11665-12003/com.wrx.test E/threadTest﹕ Jul 25,2016 11:08:35.018
-
-// 两遍
-07-25 11:05:45.147  11369-11405/com.wrx.test E/threadTest﹕ Jul 25,2016 11:05:43.892
-07-25 11:05:45.147  11369-11405/com.wrx.test E/threadTest﹕ Jul 25,2016 11:05:45.151
-
-
-
-
-
-
-
+﻿Process: com.heyemoji.onelauncher, PID: 23030
+E/AndroidRuntime(23030): java.util.concurrent.TimeoutException: com.android.internal.os.BinderInternal$GcWatcher.finalize() timed out after 30 seconds
+E/AndroidRuntime(23030):  at java.lang.Object.wait(Native Method)
+E/AndroidRuntime(23030):  at java.lang.Object.wait(Object.java:401)
+E/AndroidRuntime(23030):  at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:102)
+E/AndroidRuntime(23030):  at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:73)
+E/AndroidRuntime(23030):  at java.lang.Daemons$FinalizerDaemon.run(Daemons.java:170)
+E/AndroidRuntime(23030):  at java.lang.Thread.run(Thread.java:841)
+E/logserver( 2453): Object Path:/data/system/dropbox/, mask=0x0000008
 
 
 

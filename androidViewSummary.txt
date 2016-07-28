@@ -1,0 +1,11 @@
+
+view的周期是：测量 -> 布局
+measure() -> onMeasure() -> layout() -> onLayout()
+
+view的调用顺序都是 parentView -> childrenView
+会先调用 parentView的measure，再调用childrenView的measure
+会先调用 parentView的layout，再调用childrenView的layout
+
+viewGroup.measureChildWithMargins()
+不同的父布局 例如 linearLayout、frameLayout会调用不同的方法来执行子布局的layout()
+

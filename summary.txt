@@ -1388,6 +1388,85 @@ editText.setTextIsSelectable.(true)
 
 
 
+XmlResourceParser 解析
+
+文件：
+<?xml version="1.0" encoding="utf-8"?>
+<Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          android:keyWidth="33%p"
+          android:keyHeight="50dp"
+          android:horizontalGap="0px"
+          android:verticalGap="0px"
+        >
+    <Row>
+        <Key android:keyLabel="1" android:codes="49" android:horizontalGap="1%p" android:keyWidth="32%p" />
+        <Key android:keyLabel="2" android:codes="-1" app:keyUnderLabel="ABC" android:keyOutputText="2|" android:horizontalGap="1%p" android:keyWidth="32%p"/>
+        <Key android:keyLabel="3" android:codes="-1" app:keyUnderLabel="DEF" android:keyOutputText="3|" android:horizontalGap="1%p" android:keyWidth="32%p"/>
+    </Row>
+    <Row>
+        <Key android:keyLabel="4" android:codes="-1" app:keyUnderLabel="GHI" android:keyOutputText="4|" android:horizontalGap="1%p" android:keyWidth="32%p"/>
+        <Key android:keyLabel="5" android:codes="-1" app:keyUnderLabel="JKL" android:keyOutputText="5|" android:horizontalGap="1%p" android:keyWidth="32%p"/>
+        <Key android:keyLabel="6" android:codes="-1" app:keyUnderLabel="MNO" android:keyOutputText="6|" android:horizontalGap="1%p" android:keyWidth="32%p"/>
+    </Row>
+</Keyboard>
+
+
+try {
+	int event;
+	// parser.next() 是跳转到下一个标签，先跳转到子标签是子标签，没有子标签跳转同级标签
+	// 按照上边的例子，如果当前标签是 Keyboard，下一个标签就是 Row， 第一个Row标签的下一个标签就是 Key
+	
+	while ((event = parser.next()) != XmlResourceParser.END_DOCUMENT) {
+		if (event == XmlResourceParser.START_TAG) {
+			// 每一个标签的开始，即 < 符号
+		} else if (event == XmlResourceParser.END_TAG) {
+			// 每一个标签的结束，即 > 符号
+		}
+	}
+	// 该while循环的顺序是
+	// Keyboard:XmlResourceParser.START_TAG 
+	// -> Row:XmlResourceParser.START_TAG 
+	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
+	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
+	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
+	// -> Row:XmlResourceParser.END_TAG 
+	// -> Row:XmlResourceParser.START_TAG 
+	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
+	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
+	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
+	// -> Row:XmlResourceParser.END_TAG 
+	// -> Row:XmlResourceParser.START_TAG 
+	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
+	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
+	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
+	// -> Row:XmlResourceParser.END_TAG 
+	// -> Keyboard:XmlResourceParser.END_TAG 
+	// 注:第一遍循环的标签似乎是没有的，标签Keyboard在第二循环出现
+} catch (Exception x){
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
