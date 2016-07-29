@@ -47,6 +47,8 @@ java整型的与、或、非、异或运算：
 如果自定义layout中有EditText，点击EditText会弹出输入法，此时会调用自定义layout或view的onMeasure方法，
 所以，使用此策略可以监听输入法弹出
 
+自定义view在xml中使用，通常会在objec(context, attrs)的构造方法中进入
+
 
 修改代码时，若想要获取之前view的配置，例如图片、颜色、字号等，可以调试，获取之前view的信息，通过view查找配置
 	
@@ -292,6 +294,7 @@ xxx先生
 　　　　　　　　　　　　　　　　　　　　　　　　　　　——请假人：吴锐雄
 　　　　　　　　　　　　　　　　　　　　　　　　　　　　2015年4月16日
  
+
 
 Math.max(13,90)//返回90
 Math.min(13,90)//返回13
@@ -1390,7 +1393,7 @@ editText.setTextIsSelectable.(true)
 
 XmlResourceParser 解析
 
-文件：
+xml文件：
 <?xml version="1.0" encoding="utf-8"?>
 <Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -1411,7 +1414,16 @@ XmlResourceParser 解析
     </Row>
 </Keyboard>
 
+自定义属性：
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="Search_Keyboard_Key">
+        <attr name="keyUnderLabel" format="string" />
+		<attr name="keyWidth" format="dimension|fraction"/>
+    </declare-styleable>
+</resources>
 
+1.读取顺序
 try {
 	int event;
 	// parser.next() 是跳转到下一个标签，先跳转到子标签是子标签，没有子标签跳转同级标签
@@ -1420,7 +1432,12 @@ try {
 	while ((event = parser.next()) != XmlResourceParser.END_DOCUMENT) {
 		if (event == XmlResourceParser.START_TAG) {
 			// 每一个标签的开始，即 < 符号
+			// 部分手机使用com.android.internal.R会报错
+			TypedArray a = res.obtainAttributes(Xml.asAttributeSet(parser), 
+                    com.android.internal.R.styleable.Keyboard);
+			
 		} else if (event == XmlResourceParser.END_TAG) {
+
 			// 每一个标签的结束，即 > 符号
 		}
 	}
@@ -1436,23 +1453,38 @@ try {
 	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
 	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
 	// -> Row:XmlResourceParser.END_TAG 
-	// -> Row:XmlResourceParser.START_TAG 
-	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
-	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
-	// -> Key:XmlResourceParser.START_TAG -> Key:XmlResourceParser.END_TAG
-	// -> Row:XmlResourceParser.END_TAG 
 	// -> Keyboard:XmlResourceParser.END_TAG 
 	// 注:第一遍循环的标签似乎是没有的，标签Keyboard在第二循环出现
 } catch (Exception x){
 }
 
+2.读取自定义属性
+if (event == XmlResourceParser.START_TAG) {
+	TypedArray typedArray = getResources().obtainAttributes(Xml.asAttributeSet(parser), R.styleable.Search_Keyboard_Key);
+	String underLabel = typedArray.getString(R.styleable.Search_Keyboard_Key_keyUnderLabel);
+}
 
 
+3.读取百分比数值，1%p，32%p 需要特殊读取方式
+// 读取dimen或者fract(百分比)，如果是百分比数值会返回 参数base 乘以百分比的值
+private static int getDimensionOrFraction(TypedArray a, int index, int base, int defValue) {
+	TypedValue value = a.peekValue(index);
+	if (value == null) return defValue;
+	if (value.type == TypedValue.TYPE_DIMENSION) {
+		return a.getDimensionPixelOffset(index, defValue);
+	} 
+	// 判断是不是百分比数值
+	else if (value.type == TypedValue.TYPE_FRACTION) {
+		return Math.round(a.getFraction(index, base, base, defValue));
+	}
+	return defValue;
+}
 
-
-
-
-
+// 自定义属性和android定义属性 作为参数的调用，部分手机使用com.android.internal.R(android定义属性)会报错
+getDimensionOrFraction(typedArray, R.styleable.Search_Keyboard_keyWidth,
+                    100, 50)
+getDimensionOrFraction(typedArray, com.android.internal.R.styleable.Keyboard_keyWidth,
+                    100, 50)
 
 
 

@@ -12,7 +12,10 @@ E/logserver( 2453): Object Path:/data/system/dropbox/, mask=0x0000008
 
 
 
-
+Error:Gradle: Execution failed for task ':sudokusview-module:packageReleaseResources'.
+> D:\source\coding-launcher\workspace\huiteng-sudokusview\res\values\search_keyboard_attrs.xml: Error: Duplicate resources: 
+D:\source\coding-launcher\workspace\huiteng-sudokusview\res\values\search_keyboard_attrs.xml:attr/keyUnderLabel, 
+D:\source\coding-launcher\workspace\huiteng-sudokusview\res\values\attr.xml:attr/keyUnderLabel
 
 
 
