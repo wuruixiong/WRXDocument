@@ -1,40 +1,9 @@
-﻿Process: com.heyemoji.onelauncher, PID: 23030
-E/AndroidRuntime(23030): java.util.concurrent.TimeoutException: com.android.internal.os.BinderInternal$GcWatcher.finalize() timed out after 30 seconds
-E/AndroidRuntime(23030):  at java.lang.Object.wait(Native Method)
-E/AndroidRuntime(23030):  at java.lang.Object.wait(Object.java:401)
-E/AndroidRuntime(23030):  at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:102)
-E/AndroidRuntime(23030):  at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:73)
-E/AndroidRuntime(23030):  at java.lang.Daemons$FinalizerDaemon.run(Daemons.java:170)
-E/AndroidRuntime(23030):  at java.lang.Thread.run(Thread.java:841)
-E/logserver( 2453): Object Path:/data/system/dropbox/, mask=0x0000008
-
-
-
-
-
-Error:Gradle: Execution failed for task ':sudokusview-module:packageReleaseResources'.
-> D:\source\coding-launcher\workspace\huiteng-sudokusview\res\values\search_keyboard_attrs.xml: Error: Duplicate resources: 
-D:\source\coding-launcher\workspace\huiteng-sudokusview\res\values\search_keyboard_attrs.xml:attr/keyUnderLabel, 
-D:\source\coding-launcher\workspace\huiteng-sudokusview\res\values\attr.xml:attr/keyUnderLabel
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+﻿ adb shell dumpsys activity
+ 
+ com.huiteng.gifdemo
+ 
+ Binary XML file line #2: Error inflating class <unknown>
+ 
+ content://media/external/images/media/302375
+ /external/images/media/307437
+ 

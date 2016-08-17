@@ -1486,10 +1486,40 @@ getDimensionOrFraction(typedArray, R.styleable.Search_Keyboard_keyWidth,
 getDimensionOrFraction(typedArray, com.android.internal.R.styleable.Keyboard_keyWidth,
                     100, 50)
 
+// 得到随机颜色
+Random rnd = new Random(); 
+int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256)); 
 
-
-
-
+// 分享 bitmap
+private void shareBitmap(Bitmap bitmap) {
+	FileOutputStream fos = null;
+	try {
+		// must create png file, then you can share this file
+		File dir = new File(Environment.getExternalStorageDirectory() + File.separator + "StickerCache");
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		File imageFile = new File(dir,"StickerCache.png");
+		fos = new FileOutputStream(imageFile);
+		bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+		fos.close();
+		
+		// share imageFile
+		Intent intent = new Intent(Intent.ACTION_SEND);
+		intent.setType("image/*");
+		intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(imageFile));
+		startActivity(Intent.createChooser(intent, "Share"));
+	}
+	catch (IOException e) {
+		if (fos != null) {
+			try {
+				fos.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+	}
+}
 
 
 

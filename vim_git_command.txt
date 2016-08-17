@@ -114,7 +114,9 @@ eclipse 关闭鼠标悬停提示：Window->Preferences->Java->Editor->Hovers-> Combined H
 例如cp -r /tmp/a /root/a （cp [选项] 源文件或目录 目的文件或目录）
 首先使用cp命令将文件复制在sd卡上，然后在直接使用usb数据线将文件复制在电脑上
 
-
+(进入到 /data/data下的一个文件夹内，把名为files的文件夹复制到 内置存储器的根目录下，
+	在解决实际问题当中，发现android机器上不可以使用 intent 把 /data/data/app 下的图片分享出去，因为其他的分享接收应用没法获取该文件)
+cp -r files ../../../mnt/sdcard/
 
 
 
