@@ -1522,10 +1522,74 @@ private void shareBitmap(Bitmap bitmap) {
 }
 
 
+// 使用 迭代器Iterator，进行 列表list的循环中的删除元素操作
+List<String> names = ....
+Iterator<String> i = names.iterator();
+while (i.hasNext()) {
+   String s = i.next(); // must be called before you can call i.remove()
+   // Do something
+   i.remove();
+}
 
 
+// 从drawable中取得 inputstream 并转化成 uri
+// 参数1：context，参数2: 包名，参数3：图片名
+// 可以将生成出来的 uri 放浏览器的地址栏，可以出现一张图片
+public static Uri getDataUri(Context context, String pkgName, String imageName) {
+	InputStream inputStream = null;
+	ByteArrayOutputStream byteBuffer = null;
+	try {
+		// 创建一个Context，来获得 其他应用的资源 或者 本应用的资源
+		Context resContext = context.createPackageContext(pkgName, Context.CONTEXT_IGNORE_SECURITY);
+		// 通过 图片名 取得图片资源的id
+		int resId = resContext.getResources().
+				getIdentifier(imageName, "drawable", pkgName);
+		// 将该图片转化为inputStream
+		inputStream = resContext.getResources().openRawResource(resId);
+		byteBuffer = new ByteArrayOutputStream();
+		int bufferSize = 1024;
+		byte[] buffer = new byte[bufferSize];
+		int len = 0;
+		while ((len = inputStream.read(buffer)) != -1) {
+			byteBuffer.write(buffer, 0, len);
+		}
+		// 将 该图片的输入流inputStream 转化为 字节数组byte[]
+		byte[] imageRaw = byteBuffer.toByteArray();
+		// 通过Base64加密
+		String image64 = Base64.encodeToString(imageRaw, Base64.DEFAULT);
+		// 构建 uri字符串
+		String pageData = "data:image/*;base64," + image64;
+		Uri uri = Uri.parse(pageData);
+		return uri;
+	} catch (Exception e) {
+	} finally {
+		// 关闭流
+		if (inputStream != null) {
+			try {inputStream.close();}
+			catch(IOException ioex) {}
+		}
+		if (byteBuffer != null) {
+			try {byteBuffer.close();}
+			catch(IOException ioex) {}
+		}
+	}
+	return null;
+}
 
 
+// 定义 三种 TYPE，
+@IntDef({DATA_TYPE_1, DATA_TYPE_2, DATA_TYPE_3})
+@Retention(RetentionPolicy.SOURCE)
+public @interface Type {}
+
+public static final int DATA_TYPE_1 = 1;
+public static final int DATA_TYPE_2 = 2;
+public static final int DATA_TYPE_3 = 3;
+
+// 在调用 setType()时，会有提示输入参数可以是 DATA_TYPE_1, DATA_TYPE_2, DATA_TYPE_3
+public setType(@Type int type) {
+	int i = type;
+}
 
 
 

@@ -7,3 +7,80 @@
  content://media/external/images/media/302375
  /external/images/media/307437
  
+ 
+ 
+ PipelineDraweeControllerBuilder.getDataSourceForRequest
+ 
+ 
+ 
+    public ArrayList<StickerViewData> mViewDatas;
+    public String mTitle;
+    public Drawable mIcon[];
+
+    public boolean isExternalPlugin = false;
+    public String mPkgName;
+
+    // about poster
+    public boolean isPoster;
+    public String mPosterDrawableUri;
+
+    public StickerPagerData(ArrayList<StickerViewData> datas, String title, Drawable[] icon) {
+        mViewDatas = datas;
+        mTitle = title;
+        mIcon = icon;
+        isPoster = false;
+    }
+
+    public void setStickerPoster(String posterDrawableUri, String posterPkgName) {
+        mPosterDrawableUri = posterDrawableUri;
+        mPkgName = posterPkgName;
+        isPoster = true;
+    }
+ 
+ 
+ 
+ 
+    public static final int DATA_TYPE_INTERNAL_PLUGIN = 1;
+    public static final int DATA_TYPE_EXTERNAL_PLUGIN = 2;
+    public static final int DATA_TYPE_POSTER = 3;
+
+    public ArrayList<StickerViewData> mViewDatas;
+    public String mTitle;
+    public Drawable mIcon[];
+
+    public String mPkgName;
+
+    public String mPosterDrawableUri;
+
+    private int mTpye;
+
+    public StickerPagerData(int type) {
+        switch (type) {
+            case DATA_TYPE_INTERNAL_PLUGIN:
+                mTpye = DATA_TYPE_INTERNAL_PLUGIN;
+                break;
+            case DATA_TYPE_EXTERNAL_PLUGIN:
+                mTpye = DATA_TYPE_EXTERNAL_PLUGIN;
+                break;
+            case DATA_TYPE_POSTER:
+                mTpye = DATA_TYPE_POSTER;
+                break;
+            default:
+                mTpye = DATA_TYPE_INTERNAL_PLUGIN;
+                break;
+        }
+    }
+
+    public void setStickerPagerData(ArrayList<StickerViewData> datas, String title, Drawable[] icon) {
+        mViewDatas = datas;
+        mTitle = title;
+        mIcon = icon;
+    }
+
+    public void setStickerPoster(String posterDrawableUri) {
+        mPosterDrawableUri = posterDrawableUri;
+    }
+	
+	
+	
+	
