@@ -1,0 +1,328 @@
+﻿public
+protected
+private
+abstract
+static
+final
+transient
+volatile
+synchronized
+native
+strictfp
+
+
+黄金比例：(√5-1)/2  约等于 0.618， 约等于6:10，约等于5:8
+
+访问控制符(access specifier):public private protected
+
+new A() 是为匿名对象
+
+InputStream指的是在数据流中的数据读入到指定object是为Input，通常使用InputStream.read
+OutputStream指的是将数据输出到OutputStream中，是为Output，通常使用OutputStream.write
+
+float浮点类型，只有在数值后面加f就是浮点数值，例如0.5f
+
+java三目运算：
+a ? b:c
+a为真返回b，为假返回c
+
+
+三角函数公式使用，Math.PI为圆周率，1度为π/180弧度
+Math.sin((30) * Math.PI / 180) = 0.49999999 //sin30度，约等于0.5
+Math.sin(30) 是指sin30弧度
+Math.asin(0.49999999)可以得到反sin的数值：0.52359877(这就是30度的值：30*Math.PI/180 == 0.52359877)
+Math.asin(0.49999999)*180/Math.PI = 30   //也可以使用toDegrees()来得到角度，toDegrees()也是使用了 数值乘以180再除以圆周率的计算公式的
+
+java整型的与、或、非、异或运算：
+计算之前将10进制转为2进制，对每位进行运算
+例如：1与2就是2进制的：1与10结果为0
+129-->10000001
+128-->10000000
+128|129 -->10000001 结果129
+异或就是相同为真不相同为假，1和1、0和0异或都为真
+
+	
+继承的父类的子类可以重写public，protected方法，必须是只有public，protected修饰符的方法，
+如果方法加了static，final等修饰符不可被重写
+
+
+整型没初始化值为0
+字符串没有初始化值为null, 因为 字符串 String 是一个类
+即：
+    String mText;//值为0
+    int mInt;	 //值为null
+
+字符串操作：
+StringClip.isEmpty();  // 判断为空
+StringClip.length() ; //长度
+StringClip.equals(new String); //比较是否相等
+
+字符串和char数组互转
+String str = "ggg";
+char[] bm;
+bm = str.toCharArray();
+str = String.valueOf(bm);
+
+
+浮点除法运算，加(float)强转是关键
+float wratio = (float)mViewWidth / mBackgroundBitmap.getWidth();
+int转float
+Math.round(mBackgroundBitmap.getHeight() * wratio))
+
+
+//Double转int
+Double d = 10d;
+int mBorderRadius = d.intValue();
+
+
+实例化数组： String res_randomstr[?];//问号是表示创建几个元素，
+	    res_randomstr=new String[10];//例如：下标为res_randomstr[0]到res_randomstr[9]共10个
+		
+数组定义： 1.private String[] text = {"t", "t", "t"}; //可以在类之内方法之外如此定义，数组text会有3个元素   
+
+		   2.private String[] text;			     //此时text数组为空
+		     text = new String[]{"t", "t", "t"}; //在方法之内 实例化, text数组有三个元素  
+			 
+		   3.private String[] text;	// 定义数组text, 此时text数组为空
+		     text = new String[2];  //也可以在方法之内实例化, text数组有三个元素, 但是三个元素都为空 
+			 text[0] = "t"			// 对第一个元素赋值
+
+
+数组长度：int grid_id[][];
+	grid_id.length//有几个数据就有几个,即第一维的长度
+二维数组元素长度:   grid_id[].length
+输出2维数组所有数据：     
+           for(int i=0;i<grid_id.length;i++)
+                {
+                    for(int j=0;j<grid_id[i].length;j++) {
+                        Log.v(String.valueOf(grid_id[i][j]),String.valueOf(grid_id[i][j]));
+                    }
+                }
+				
+
+在线程的使用过程中，要特别注意线程同步的问题，
+例如：在线程中遍历列表list，如果其他线程对列表list进行 删除操作，则可能出现 下标溢出、空指针等错误
+方法1：如果列表list在主线程创建，则在主线程中复制多个列表list，再作为参数赋给各个线程
+
+方法2：使用线程同步synchronized锁住list，在使用到list的地方都将list使用synchronized锁住
+
+方法3：使用线程同步synchronized锁住方法，封装list，将list用另外的类A 封装，在该类A的实例化对象中对list操作，
+	   其他线程通过操作类A的实例化对象来对list操作， 在类A中的操作list的方法method前加入synchronized，将操作list的方法锁住，
+	   可以防止多个线程同时操作该方法，这样也就是对list操作实现了线程同步
+	   
+
+实例化表： ArrayList list;
+list=new ArrayList();
+增加操作：add（n）；从0开始加入
+删除操作：remove（n）
+取出操作：get（n）；从0开始取出例如：get（0），get（1），get（2）
+计算长度：list.size();有几个数据就有几个，如果add3次，list.size（）就是3
+表中的元素转换int类型：Integer.valueOf(String.valueOf(list.get(n))).intValue();
+表中的元素转换String类型：String.valueOf(list.get(n));
+	   
+
+生成随机数： Random r = new Random();
+	     r.nextInt(9);//生成从0到8
+	   r.nextInt(n);//生成从0到n-1
+	   
+
+创建线程：  
+  private class Mythread extends Thread
+    {
+        int scount;
+        int slevel;
+//构造方法
+        private Mythread(int count,int level)
+        {
+           scount=count;
+            slevel=level;
+        }
+//重写run方法
+        @Override
+        public void run(){
+            
+        }
+    }
+
+最后：Mythread实例化之后.start
+
+创建线程2
+       //实例化借口
+　　class MutliThread implements Runnable{
+      @Override
+　　public void run(){}
+　　}
+      MutliThread m3=new MutliThread();
+      Thread t1=new Thread(m1);
+      t1.start；
+	   
+
+Math.max(13,90)//返回90
+Math.min(13,90)//返回13
+	   
+
+return 跳出有返回值的方法       
+        return ;//可以退出void方法
+break 跳出当前循环，如果在switch中，碰到break，会退出switch
+	   
+	   
+JSON的2种格式：
+1、对象：对象在js中表示为“{}”括起来的内容，数据结构为 {key：value,key：value,...}的键值对的结构，在面向对象的语言中，key为对象的属性，value为对应的属性值，所以很容易理解，取值方法为 对象.key 获取属性值，这个属性值的类型可以是 数字、字符串、数组、对象几种。
+2、数组：数组在js中是中括号“[]”括起来的内容，数据结构为 ["java","javascript","vb",...]，取值方式和所有语言中一样，使用索引获取，字段值的类型可以是 数字、字符串、数组、对象几种。
+
+JSON解析
+封装并存储成文件：
+            JSONObject object = new JSONObject();
+            try {
+                object.put("Common1", "#ffffffff");
+                object.put("Common2", "#ffffffff");
+                object.put("Common3", "#ffffffff");
+                object.put("Common4", "#ffffffff");
+                object.put("Common5", "#ffffffff");
+                object.put("Common6", "#ffffffff");
+                object.put("Common7", "#ffffffff");
+                object.put("Common8", "#ffffffff");
+                object.put("Common9", "#ffffffff");
+                object.put("Common10", "#ffffffff");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                OutputStream os = context.openFileOutput(FileName, Activity.MODE_PRIVATE);
+                os.write(object.toString().getBytes());
+                os.close();
+                Log.w(FileName+" is create",FileName+" is create");
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+读取JSON文件
+            try {
+                FileInputStream fis =context.openFileInput(FileName);
+                byte[] buff=new byte[1024];
+                int hasRead=0;
+                StringBuilder sd=new StringBuilder("");
+                while ((hasRead=fis.read(buff))>0)
+                {
+                    sd.append(new String(buff,0,hasRead));
+                }
+                fis.close();
+//                Log.w("JSON",sd.toString());
+                return sd.toString();
+            }
+            catch (Exception e)
+            {
+            }
+
+将上面的返回值（字符串型）转成JSONTokener ，使用JSONObject 查找数据，sd.toString()就是JSON的数据格式
+        try {
+            JSONTokener jsonTokener = new JSONTokener(sd.toString());
+            JSONObject jsonObject = (JSONObject) jsonTokener.nextValue();
+            jsonObject.getString("Common"+CommonNumber);
+        } catch (JSONException ex) {
+        }
+		
+		
+JSON数组封装：
+JSONObject person = new JSONObject();  
+JSONArray phone = new JSONArray();  
+phone.put("12345678").put("87654321");  
+person.put("phone", phone); 
+
+JSON数组读取：
+String t={"initial":"R","name":"reiz","likes":["JavaScript","Skiing","Apple Pie"]}
+JSONObject.fromObject(t)
+JSONArray likes=jo.getJSONArray("likes"); //得到likes数组
+like.getString(2);                        //得到likes数组第三个
+	   
+	   
+反射机制：
+方法无参数：
+	获取方法：
+	Class iInputMethodWrapper = service.getClass();
+	try {
+		Method getInternalInputMethod = iInputMethodWrapper.getMethod("getInternalInputMethod",null);
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+	
+	 执行方法：
+	 getInternalInputMethod.invoke("iInputMethodWrapper",null)
+	   
+
+	   
+"abc|asd|amsd".split("|")
+输出结果是String[6]{"","adc","|","asd","|","amsd"}
+"abc|asd|amsd".split("\\|")
+输出结果是String[3]{"adc","asd","amsd"}
+如果使用split，发现输出结果有问题，尝试加入转义符:\\
+	   
+	   
+
+
+// 定义 三种 TYPE，
+@IntDef({DATA_TYPE_1, DATA_TYPE_2, DATA_TYPE_3})
+@Retention(RetentionPolicy.SOURCE)
+public @interface Type {}
+
+public static final int DATA_TYPE_1 = 1;
+public static final int DATA_TYPE_2 = 2;
+public static final int DATA_TYPE_3 = 3;
+
+// 在调用 setType()时，会有提示输入参数可以是 DATA_TYPE_1, DATA_TYPE_2, DATA_TYPE_3
+public setType(@Type int type) {
+	int i = type;
+}
+	   
+	   
+
+
+// 使用 迭代器Iterator，进行 列表list的循环中的删除元素操作
+List<String> names = ....
+Iterator<String> i = names.iterator();
+while (i.hasNext()) {
+   String s = i.next(); // must be called before you can call i.remove()
+   // Do something
+   i.remove();
+}	   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
