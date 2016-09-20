@@ -1309,6 +1309,95 @@ class ViewHolder{
 
 
 
+定义方法设置高宽和android自带的XML设置高宽相兼容：
+这样写，就可以增加setWidth()方法和setHeight()方法的同时，不影响View其他原有功能
+private int mWidth;
+private int mHeight;
+private boolean isSetWidthMethodUsed;
+private boolean isSetHeightMethodUsed;
+
+//如果使用了setWidth()方法，必须设置xml属性layout_width为wrap_content
+public void setWidth(int width) {
+	mWidth = width;
+	isSetWidthMethodUsed = true;
+}
+
+//如果使用了setHeight()方法，必须设置xml属性layout_height为wrap_content
+public void setHeight(int height) {
+	mHeight = height;
+	isSetHeightMethodUsed = true;
+}
+
+@Override
+protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+	int myWidthMeasureSpec = 0;
+	int myHeightMeasureSpec = 0;
+	if(!isSetWidthMethodUsed) {
+		mWidth = MeasureSpec.getSize(widthMeasureSpec);
+		myWidthMeasureSpec = widthMeasureSpec;
+	} else {
+		myWidthMeasureSpec = MeasureSpec.makeMeasureSpec(mWidth, MeasureSpec.EXACTLY);
+	}
+	if(!isSetHeightMethodUsed) {
+		mHeight = MeasureSpec.getSize(heightMeasureSpec);
+		myHeightMeasureSpec = heightMeasureSpec;
+	} else {
+		myHeightMeasureSpec = MeasureSpec.makeMeasureSpec(mHeight, MeasureSpec.EXACTLY);
+	}
+	super.onMeasure(myWidthMeasureSpec, myHeightMeasureSpec);
+}
+
+
+// 该方法指向 sd卡上的路径 /storage/emulated/0/Android/data/com.yourapp.package(应用包名)
+getExternalCacheDir().getAbsolutePath()
+
+// 当删除应用时，getExternalCacheDir().getAbsolutePath()指向的文件夹会一并删除
+
+// 注意的是 调用 getExternalCacheDir().getAbsolutePath() 方法
+// 就会马上创建一个 /storage/emulated/0/Android/data/com.yourapp.package文件夹
+// 如果没有调用该方法 /storage/emulated/0/Android/data/com.yourapp.package文件夹不存在
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
