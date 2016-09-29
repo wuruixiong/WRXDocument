@@ -11,6 +11,9 @@ idea 黑色风格：file -> settings -> appearance -> Theme,选择darcula
 Linux 终端个人常用命令：
 查找：grep -Irn searchName .
 
+多命令执行，用 ; 分号隔开，无论前边的命令执行成功与否都会继续执行下一条命令：
+echo 1; echoo 2; echo 3; echo 4
+
 
 window:alt+F4  关闭当前窗口
 window:window+m  所有窗口最小化
@@ -102,6 +105,10 @@ git branch master2  创建master2本地分支
 git branch origin/master2  创建master2分支，origin远程仓库名，master2为分支名(repository/branch)
 git checkout origin/master2  切换到分支
 git branch -d xxxxx  删除本地分支
+
+// 切换到master分支，在master分支上把develop分支的内容合并过来
+git checkout master
+git merge develop
 
 git show commitId  查看某个commitId的提交内容
 

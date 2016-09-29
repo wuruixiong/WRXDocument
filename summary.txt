@@ -1301,6 +1301,53 @@ public static Uri getDataUri(Context context, String pkgName, String imageName) 
 }
 
 
+// 读取 其他apk包的 gif 资源，转化成输入流，保存为 .gif 文件
+// 核心方法 openRawResource() 该方法可以用来读取 drawable文件夹或者raw文件夹下的资源并转化为流
+public static File getGifFile(Context context, String pkgName, String resName) {
+	Boolean isSDPresent = android.os.Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+	File absoluteDir = new File(context.getApplicationContext().getExternalCacheDir().getAbsolutePath());
+	if (isSDPresent && absoluteDir.exists() && null != context && null != pkgName && null != resName) {
+		String imgDirectoryPath = context.getApplicationContext().getExternalCacheDir().getAbsolutePath()+ "/" + "StickerCache";
+		File directory = new File(imgDirectoryPath);
+		if (!directory.isDirectory() || !directory.exists()) {
+			directory.mkdirs();
+		}
+		//File file = new File(directory, STICKER_TEMPORARY_PATH + ".gif");
+		File file = new File(directory, resName + ".gif");
+		if (file.exists()) {
+			file.delete();
+		}
+		InputStream inputStream = null;
+		OutputStream outputStream = null;
+		try {
+			Context resContext = context.createPackageContext(pkgName, Context.CONTEXT_IGNORE_SECURITY);
+			inputStream = resContext.getResources().openRawResource(ResUtils.resNameToResId(resContext, resName));
+			outputStream = new FileOutputStream(file);
+			byte buf[] = new byte[1024];
+			int len;
+			while ((len = inputStream.read(buf)) > 0)
+				outputStream.write(buf, 0, len);
+			/*outputStream.close();
+			inputStream.close();*/
+		} catch (Exception e) {
+		} finally {
+			if (inputStream != null) {
+				try {inputStream.close();}
+				catch(IOException ioex) {}
+			}
+			if (outputStream != null) {
+				try {outputStream.close();}
+				catch(IOException ioex) {}
+			}
+		}
+		return file;
+	} else {
+		Toast.makeText(context, "SD card is not exists", Toast.LENGTH_SHORT).show();
+		return null;
+	}
+}
+
+
 // 自定义ViewHolder，
 // 利用ViewHolder持有的view可以ViewHolder里面在对view进行设置数据、修改属性
 class ViewHolder{  
@@ -1358,10 +1405,11 @@ getExternalCacheDir().getAbsolutePath()
 // 如果没有调用该方法 /storage/emulated/0/Android/data/com.yourapp.package文件夹不存在
 
 
+//在实际应用开发中，发现将一个view的背景设为null(原本有背景)，会触发自身的onMeasure以及父view的onMeasure，如下
+iconView.setBackgroundDrawable(drawable) <-> iconView.setBackgroundDrawable(null)
 
-
-
-
+//如果不想调用onMeasure，则可以设置一个透明背景给该view，如下
+iconView.setBackgroundDrawable(drawable) <-> iconView.setBackgroundDrawable(transparentDrawable));
 
 
 
