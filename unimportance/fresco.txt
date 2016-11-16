@@ -1,0 +1,22 @@
+
+使用uri的加载流程：
+设置uri
+Fresco.newDraweeControllerBuilder().setUri(uri) -> PipelineDraweeControllerBuilder.setUri -> AbstractDraweeControllerBuilder.setImageRequest
+
+使用uri
+AbstractDraweeControllerBuilder.obtainDataSourceSupplier -> getDataSourceSupplierForRequest(this.mImageRequest) -> getDataSourceSupplierForRequest ->
+AbstractDraweeControllerBuilder.this.getDataSourceForRequest -> PipelineDraweeControllerBuilder.getDataSourceForRequest ->
+mImagePipeline.fetchDecodedImage -> mProducerSequenceFactory.getDecodedImageProducerSequence -> ProducerSequenceFactory.getBasicDecodedImageSequence ->
+if(UriUtil.isLocalResourceUri(uri)) -> getLocalResourceFetchSequence
+
+创建流程：
+Fresco -> ImagePipelineFactory -> ProducerFactory
+							   -> ImagePipeline
+							   -> ProducerSequenceFactory
+
+
+
+localResourceFetchProducer.getByteBufferBackedEncodedImage
+
+// 各种有关于ImagePipeline的初始化
+ImagePipelineFactory

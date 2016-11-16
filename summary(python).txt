@@ -67,7 +67,10 @@ for element in sample_list:
 #遍历2
 for i in range(len(lst)):
 	print(lst[i])
-    
+
+#创建空列表
+list = []
+ 
 合并:
 A.extend(B)
 A+B
@@ -111,6 +114,13 @@ E:/test_result/test
 14
 E:/test_result
 
+# 字符串匹配，找到返回找到的index，找不到返回-1
+info = "abcaaa"
+if info.find("d") != -1:
+	print "find"
+else:
+	print "not find"
+
 
 
 
@@ -137,7 +147,82 @@ for findPY in os.listdir(path):
 	print findPY
 
 
+#多行注释 使用 """ 代码 """  
+#for root, dirs, files in os.walk(originalFilePath)  
+#查找一个文件夹下的所有的文件会有三个返回值，
+#root是这个文件的父文件夹路径，dirs是文件夹下所有的文件夹列表，files是文件夹下所有的文件列表
+#originalFilePath是文件夹路径
+"""
+for root, dirs, files in os.walk(originalFilePath):  
+	for specialFile in files: 
+		originalFiles.append(str(specialFile))
 
+for root, dirs, files in os.walk(mateFilePath):  
+	for specialFile in files: 
+		mateFiles.append(str(specialFile))
+"""
+
+
+#if语句
+number = 23
+guess = random.uniform(10, 30)  #随机数生成
+if guess == number:
+    print("right")
+elif guess < number:
+    print("smaller")
+else:
+    print("bigger")
+
+#当if 0 时, 判断不成立，会跳到else
+if 0:
+else :
+	
+#当if 非0(大于零小于零) 时, 判断成立
+if "aaa":
+if -1:
+	
+	
+解析json
+jsonTest = {"datakey1":"dataValue1", "datakey2":"dataValue2", "datakey3":"dataValue3"}
+jsonObjectDump = json.dumps(jsonTest)
+jsonObject = json.loads(jsonObjectDump)
+print jsonObjectDump
+print jsonObject["datakey1"]
+
+jsonTest2 = ["dataValue1","dataValue2","dataValue3"]
+jsonArrayDump = json.dumps(jsonTest2)
+jsonArray = json.loads(jsonArrayDump)
+print jsonArrayDump
+print jsonArray[2]	
+	
+	
+	
+在python中执行shell命令
+import subprocess #导入模块
+#调用call方法，可以这么调用 subprocess.call(["cmd", "arg1", "arg2"],shell=True)
+#例如：以长格式的形式查看当前目录下所有可见文件的详细属性
+subprocess.call(["ls", "-l", "./"], shell=False)
+#也可以
+subprocess.call(["ls -l ./"], shell=True)
+
+注：据说不建议使用 shell=True
+	shell=True参数会让subprocess.call接受字符串类型的变量作为命令
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 
 monkeyrunner总结：

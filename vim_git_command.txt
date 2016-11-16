@@ -112,6 +112,26 @@ git merge develop
 
 git show commitId  查看某个commitId的提交内容
 
+// 将本地的git仓库绑定地址为git://127.0.0.1/abc.git 的一个远程仓库
+git remote add origin git://127.0.0.1/abc.git
+
+//本地创建的仓库关联远程仓库
+git init 创建一个本地git仓库
+git add README.md 添加一个README.md文件
+git commit -m "first commit" 第一次提交
+git remote add origin https://github.com/wuruixiong/WRXDocument.git  将这个仓库和远程仓库绑定
+git push -u origin master  提交到远程仓库
+
+将已有的仓库和远程仓库绑定:
+git remote add origin https://github.com/wuruixiong/WRXDocument.git
+git push -u origin master
+
+
+
+
+
+
+
 eclipse 关闭鼠标悬停提示：Window->Preferences->Java->Editor->Hovers-> Combined Hover
 
 
@@ -123,7 +143,8 @@ eclipse 关闭鼠标悬停提示：Window->Preferences->Java->Editor->Hovers-> Combined H
 
 (进入到 /data/data下的一个文件夹内，把名为files的文件夹复制到 内置存储器的根目录下，
 	在解决实际问题当中，发现android机器上不可以使用 intent 把 /data/data/app 下的图片分享出去，因为其他的分享接收应用没法获取该文件)
-cp -r files ../../../mnt/sdcard/
+// 要复制文件夹要加 -r
+	cp -r files ../../../mnt/sdcard/
 
 
 
