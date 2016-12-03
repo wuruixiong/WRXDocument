@@ -1,4 +1,4 @@
-﻿http://192.168.0.105/crazyemoji/
+﻿Mac OS http://192.168.0.105/crazyemoji/
 ffmpeg
 SIP
 HorizontalScrollView

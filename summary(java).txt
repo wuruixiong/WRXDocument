@@ -293,7 +293,7 @@ while (i.hasNext()) {
 }	   
 
 
-// 表情code 转为字符串
+// 表情code 转为字符串: Integer.toHexString(Character.codePointAt("\uD83D\uDE01", 0)) == 1f601
 String code = "\uD83D\uDE00";
 String output = "\"";
 for (char c : code.toCharArray()) {
@@ -305,7 +305,7 @@ Character.codePointAt("\uD83D\uDE01", 0)  ==  128513
 Integer.toHexString(128513)  ==  1f601
 Unicode:U+1F601
 
-// 字符串 转为 表情code
+// 字符串 转为 表情code: String.valueOf(Character.toChars(Long.parseLong("1f601", 16))) == \uD83D\uDE00
  Long.parseLong("1f601", 16) == 128513
  Character.toChars(128513) == char[2] codeChar
  codeChar[0] == \uD83D

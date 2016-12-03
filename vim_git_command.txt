@@ -9,7 +9,7 @@ idea 黑色风格：file -> settings -> appearance -> Theme,选择darcula
 
 
 Linux 终端个人常用命令：
-查找：grep -Irn searchName .
+查找：grep -Irn yourSearchWord .
 
 多命令执行，用 ; 分号隔开，无论前边的命令执行成功与否都会继续执行下一条命令：
 echo 1; echoo 2; echo 3; echo 4
@@ -41,6 +41,15 @@ O：在当前行上面插入一个新行
 
 v：按字符选择。经常使用的模式，所以亲自尝试一下它。
 V(shift+v)：按行选择。这在你想拷贝或者移动很多行的文本的时候特别有用。
+
+ctrl + q：列选择
+
+选中一列之后
+shift + i 
+输入字符"k"
+双击 esc键
+会在所有的选中列前输入字符串"k"
+
 
 d：剪贴选择的内容到剪贴板。
 dd:剪切单行
