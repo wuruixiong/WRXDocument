@@ -1413,14 +1413,22 @@ iconView.setBackgroundDrawable(drawable) <-> iconView.setBackgroundDrawable(tran
 
 
 
+view的晃动动画:
+res/anim/shaking.xml
+<?xml version="1.0" encoding="utf-8"?>
+<rotate xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="100"
+    android:fromDegrees="-5"
+    android:pivotX="50%"
+    android:pivotY="50%"
+    android:repeatCount="infinite" 
+    android:repeatMode="reverse"
+    android:toDegrees="5" />
+	
+Animation animation = AnimationUtils.loadAnimation(this, R.anim.shaking);
+ImageView mRotateImage.startAnimation(animation);
 
-
-
-
-
-
-
-
+android:repeatCount 晃动次数，infinite是一直晃动
 
 
 

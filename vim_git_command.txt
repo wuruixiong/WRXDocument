@@ -135,8 +135,15 @@ git push -u origin master  提交到远程仓库
 git remote add origin https://github.com/wuruixiong/WRXDocument.git
 git push -u origin master
 
+删除所有未追踪文件(untracked files)
+git clean -f
 
 
+可以查看已add未commit的diff，新加文件可以看到diff
+git diff HEAD
+
+已经commit未提交到远程，和远程当前的master-rel分支对比
+git diff origin/master-rel HEAD
 
 
 
@@ -154,6 +161,58 @@ eclipse 关闭鼠标悬停提示：Window->Preferences->Java->Editor->Hovers-> Combined H
 	在解决实际问题当中，发现android机器上不可以使用 intent 把 /data/data/app 下的图片分享出去，因为其他的分享接收应用没法获取该文件)
 // 要复制文件夹要加 -r
 	cp -r files ../../../mnt/sdcard/
+
+	
+	
+	
+	
+shell	
+
+增加临时路径
+PATH=$PATH:source/
+查看路径，path属性
+printenv
+
+
+apktool 安装教程
+https://ibotpeaches.github.io/Apktool/install/
+Windows下
+需要将以下链接保存成apktool.bat，（可以创建文本文件，将链接的内容复制到文本文件中，再将该文件的文件名改为apktool.bat即可）
+https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/windows/apktool.bat
+在从以下链接处下载apktool_2.2.1.jar，再将其修改文件名为apktool.jar
+https://bitbucket.org/iBotPeaches/apktool/downloads
+最后将一个apk文件和apktool.bat和apktool.jar共置于一个文件夹内
+即可运行apktool命令
+
+apktool 反编译命令
+apktool.bat d -f test.apk 
+apktool d test.apk
+
+
+删除apk
+adb uninstall apkName
+
+
+在手机中导出apk
+查看所有的apk包名
+adb shell pm list packages
+选择一个apk包名，打印出路径
+adb shell pm path com.mms.emojiplugin.twemoji
+将打印出的路径作为参数，导出一个apk包，第三个参数为上一个命令的输出，第四个参数为apk的保存路径
+adb pull /data/app/com.mms.emojiplugin.twemoji-1/base.apk ./com.mms.emojiplugin.twemoji-1.apk
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
