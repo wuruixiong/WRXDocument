@@ -1,0 +1,157 @@
+android源码下载，编译
+
+下载教程
+https://source.android.com/source/downloading.html
+编译教程
+https://source.android.com/source/building.html
+
+
+1.下载repo
+创建repo路径：
+mkdir ~/bin
+PATH=~/bin:$PATH
+把repo下载到创建的路径
+curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+chmod a+x ~/bin/repo
+
+
+
+2.下载源码
+创建存放源码路径
+mkdir WORKING_DIRECTORY
+cd WORKING_DIRECTORY
+配置git账户
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+初始化
+repo init -u https://android.googlesource.com/platform/manifest
+查看要下载的android版本
+https://source.android.com/source/build-numbers.html#source-code-tags-and-builds
+例如：
+android-5.1.1_r9(适用于Nexus4)
+Build	  Branch	      Version	  Supported devices
+LMY48I	  android-5.1.1_r9    Lollipop	  Nexus 4, Nexus 5, Nexus 6, Nexus 7 (flo), Nexus 9 (volantis/volantisg), Nexus 10
+
+选择版本
+repo init -u https://android.googlesource.com/platform/manifest -b android-5.1.1_r9
+下载
+repo sync
+
+
+
+3.编译源码（编译模拟器不需要走3.1和3.2步骤）
+3.1下载二进制驱动
+地址：
+https://developers.google.com/android/drivers
+或者
+https://developers.google.com/android/blobs-preview
+
+例如：
+Nexus4的三个驱动
+https://dl.google.com/dl/android/aosp/broadcom-mako-lmy48m-74c82789.tgz
+https://dl.google.com/dl/android/aosp/lge-mako-lmy48m-d1f5b7f9.tgz
+https://dl.google.com/dl/android/aosp/qcom-mako-lmy48m-d580eeb1.tgz
+驱动说明：
+Nexus 4 binaries for Android 5.1.1 (LMY48M)
+Hardware Component	Company	Download	SHA-256 Checksum
+NFC	Broadcom	Link	d33f2d57cf1cbc298b59b71199b9d2a505f8767bb7529ce2f7da23dbe8b0edb9
+Camera, Sensors, Audio, DRM, Cryptography	LG	Link	084160edd089bf00b070e9ccb60192c06dd596052c43cf18e7b722c4805ae81f
+Graphics, GSM, Camera, GPS, Wi-Fi, Bluetooth, Sensors, Media, DRM, DSP, USB	Qualcomm	Link	7c67f7c0737eb0ff181bf9aa6e92c8d4e091edd9bd11d5af9e99903187eaf23a
+
+3.2解压安装驱动(以Nexus4的三个驱动为例子)
+解压三个驱动之后有三个.sh文件(extract-broadcom-mako.sh,extract-lge-mako.sh,extract-qcom-mako.sh)
+执行.sh脚本，在脚本运行程序过程中，同意许可协议
+依次执行三个脚本并同意他们的许可协议之后
+会在WORKING_DIRECTORY/vendor/下生成三个目录，之后的编译就会自动地将驱动一并编译
+
+3.3建立编译环境
+source build/envsetup.sh
+或者
+. build/envsetup.sh
+
+3.4选择编译目标
+lunch full_mako-userdebug
+或者
+lunch aosp_arm-eng
+或者
+单纯执行lunch命令之后会弹出选择，
+aosp_arm-eng是模拟器，
+full_mako-userdebug是Nexus4，
+
+编译目标查看(Selecting a device build栏目)
+https://source.android.com/source/running.html
+
+3.5编译
+make
+或者(2核CPU）
+make -j4
+或者(4核CPU）
+make -j8
+
+3.6运行模拟器
+如果编译目标是lunch aosp_arm-eng，可以执行以下命令运行模拟器
+emulator
+
+
+
+4.对Nexus4刷机
+如果编译目标是lunch full_mako-userdebug，
+在WORKING_DIRECTORY/out/target/product/mako下会生成刷机包
+网上大部分的刷机教程是在SD卡中放置刷机包来刷机，这里介绍一种使用 adb命令 来刷机的方法
+
+4.1用编译出来的刷机包
+终端进入WORKING_DIRECTORY/out/target/product/mako目录下，手机连接上电脑：
+执行命令把手机的bootloader调出来：
+adb reboot bootloader
+解锁手机：
+fastboot oem unlock
+刷机（安装）：
+fastboot flashall -w
+
+4.2使用android官方刷机包刷机
+可以使用android官方刷机包刷机，和编译出来的刷机包比起来多了google全家桶，例如google地图，G-mail，google商店等等
+下载列表：
+https://developers.google.com/android/images
+这里以Nexus4为例子，下载地址：
+https://dl.google.com/dl/android/aosp/occam-lmy48i-factory-f0ac517a.zip
+下载之后解压occam-lmy48i-factory-f0ac517a.zip
+
+以文本编辑器查看flash-all.bat，flash-all.sh，flash-base.bat
+会发现内容都是执行以下命令，达到刷机的目的：
+fastboot flash bootloader bootloader-mako-makoz30f.img
+fastboot reboot-bootloader
+fastboot flash radio radio-mako-m9615a-cefwmazm-2.0.1701.07.img
+fastboot reboot-bootloader
+fastboot -w update image-occam-lmy48i.zip
+
+其中
+第一个命令是 刷bootloader
+第二个命令是 重启bootloader
+第三个命令是 刷radio
+第四个命令是 重启bootloader
+第五个命令是 刷系统
+
+4.3对比
+如果解压image-occam-lmy48i.zip，可以看到压缩包和编译出来的刷机包中的文件类似
+例如：
+kernel
+recovery.img
+system.img
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
