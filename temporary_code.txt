@@ -1,1 +1,29 @@
-﻿
+﻿huiteng-emojiresource-twitter
+huiteng-emojiresource-emojidex
+huiteng-emojiresource-emojione
+huiteng-emojiresource-facebook
+huiteng-emojiresource-google
+huiteng-emojiresource-htc
+huiteng-emojiresource-ios6
+huiteng-emojiresource-ios10
+huiteng-emojiresource-lg
+huiteng-emojiresource-microsoft
+huiteng-emojiresource-mozilla
+huiteng-emojiresource-samsung
+huiteng-emojiresource-samsungv1
+huiteng-emojiresource-twitterv1
+
+
+
+
+
+
+
+
+
+
+
+fix json analyze error in Android 2.3
+
+
+add animation in start launcher, change 

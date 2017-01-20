@@ -1,0 +1,42 @@
+
+搜索功能：http://api.giphy.com/v1/gifs/search?q=funny+cat&api_key=dc6zaTOxFJmzC
+域：http://api.giphy.com/v1/gifs/search，
+参数：q=funny+cat(搜索funny和cat有关的gif) 
+api_key=dc6zaTOxFJmzC (dc6zaTOxFJmzC是公有的key，可以上http://api.giphy.com/submit，获得自己的Production Key)
+参数：
+q 关键词
+limit 返回gif信息的数量，默认25个
+offset 返回gif信息的偏移量，如果想要每次都返回不同gif信息，偏移量每次加25
+rating  通过评级，过滤gif,(评级：y,g,pg,pg-13,r)
+fmt  选择格式，html， json
+
+通过id查找某个gif功能：http://api.giphy.com/v1/gifs/feqkVgjJpYtjy?api_key=dc6zaTOxFJmzC
+每一个gif都会有自己的id
+feqkVgjJpYtjy是id
+dc6zaTOxFJmzC是公有key
+
+通过id查找很多gif功能：http://api.giphy.com/v1/gifs?api_key=dc6zaTOxFJmzC&ids=feqkVgjJpYtjy,7rzbxdu0ZEXLy
+参数：ids=feqkVgjJpYtjy,7rzbxdu0ZEXLy(feqkVgjJpYtjy第一个id,7rzbxdu0ZEXLy第二个id)
+api_key=dc6zaTOxFJmzC是公有key
+
+Translate功能：http://api.giphy.com/v1/gifs/translate?s=superman&api_key=dc6zaTOxFJmzC
+
+随机功能：http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=american+psycho
+随机返回一个gif
+参数：tag=american 返回和american有关的gif
+api_key=dc6zaTOxFJmzC是公有key
+
+Trending功能：http://api.giphy.com/v1/gifs/trending?api_key=dc6zaTOxFJmzC
+返回Giphy主页上的25个gif，即最热gif图片
+
+stickers 图片标签功能，用法和上面差不多
+http://api.giphy.com/v1/stickers/search?q=cat&api_key=dc6zaTOxFJmzC 
+http://api.giphy.com/v1/stickers/random?api_key=dc6zaTOxFJmzC&tag=oops
+http://api.giphy.com/v1/stickers/trending?api_key=dc6zaTOxFJmzC
+http://api.giphy.com/v1/stickers/translate?s=hungry&api_key=dc6zaTOxFJmzC
+
+
+
+
+
+

@@ -1432,7 +1432,7 @@ android:repeatCount 晃动次数，infinite是一直晃动
 
 
 
-
+Activity
 
 
 
