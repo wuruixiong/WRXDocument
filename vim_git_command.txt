@@ -1,8 +1,10 @@
 idea快键：ctrl+o   添加方法(overide method)
+idea快键：ctrl+i   添加抽象和接口方法(implements method)
 idea快键：alt+insert   添加get和set方法
 idea快键：ctrl+shift+/   xml注释 
 idea快键：ctrl+alt+L   格式化代码（自动对齐） 
 idea快键：ctrl+P   参数提示 parameter info
+
 
 idea 黑色风格：file -> settings -> appearance -> Theme,选择darcula
 
@@ -211,6 +213,20 @@ apktool d test.apk
 
 
 
+android gradle 配置
+
+android {
+  compileSdkVersion 23 //要编译的sdk版本号
+  buildToolsVersion "23.0.1"
+
+  defaultConfig {
+    applicationId "com.example.checkyourtargetsdk"
+    minSdkVersion 7 //sdk向下兼容的最低版本号
+    targetSdkVersion 23 //sdk行为版本号
+    versionCode 1
+    versionName “1.0”
+  }
+}
 
 
 
