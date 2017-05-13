@@ -171,7 +171,9 @@ git diff HEAD
 已经commit未提交到远程，和远程当前的master-rel分支对比
 git diff origin/master-rel HEAD
 
-
+远程仓库改名之后，对本地仓库先删除远程，再加入新的uri
+git remote rm origin
+git remote add origin [url]
 
 
 eclipse 关闭鼠标悬停提示：Window->Preferences->Java->Editor->Hovers-> Combined Hover

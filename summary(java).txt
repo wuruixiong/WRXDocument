@@ -11,6 +11,16 @@ native
 strictfp
 
 
+
+内存分配基础
+Java把内存分成两种，一种叫做栈内存，一种叫做堆内存
+在函数中定义的一些基本类型的变量和对象的引用变量都是在函数的栈内存中分配。当在一段代码块中定义一个变量时，java就在栈中为这个变量分配内存空间，当超过变量的作用域后，java会自动释放掉为该变量分配的内存空间，该内存空间可以立刻被另作他用。
+堆内存用于存放由new创建的对象和数组。在堆中分配的内存，由java虚拟机自动垃圾回收器来管理。在堆中产生了一个数组或者对象后，还可以在栈中定义一个特殊的变量，这个变量的取值等于数组或者对象在堆内存中的首地址，在栈中的这个特殊的变量就变成了数组或者对象的引用变量，以后就可以在程序中使用栈内存中的引用变量来访问堆中的数组或者对象，引用变量相当于为数组或者对象起的一个别名，或者代号。
+从堆和栈的功能和作用来通俗的比较,堆主要用来存放对象的，栈主要是用来执行程序的.而这种不同又主要是由于堆和栈的特点决定的: 
+
+
+
+
 黄金比例：(√5-1)/2  约等于 0.618， 约等于6:10，约等于5:8
 
 访问控制符(access specifier):public private protected
@@ -325,6 +335,31 @@ Unicode:U+1F601
 
 
 
+将一段字符串经过加密之后，转为另外一段字符串，
+适用于一段uri，经过加密之后，生成文件名字符串
+public static String getFileName (String uri) {
+	String fileName = null;
+	try {
+		// SHA-256 加密
+		MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+		// string 转为UTF-8格式的字节数组
+		messageDigest.update(uri.getBytes("UTF-8"));
+		fileName = bytesToHex(messageDigest.digest(), new char[64]);
+	} catch (Exception e) {
+	} finally {
+		return fileName;
+	}
+}
+private static final char[] HEX_CHAR_ARRAY = "0123456789abcdef".toCharArray();
+private static String bytesToHex(byte[] bytes, char[] hexChars) {
+	int v;
+	for (int j = 0; j < bytes.length; j++) {
+		v = bytes[j] & 0xFF;
+		hexChars[j * 2] = HEX_CHAR_ARRAY[v >>> 4];
+		hexChars[j * 2 + 1] = HEX_CHAR_ARRAY[v & 0x0F];
+	}
+	return new String(hexChars);
+}
 
 
 

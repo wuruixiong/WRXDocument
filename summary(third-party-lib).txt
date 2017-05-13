@@ -1,0 +1,67 @@
+
+Glide官网：
+https://github.com/bumptech/glide
+
+磁盘缓存配置：
+package com.mypackage;
+public class MyGlideModule implements GlideModule {
+    @Override public void applyOptions(Context context, GlideBuilder builder) {
+        // Apply options to the builder here.
+		builder.setDiskCache(
+			new DiskLruCacheFactory(path, yourSizeInBytes));
+    }
+
+    @Override public void registerComponents(Context context, Glide glide) {
+        // register ModelLoaders here.
+    }
+}
+
+<manifest ...>
+    <application ...>
+        <meta-data
+            android:name="com.mypackage.MyGlideModule"
+            android:value="GlideModule" />
+    </application>
+</manifest>
+
+配置好了之后，在磁盘中会将下载下来的图片缓存
+建议使用以下路径，
+context.getCacheDir()
+context.getExternalCacheDir()
+
+如果是直接写入sd卡的路径，加载图片爆出异常，
+例如 Environment.getExternalStorageState()
+
+
+加载图片：
+一般有三种方式；
+
+普通方式1：
+Glide.with(this).load(imageUri2).into(mImageView);
+普通方式2，增加磁盘缓存，图片会保存在配置好的磁盘缓存路径下，
+再次load图片时，会直接读取磁盘图片：
+Glide.with(this).load(imageUri2).diskCacheStrategy(DiskCacheStrategy.SOURCE).into(mImageView);
+
+磁盘缓存方式，仅下载，图片会保存在配置好的磁盘缓存路径下，
+再次load图片时，会直接读取磁盘图片：
+FutureTarget<File> future = Glide.with(getApplication())
+		.load(imageUri3)
+		.downloadOnly(500, 500);
+cacheFile = future.get();
+
+获取bitmap方式，尝试过在获取myBitmap时
+Bitmap myBitmap = Glide.with(applicationContext)
+    .load(yourUrl)
+    .asBitmap()
+    .into(500, 500)
+    .get()
+
+获取bitmap，磁盘缓存
+DrawableTypeRequest drawableTypeRequest = Glide.with(getApplicationContext()).load(imageUri);
+drawableTypeRequest.diskCacheStrategy(DiskCacheStrategy.SOURCE);
+theBitmap = (Bitmap) drawableTypeRequest.asBitmap().into(500, 500).get();
+
+
+
+
+-------------------------------------------------------------------------------------

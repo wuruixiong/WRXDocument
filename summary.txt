@@ -844,7 +844,7 @@ VISIBLE：可见
 具体的错误java文件和错误行数
 	try {
 	} catch (Exception e) {
-		Log.e("getDrawable error", "Exception", e); //输出log level为error
+		Log.e("MyError", "Exception", e); //输出log level为error
 		e.printStackTrace();			//输出log level为warn
 	}
 	
@@ -1222,6 +1222,7 @@ getDimensionOrFraction(typedArray, com.android.internal.R.styleable.Keyboard_key
 // 得到随机颜色
 Random rnd = new Random(); 
 int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256)); 
+int color = Color.argb(255, rnd.nextInt(125) + 130, rnd.nextInt(125) + 130, rnd.nextInt(125) + 130);
 
 // 分享 bitmap
 private void shareBitmap(Bitmap bitmap) {
@@ -1395,16 +1396,6 @@ protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 }
 
 
-// 该方法指向 sd卡上的路径 /storage/emulated/0/Android/data/com.yourapp.package(应用包名)
-getExternalCacheDir().getAbsolutePath()
-
-// 当删除应用时，getExternalCacheDir().getAbsolutePath()指向的文件夹会一并删除
-
-// 注意的是 调用 getExternalCacheDir().getAbsolutePath() 方法
-// 就会马上创建一个 /storage/emulated/0/Android/data/com.yourapp.package文件夹
-// 如果没有调用该方法 /storage/emulated/0/Android/data/com.yourapp.package文件夹不存在
-
-
 //在实际应用开发中，发现将一个view的背景设为null(原本有背景)，会触发自身的onMeasure以及父view的onMeasure，如下
 iconView.setBackgroundDrawable(drawable) <-> iconView.setBackgroundDrawable(null)
 
@@ -1432,45 +1423,102 @@ android:repeatCount 晃动次数，infinite是一直晃动
 
 
 
-Activity
+android中的4个文件保存路径
+
+getFilesDir()   /data/data/包名/files
+getCacheDir()   /data/data/包名/cache
+getExternalFilesDir()  /storage/emulated/0/Android/data/包名/files
+getExternalCacheDir()  /storage/emulated/0/Android/data/包名/cache
+
+不同
+1.存储位置不同
+2.External的文件夹可以被其他有读写权限的app更改
+3.External的文件夹不安全，外置卡被拔出时不能使用
+4.getFilesDir和getCacheDir不申请读写权限就能使用
+相同
+当对应的app被删除时，删除这4个文件夹
+
+Files和Cache的区别在于，当空间不足时，系统会删除cache
+
+Environment.getExternalStorageDirectory()  //外置存储卡 路径
 
 
 
+// 该方法指向 sd卡上的路径 /storage/emulated/0/Android/data/com.yourapp.package(应用包名)
+getExternalCacheDir().getAbsolutePath()
+
+// 当删除应用时，getExternalCacheDir().getAbsolutePath()指向的文件夹会一并删除
+
+// 注意的是 调用 getExternalCacheDir().getAbsolutePath() 方法
+// 就会马上创建一个 /storage/emulated/0/Android/data/com.yourapp.package文件夹
+// 如果没有调用该方法 /storage/emulated/0/Android/data/com.yourapp.package文件夹不存在
+
+// SD卡(外置卡)读写权限
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
 
 
 
+Parcelable
+用于在Intent中压入对象，
+对象的类要继承Parcelable三个接口：
+ public class MyParcelable implements Parcelable {
+     private int mData;
+
+     public int describeContents() {
+         return 0;
+     }
+
+     public void writeToParcel(Parcel out, int flags) {
+         out.writeInt(mData);
+     }
+
+     public static final Parcelable.Creator<MyParcelable> CREATOR
+             = new Parcelable.Creator<MyParcelable>() {
+         public MyParcelable createFromParcel(Parcel in) {
+             return new MyParcelable(in);
+         }
+
+         public MyParcelable[] newArray(int size) {
+             return new MyParcelable[size];
+         }
+     };
+     
+     private MyParcelable(Parcel in) {
+         mData = in.readInt();
+     }
+ }
+ 
+如果要使用Parcel的
+readArrayList和writeList方法，则列表的元素的类也要实现Parcelable接口
 
 
 
+绘制VIew本身的内容，通过调用View.onDraw(canvas)函数实现
+绘制自己的孩子通过dispatchDraw（canvas）实现
 
 
 
+打开输入法，布局中体上移
+步骤1 在manifest中对activity配置，android:windowSoftInputMode="adjustResize"
+步骤2 activity最外层的布局必须是RelativeLayout
+步骤3 将一个控件，置于RelativeLayout的底部，其他控件都基于该底部控件来布局
 
 
 
+异步任务AsyncTask的四个方法
+AsyncTask.execute()会启动异步任务，
+onPreExecute(), 异步任务启动之后，第一个调用的方法，该方法在UI线程内，例如，显示进度条
+doInBackground(Params...), 异步任务启动之后，在后台调用的方法，例如，加载网络数据
+onProgressUpdate(Progress...), 异步任务过程中，调用的方法，例如，进度条展示进度
+onPostExecute(Result), 异步任务结束之后，最后调用的方法，该方法在UI线程内，例如，隐藏进度条
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-					
-					
-					
+AsyncTask.cancel(true)
+用来结束异步任务，但不是系统自动结束，需要程序员自己写结束
+在doInBackground()方法中，多次调用isCancelled()方法，判断是否结束
+结束之后，只会调用onCancelled(),而不是onPostExecute()
+		
+mLoadBitmapTask.getStatus().equals(AsyncTask.Status.FINISHED)
+检测是否结束					
 					
 					
