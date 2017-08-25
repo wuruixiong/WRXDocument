@@ -62,6 +62,13 @@ drawableTypeRequest.diskCacheStrategy(DiskCacheStrategy.SOURCE);
 theBitmap = (Bitmap) drawableTypeRequest.asBitmap().into(500, 500).get();
 
 
+在recycleview的子项中，使用glide，需要注意的是，
+不要让子项是一个imageview，并且把用于加载网络图片，该情况会导致recycle滑动残留
+要在iamgeview外面包裹一个layout
+
+在滑动时，最好暂停glide的加载，滑动结束才加载
+
+加载时，最好加上占位符
 
 
 -------------------------------------------------------------------------------------

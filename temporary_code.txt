@@ -1,8 +1,100 @@
-﻿http://res-cdn.ycay.com/
-workspreview/2017/05/10/MCoSXOagbMF9fZaEZKvc
+﻿W/OpenGLRenderer: Bitmap too large to be uploaded into a texture (4208x2368, max=4096x4096)
+
+
+08-21 11:20:51.152 7057-7057/com.wrx.mytest W/System.err: java.lang.RuntimeException: Canvas: trying to draw too large(172981092bytes) bitmap.
+08-21 11:20:51.154 7057-7057/com.wrx.mytest W/System.err:     at android.view.DisplayListCanvas.throwIfCannotDraw(DisplayListCanvas.java:260)
+08-21 11:20:51.154 7057-7057/com.wrx.mytest W/System.err:     at android.graphics.Canvas.drawBitmap(Canvas.java:1415)
+08-21 11:20:51.154 7057-7057/com.wrx.mytest W/System.err:     at android.graphics.drawable.BitmapDrawable.draw(BitmapDrawable.java:546)
+08-21 11:20:51.154 7057-7057/com.wrx.mytest W/System.err:     at android.widget.ImageView.onDraw(ImageView.java:1301)
+08-21 11:20:51.154 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.draw(View.java:17236)
+08-21 11:20:51.154 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.updateDisplayListIfDirty(View.java:16201)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.draw(View.java:17002)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewGroup.drawChild(ViewGroup.java:3777)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewGroup.dispatchDraw(ViewGroup.java:3560)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.updateDisplayListIfDirty(View.java:16196)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.draw(View.java:17002)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewGroup.drawChild(ViewGroup.java:3777)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewGroup.dispatchDraw(ViewGroup.java:3560)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.updateDisplayListIfDirty(View.java:16196)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.draw(View.java:17002)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewGroup.drawChild(ViewGroup.java:3777)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewGroup.dispatchDraw(ViewGroup.java:3560)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.draw(View.java:17239)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at com.android.internal.widget.ActionBarOverlayLayout.draw(ActionBarOverlayLayout.java:500)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.updateDisplayListIfDirty(View.java:16201)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.draw(View.java:17002)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewGroup.drawChild(ViewGroup.java:3777)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewGroup.dispatchDraw(ViewGroup.java:3560)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.draw(View.java:17239)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at com.android.internal.policy.DecorView.draw(DecorView.java:801)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.View.updateDisplayListIfDirty(View.java:16201)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ThreadedRenderer.updateViewTreeDisplayList(ThreadedRenderer.java:676)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ThreadedRenderer.updateRootDisplayList(ThreadedRenderer.java:682)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ThreadedRenderer.draw(ThreadedRenderer.java:796)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewRootImpl.draw(ViewRootImpl.java:2991)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewRootImpl.performDraw(ViewRootImpl.java:2785)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewRootImpl.performTraversals(ViewRootImpl.java:2376)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewRootImpl.doTraversal(ViewRootImpl.java:1366)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.ViewRootImpl$TraversalRunnable.run(ViewRootImpl.java:6768)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.Choreographer$CallbackRecord.run(Choreographer.java:926)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.Choreographer.doCallbacks(Choreographer.java:735)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.Choreographer.doFrame(Choreographer.java:667)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.view.Choreographer$FrameDisplayEventReceiver.run(Choreographer.java:912)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.os.Handler.handleCallback(Handler.java:761)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.os.Handler.dispatchMessage(Handler.java:98)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.os.Looper.loop(Looper.java:156)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at android.app.ActivityThread.main(ActivityThread.java:6531)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at java.lang.reflect.Method.invoke(Native Method)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:941)
+08-21 11:20:51.155 7057-7057/com.wrx.mytest W/System.err:     at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:831)\
 
 
 
 
-http://olgqtcyxh.bkt.clouddn.com/
 
+
+                Bitmap bitmap = BitmapOptionSizeUtils.getBitmap(stickerItem.mImagePath);
+                // 高和宽的缩放比例必须的相等的，所以计算宽度即可
+                float pathScale = stickerItem.getDstRect().width()/bitmap.getWidth();
+
+                Matrix matrix = new Matrix();
+                matrix.postScale(pathScale * scaleW, pathScale * scaleH, 0, 0);
+                matrix.postRotate(stickerItem.mTotalRotateAngle,
+                        pathScale * scaleW * bitmap.getWidth()/2, pathScale * scaleH * bitmap.getHeight()/2);
+                matrix.postTranslate(stickerItem.getDstRect().left * scaleW + phoneWT/2,
+                                     stickerItem.getDstRect().top * scaleH + phoneHT/2);
+                canvas.drawBitmap(bitmap, matrix, emPaint);
+				
+				
+				
+				
+make print bitmap reduce quality
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				

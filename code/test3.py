@@ -9,10 +9,15 @@ xxhdpiFilesPath = ""
 	
 if __name__=="__main__":
 	originFilesPath = sys.argv[1]
+	
 	xhdpiFilesPath = originFilesPath + "/drawable-xhdpi"
 	xxhdpiFilesPath = originFilesPath + "/drawable-xxhdpi"
+	hdpiFilesPath = originFilesPath + "/drawable-hdpi"
+
 	os.makedirs(xhdpiFilesPath)
 	os.makedirs(xxhdpiFilesPath)
+	os.makedirs(hdpiFilesPath)
+
 	
 	for root, sub_dirs, files in os.walk(originFilesPath):  
 		for special_file in files:  
@@ -23,6 +28,10 @@ if __name__=="__main__":
 			elif special_file.endswith("@3x.png"):  
 				targetFile = originFilesPath+"/"+special_file
 				sourceFile = xxhdpiFilesPath+"/"+special_file
+				shutil.copy(targetFile, sourceFile)
+			else:
+				targetFile = originFilesPath+"/"+special_file
+				sourceFile = hdpiFilesPath+"/"+special_file
 				shutil.copy(targetFile, sourceFile)
 	
 	for root, sub_dirs, files in os.walk(xhdpiFilesPath):  

@@ -1,9 +1,6 @@
-﻿Mac OS http://192.168.0.105/crazyemoji/
-ffmpeg
+﻿ffmpeg
 SIP
-HorizontalScrollView
 Anychat for Android
-Android系统的编译、定制、开发和调试过程
 
 
 ANRs (“Application Not Responding”)
@@ -26,10 +23,14 @@ listview继承自AbsListView，AbsListView中封装了对view的回收处理，�
 
 在使用listview，recycleview等进行嵌套时，系统本身不会对里面的listview进行宽高计算，所以要手动计算宽高，并设置里面的listview
 
+自定义view中重写onTouchEvent，返回false，则该控件不响应点击，
+例如在RelativeLayout, FrameLayout中摆放一些控件，再在最顶层摆放一个覆盖布局的控件，
+此时如果在onTouchEvent中返回flase则该控件不处理touch，并且底层控件可以处理touch事件
+注：RelativeLayout也可以像FrameLayout那样有层级关系，xml中写在最下面的控件位于最顶层，code中最后加入的view位于最顶层
 
 即使是在自定义view中重写onTouchEvent，他所响应到的区间也是他的父布局，即所产生的坐标是父布局的相对坐标而不是整个屏幕绝对的坐标，
 所以对自定义view的TouchEvent做出响应，应该判断是不是view的区间
-在view 的OnTouchListener事件中，若返回FALSE则继续向上传递，若返回TRUE则又监听方法处理
+在view 的OnTouchListener事件中，若返回FALSE则继续向上传递，若返回TRUE则由监听方法处理
 即如果想要处理move移动事件或者up弹起事件要返回TRUE
 有些控件，例如checkbox，即使不设置click监听也会对点击作出响应，这时需要在控件中加入
 android:focusable="false"
@@ -1522,3 +1523,106 @@ mLoadBitmapTask.getStatus().equals(AsyncTask.Status.FINISHED)
 检测是否结束					
 					
 					
+					
+
+使用EditText让键盘弹出或者收起
+public void showKeyboard () {
+	mEditText.requestFocus();
+	InputMethodManager imm = (InputMethodManager) getContext().getApplicationContext()
+			.getSystemService(Context.INPUT_METHOD_SERVICE);
+	imm.showSoftInput(mEditText, InputMethodManager.SHOW_IMPLICIT);
+}
+
+public void hideKeyboard () {
+	mEditText.clearFocus();
+	InputMethodManager imm = (InputMethodManager) getContext().getApplicationContext()
+			.getSystemService(Context.INPUT_METHOD_SERVICE);
+	imm.hideSoftInputFromWindow(mEditText.getWindowToken(), 0);
+}
+
+
+// 加密file name
+public static String getFileName(String uri) {
+	String fileName = null;
+	try {
+		// SHA-256 加密
+		MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+		// string 转为UTF-8格式的字节数组
+		messageDigest.update(uri.getBytes("UTF-8"));
+		fileName = bytesToHex(messageDigest.digest(), new char[64]);
+	} catch (Exception e) {
+	} finally {
+		return fileName;
+	}
+}
+
+
+图库选图
+Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+photoPickerIntent.setType("image/*");
+startActivityForResult(photoPickerIntent, PICK_IMAGE);
+
+在onActivityResult中
+String[] filePath = { MediaStore.Images.Media.DATA };
+Cursor cursor = getContentResolver().query(selectedImageUri, filePath, null, null, null);
+cursor.moveToFirst();
+String imagePath = cursor.getString(cursor.getColumnIndex(filePath[0]));
+cursor.close();
+
+BitmapFactory.Options options = new BitmapFactory.Options();
+options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+// BitmapFactory 缩小bitmap，缩小2倍，options.inSampleSize设置为 1 是加载原图
+// 经过测试，只有设置为2的指数幂有效，即：2，4（缩小4倍），8（缩小8倍）等等
+options.inSampleSize = 2;
+Bitmap fileBitmapScale = BitmapFactory.decodeFile(imagePath, options);
+
+
+
+android 5.0以上
+使得status bar 和 自己的布局共用一张背景
+在activity中这么设置
+	if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+		getWindow().getDecorView().setSystemUiVisibility(
+				View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+		Window window = getWindow();
+		window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+		window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+		window.setStatusBarColor(0x00ffffff);
+	}
+在AndroidManifest中配置
+    android:theme="@style/MyBarTheme"
+	
+styles:
+    <style name="MyBarTheme" parent="android:Theme.Holo.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowTranslucentStatus">true</item>
+    </style>
+
+
+	
+	
+	canvas 是不能绘制大于canvas.getMaximumBitmapWidth() 或者 canvas.getMaximumBitmapHeight()的图片
+	报错：
+	W/OpenGLRenderer: Bitmap too large to be uploaded into a texture (4208x2368, max=4096x4096)
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
