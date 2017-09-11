@@ -210,6 +210,33 @@ HEAD 就是当前活跃分支的游标。形象的记忆就是：你现在在哪儿，HEAD 就指向哪儿，所以
 不过 HEAD 并非只能指向分支的最顶端（时间节点距今最近的那个），实际上它可以指向任何一个节点，它就是 Git 内部用来追踪当前位置的。
 
 
+打标签
+git tag -a v1.01 -m "Relase version 1.01"
+注解：git tag 是打标签的命令，-a 是添加标签，其后要跟新标签号，-m 及后面的字符串是对该标签的注释。
+
+提交标签到远程仓库
+git push origin -tags
+注解：就像git push origin master 把本地修改提交到远程仓库一样，-tags可以把本地的打的标签全部提交到远程仓库。
+
+删除标签
+git tag -d v1.01
+注解：-d 表示删除，后面跟要删除的tag名字
+
+删除远程标签
+git push origin :refs/tags/v1.01
+注解：就像git push origin :branch_1 可以删除远程仓库的分支branch_1一样， 冒号前为空表示删除远程仓库的tag。
+
+查看标签
+git tag
+或者
+git tag -l
+
+利用tag回滚代码
+git checkout v1.01
+
+
+
+
 
 
 eclipse 关闭鼠标悬停提示：Window->Preferences->Java->Editor->Hovers-> Combined Hover

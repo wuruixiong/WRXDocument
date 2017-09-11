@@ -79,7 +79,108 @@ javaBean的规范：
 		OutputString outputString = new OutputString();//类名
 		System.out.println(outputString);
 	
+
 	
 	
+Cookie
+Cookie，有时也用其复数形式 Cookies，指某些网站为了辨别用户身份、进行 session 跟踪而储存在用户本地终端上的数据（通常经过加密）。
+可以叫做浏览器缓存， 是 Web 服务器保存在用户浏览器（客户端）上的小文本文件
  
-  
+
+session
+用户在应用程序的 Web 页之间跳转时，存储在 Session 对象中的变量将不会丢失，而是在整个用户会话中一直存在下去
+退出浏览器，则session不保存
+
+ 
+session是放在服务器端的，而cookie是在客户端的
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MySQL
+命令行：
+
+show databases;
+显示所有数据库
+
+
+use 数据库名;
+使用数据库
+
+
+show tables;
+显示数据库下所有的表
+
+
+
+
+
+
+
+图形界面化工具
+Navicat for MySQL
+
+
+
+procedure
+CREATE PROCEDURE 过程名 ([过程参数[,...]])
+
+例如：
+// 所有用户
+create procedure all_customer() select * from testtable2;
+// 接着打入（相当于打入：select * from testtable2; ）
+call all_customer();
+// 看到查找了表testtable2中所有的数据
+
+// 删除
+DROP PROCEDURE IF EXISTS 'proc_adder';
+
+创建带参数的插入方法
+create procedure insertTable2(in myid int, in myname varchar(20)) insert into testtable2(id, name) value(myid, myname);
+调用：call insertTable2(101, 'ooo');
+
+创建带参数，返回值的插入方法
+create procedure selecttable2(in myid int, out rname varchar(20)) select name into rname from testtable2 where id = myid;
+调用：call selecttable2(101, @rname);
+
+
+
+DAO设计模式
+
+
+
+
+
+JDBC
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
