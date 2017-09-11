@@ -176,6 +176,42 @@ git remote rm origin
 git remote add origin [url]
 
 
+// 可以查看所有分支的所有操作记录
+// 本人主要用来查看 分支合并记录
+git reflog
+// 回滚提交前的版本
+git reset --hard HEAD~
+				
+				
+git reflog 例如：
+
+fbb0c0f HEAD@{0}: commit (merge): Merge branch 'master' into my-branch
+43b6032 HEAD@{1}: checkout: moving from master to my-branch
+e3753a7 HEAD@{2}: rebase finished: returning to refs/heads/master
+e3753a7 HEAD@{3}: pull --rebase: checkout e3753a71d92b032034dcb299d2df2edc09b5830e
+b41ea52 HEAD@{4}: reset: moving to HEAD^
+8400a0f HEAD@{5}: rebase: aborting
+
+回滚到分支合并之前
+git reset --hard 43b6032
+				
+				
+git revert 是生成一个新的提交来撤销某次提交，此次提交之前的commit都会被保留
+git reset 是回到某次提交，提交及之前的commit都会被保留，但是此次之后的修改都会被退回到暂存区
+				
+				
+Git必须知道当前版本是哪个版本，在git中，用HEAD表示当前版本，也就是最新的提交3628164...882e1e0（注意我的提交ID和你的肯定不一样），
+上一个版本就是HEAD^，上上一个版本就是HEAD^^，当然往上100个版本写100个^比较容易数不过来，所以写成HEAD~100。
+HEAD指向的版本就是当前版本，因此，Git允许我们在版本的历史之间穿梭，使用命令git reset --hard commit_id。
+穿梭前，用git log可以查看提交历史，以便确定要回退到哪个版本。
+要重返未来，用git reflog查看命令历史，以便确定要回到未来的哪个版本。
+				
+HEAD 就是当前活跃分支的游标。形象的记忆就是：你现在在哪儿，HEAD 就指向哪儿，所以 Git 才知道你在那儿！
+不过 HEAD 并非只能指向分支的最顶端（时间节点距今最近的那个），实际上它可以指向任何一个节点，它就是 Git 内部用来追踪当前位置的。
+
+
+
+
 eclipse 关闭鼠标悬停提示：Window->Preferences->Java->Editor->Hovers-> Combined Hover
 
 	

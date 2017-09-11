@@ -1563,11 +1563,13 @@ photoPickerIntent.setType("image/*");
 startActivityForResult(photoPickerIntent, PICK_IMAGE);
 
 在onActivityResult中
-String[] filePath = { MediaStore.Images.Media.DATA };
-Cursor cursor = getContentResolver().query(selectedImageUri, filePath, null, null, null);
-cursor.moveToFirst();
-String imagePath = cursor.getString(cursor.getColumnIndex(filePath[0]));
-cursor.close();
+Uri selectedImageUri = data.getData();
+或者
+
+
+
+
+
 
 BitmapFactory.Options options = new BitmapFactory.Options();
 options.inPreferredConfig = Bitmap.Config.ARGB_8888;
