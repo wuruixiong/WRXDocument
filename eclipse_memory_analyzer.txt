@@ -1,0 +1,37 @@
+Overview
+查看总体内存分析情况
+
+-------------------------------------------
+leak suspect
+在overview最下方，点开reports，打开leak suspect界面，该界面会初步分析内存泄漏的情况，
+一般只有当内存泄漏很明显时才有作用
+
+-------------------------------------------
+
+Dominator Tree（支配树）
+Dominator Tree展现一个列表，列出占用内存的对象
+
+shallow heap:指的是某一个对象所占内存大小。
+retained heap:指的是一个对象的retained set所包含对象所占内存的总大小。
+
+一般情况下，查看retained heap即可
+
+当看到该对象占用大量内存时
+右击并点开Path to GC roots 选择exclude all phantom/weak/soft etc. references
+可以查看 以该对象的引用为起始点，持有该对象的引用，持有该对象引用的引用的，一直到GC Roots 的GC路径，（一直向上伸展）
+
+或者 右击并点开Merge Shortest Path To GC Roots 选择exclude all phantom/weak/soft etc.
+可以查看 以该对象的引用的最终root为起始点，直到该对象的引用的GC路径，（一直向下伸展）
+
+点开Path to GC roots或者Merge Shortest Path To GC Roots个人感觉差不多，
+只是顺序不同而已，即将Path to GC roots 颠倒可以得到 Merge Shortest Path To GC Roots
+
+泄漏原因：例如有对象A，点开对象A的Path to GC roots，A对象的GC Roots的对象没有被释放，就是A对象依旧被引用，导致了A对象本该被释放，却没有被释放
+
+-------------------------------------------
+
+
+
+
+
+
