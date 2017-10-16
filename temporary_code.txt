@@ -1,14 +1,4 @@
-﻿"profile_image_url" -> "http://wx.qlogo.cn/mmopen/vi_32/lfWPPutSwXZG0eUJJicKGgcEZFzYsBa9RCZQU2iaAWH804xbiaYJ3u3Bl1mtJrXpUtSkcFfc964DFJPibiaiaRwgXD5w/0"
-
-
-错误码：2004 错误信息：获取用户资料失败----{"error":"applications over the unaudited use restrictions!","error_code":21321,"request":"/2/users/show.json"}
-
-
-
-
-
-
-
+﻿
 
 
 

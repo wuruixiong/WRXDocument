@@ -78,3 +78,24 @@ UI性能分析
 
 
 
+
+
+
+
+
+
+gradle报错，导入项目的gradle版本，和当前环境的版本gradle不对应，新建一个项目，将gradle的版本复制进入导入项目的gradle
+Error:Execution failed for task ':app:compileDebugJava'.
+> Cannot find System Java Compiler. Ensure that you have installed a JDK (not just a JRE) and configured your JAVA_HOME system variable to point to the according directory.
+
+
+
+
+
+
+
+
+
+
+
+
