@@ -1,4 +1,4 @@
-﻿ffmpeg
+ffmpeg
 SIP
 Anychat for Android
 
@@ -1619,10 +1619,110 @@ styles:
 	}
 	
 	
-	
-	
-	
-	
+
+
+Bitmap 相关
+
+    // 得到一张 空(null) 的Bitmap ，用于取得图片高宽
+    private static void getWHBitmap (String path) {
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(path, opts);
+	int h = opts.outHeight;
+	int w = opts.outWidth;
+    }
+
+
+//得到bitmap的内存占用（单位 MB）
+bitmap.getByteCount()/1024/1024
+// ARGB_8888格式的图片是RGB_565格式的一倍左右
+Bitmap.Config.ARGB_8888;
+Bitmap.Config.RGB_565;
+
+
+得到一张1MB以下的磁盘存储的图
+public static Bitmap get1MbOpts (String path) {
+        Bitmap bitmapArgb = getCompressionOpts(path, 1.024 * 1024D);
+        return bitmapArgb;
+    }
+private static Bitmap getCompressionOpts (String path, double needSize) {
+        if (path == null || path.isEmpty()) {
+            return null;
+        }
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        File imageFile = new File(path);
+        if (imageFile.exists()) {
+            double fileSize = imageFile.length()/1024D; // image file size (KB)
+            if (fileSize > needSize) {
+                double fileLog = Math.log(fileSize)/Math.log(2);
+                double needLog = Math.log(needSize)/Math.log(2);
+                int size = (int)(fileLog - needLog + 1)*2;
+                if (size == 0) {
+                    opts.inSampleSize = 1;
+                } else {
+                    opts.inSampleSize = size;
+                }
+            } else {
+                opts.inSampleSize = 1;
+            }
+        } else {
+            return null;
+        }
+        Bitmap originBitmap = BitmapFactory.decodeFile(path, opts);
+        return originBitmap;
+    }
+
+
+
+
+GridLayoutMenager,子项间隔
+ public class SpaceItemDecoration extends RecyclerView.ItemDecoration {
+
+        private int space;
+
+        public SpaceItemDecoration(int space) {
+            this.space = space;
+        }
+
+        @Override
+        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+            // -1 for the title
+            int gridPosition = parent.getChildLayoutPosition(view) - 1;
+            if (0 <= gridPosition) {
+                if (gridPosition % mManager.getSpanCount() == 0) {
+                    outRect.left = space;
+                } else if (gridPosition % mManager.getSpanCount() == mManager.getSpanCount() - 1) {
+                    outRect.right = space;
+                }
+
+                if (gridPosition < mManager.getSpanCount()) {
+                    outRect.top = space;
+                } else {
+                    // -1 for the title
+                    int offsetTotalCount = (mAdapter.getItemCount() - 1);
+                    int lastCount = offsetTotalCount % mManager.getSpanCount();
+                    if (lastCount == 0) {
+                        if (gridPosition >= offsetTotalCount - mManager.getSpanCount()) {
+                            outRect.bottom = space;
+                        }
+                    } else {
+                        if (gridPosition >= offsetTotalCount - lastCount) {
+                            outRect.bottom = space;
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+
+
+
+
+android的Touch（dispatchTouchEvent，onInterceptTouchEvent，onTouchEvent）
+
 	
 	
 	

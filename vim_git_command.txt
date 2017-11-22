@@ -163,7 +163,8 @@ git push -u origin master
 
 删除所有未追踪文件(untracked files)
 git clean -f
-
+删除文件和目录
+git clean -df
 
 可以查看已add未commit的diff，新加文件可以看到diff
 git diff HEAD
@@ -266,6 +267,10 @@ https://bitbucket.org/iBotPeaches/apktool/downloads
 最后将一个apk文件和apktool.bat和apktool.jar共置于一个文件夹内
 即可运行apktool命令
 
+Mac下的apktool，安装了java环境之后，只需要将 apktool.jar 和 .apk文件放置于同一文件夹下
+在运行以下命令即可
+java -jar apktool.jar d metronome.apk
+
 apktool 反编译命令
 apktool.bat d -f test.apk 
 apktool d test.apk
@@ -275,6 +280,24 @@ apktool d test.apk
 
 
 
+Android studio
+// 清除res下，不用的资源，包括layout
+Refactor -> Remove Unused Resources
+
+
+Android studio下修改包名（原包名 com.pkg1, 准备改成cn.pkg2）
+1，文件夹浏览器 打开项目的java文件， com.pkg1是 com文件夹下的pkg1文件夹，在com下创建一个文件夹
+此时Android studio会可以选中com文件夹，右击com文件夹，Recactor->Rename成 cn（修改后包括layout里面的自定义view的路径，也会由com修改为cn）,修改完之后，就可以把之前在com文件夹（现在的cn）中创建的那个临时文件夹删除了
+
+2，右击pkg1，Recactor->Rename成pkg2
+
+3，修改AndroidManifest.xml和build.gradle中的包名,
+
+4, 全局替换.R , 如果编译错误是.R文件，
+在Edit->Find->Replace Path中将 “import com.pkg1.R” 替换为”import cn.pkg2.R”
+
+
+5, 全局查找com.pkg1，查看是否有漏掉的修改, 
 
 
 
