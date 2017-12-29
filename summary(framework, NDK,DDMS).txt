@@ -1,14 +1,121 @@
 SDK manager
 packages->reload  //重新加载包，更换源镜像之后需要重新加载
 
+--------------------------------------------------------------------------
+
+JNI是Java Native Interface的缩写，它提供了若干的API实现了Java和其他语言的通信（主要是C&C++）。
+NDK 的java和c++就是依赖JNI实现的
+JNI头文件
+#include <jni.h>
+
+-----------------------
 
 NDK
+创建项目（android develop官方有详细文档）
+1.在向导的 Configure your new project 部分，选中 Include C++ Support 复选框
+2.在向导的 Customize C++ Support 部分，您可以使用下列选项自定义项目：
+  C++ Standard：使用下拉列表选择您希望使用哪种 C++ 标准。选择 Toolchain Default 会使用默认的 CMake 设置。
+
+  Exceptions Support：如果您希望启用对 C++ 异常处理的支持，请选中此复选框。如果启用此复选框，Android Studio 会将 -fexceptions 标志添加到模块级 build.gradle 文件的 cppFlags 中，Gradle 会将其传递到 CMake。
+
+  Runtime Type Information Support：如果您希望支持 RTTI，请选中此复选框。如果启用此复选框，Android Studio 会将 -frtti 标志添加到模块级 build.gradle 文件的 cppFlags 中，Gradle 会将其传递到 CMake。
+
+3. 从 IDE 左侧打开 Project 窗格并选择 Android 视图，
+   创建完成之后， 生成的工程 将添加 cpp 和 External Build Files 组
+
+4. 如果想要确认 Gradle 是否已将原生库打包到 APK 中，可以使用 APK 分析器：
+
+-----------------------
+
+使用NDK分析：
+需要在java代码中加入代码段：
+    static {
+        System.loadLibrary("native-lib");
+    }
+ System.loadLibrary() 加载原生库， 这样应用就可以使用库的原生函数
+
+在java代码中加入方法， java代码中，调用stringFromJNI，就相当于调用原生cpp方法：Java_com_myndktest_MainActivity_stringFromJNI
+public native String stringFromJNI();
+
+
+在native-lib.cpp 文件中，加入方法
+extern "C"
+JNIEXPORT jostling
+JNICALL
+// 方法的前缀不能写错，后缀是stringFromJNI
+Java_com_myndktest_MainActivity_stringFromJNI(
+        JNIEnv *env,
+        jobject /* this */) {
+    std::string hello = "Hello from C++";
+    return env->NewStringUTF(hello.c_str());
+}
+
+
+-----------------------
 1.在android项目中，如果使用android stadio 来创建工程，
   那么在项目的根目录下的local.properties文件中，会记录sdk和ndk的位置
 
 2.NDK调试，在android studio的SDK manager的sdk tool中选择LLDB并安装，
   对cpp文件进行调试和对java文件调试差不多，都是下断点之后，点击Debug或者Attach debuger
+-----------------------
 
+CMake 构建脚本（如果使用android studio 来创建ndk项目，会自动生成构建ndk的文件，直接使用即可）
+app文件夹下创建一个名为 CMakeLists.txt 文件。
+（如果项目使用的是 ndk-build，则不需要创建 CMake 构建脚本。提供一个指向 Android.mk 文件的路径，将 Gradle 关联到 原生库）
+
+CMake 命令，对构建脚本进行配置。
+
+要指示 CMake 从原生源代码创建一个原生库，添加 
+cmake_minimum_required()命令 和
+add_library()命令
+
+cmake_minimum_required(VERSION 3.4.1)
+add_library( # Specifies the name of the library.
+             native-lib
+
+             # Sets the library as a shared library.
+             SHARED
+
+             # Provides a relative path to your source file(s).
+             src/main/cpp/native-lib.cpp )
+
+
+
+Android NDK 提供了一套实用的原生 API 和库。通过将 NDK库 包含到项目的 CMakeLists.txt 脚本文件中，您可以使用这些 API 中的任意一种。
+find_library() 命令添加到您的 CMake 构建脚本中以定位 NDK 库，并将其路径存储为一个变量。您可以使用此变量在构建脚本的其他部分引用 NDK 库。
+以下示例可以定位 Android 特定的日志支持库并将其路径存储在 log-lib 中：
+find_library( # 定义存储NDK库位置的路径变量的名称。
+              log-lib
+
+              # 指定NDK库的名称，CMake需要定位
+              log )
+
+target_link_libraries 命令 关联（据说，关联之后native-lib可以调用log-lib中的方法）
+target_link_libraries( # Specifies the target library.
+                       native-lib
+
+                       # Links the log library to the target library.
+                       ${log-lib} )
+
+结果：
+Cmake生成的库文件都是这种命名: lib库名称.so
+可以看到在 build/intermediates/cmake/下看到生成的 libnative-lib.so
+
+---------------------
+
+Android下的 c++开发（创建项目之后的开发）
+ 导入头文件（这些头文件位于 ndk环境 下）
+#include <jni.h>
+#include <stdlib.h>
+#include <string>
+
+
+
+
+
+
+
+--------------------------------------------------------------------------
 
 
 framework
@@ -18,12 +125,13 @@ TelephonyManager
 侦听电话状态(呼叫状态服务状态、信号强度状态等)以及可以调用电话拨号器拨打电话
 
 
-
+--------------------------------------------------------------------------
 
 *.jar：只包含了class文件与清单文件，不包含资源文件，如图片等所有res中的文件。
 *.aar：包含所有资源，class以及res资源文件全部包含
 (aar中的文件classs.jar就是对应的jar文件)
 
+--------------------------------------------------------------------------
 
 DDMS 
 port-forwarding services
@@ -74,7 +182,7 @@ Systrace
 UI性能分析
 
 
-
+--------------------------------------------------------------------------
 
 
 
