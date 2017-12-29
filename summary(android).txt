@@ -18,11 +18,11 @@ ANRs (“Application Not Responding”)
 
 修改代码时，若想要获取之前view的配置，例如图片、颜色、字号等，可以调试，获取之前view的信息，通过view查找配置
 
-
+------------------------------------------------------------------------------------------------------------
 listview继承自AbsListView，AbsListView中封装了对view的回收处理，使用setRecyclerListener对view被回收时做出处理
-
+------------------------------------------------------------------------------------------------------------
 在使用listview，recycleview等进行嵌套时，系统本身不会对里面的listview进行宽高计算，所以要手动计算宽高，并设置里面的listview
-
+------------------------------------------------------------------------------------------------------------
 自定义view中重写onTouchEvent，返回false，则该控件不响应点击，
 例如在RelativeLayout, FrameLayout中摆放一些控件，再在最顶层摆放一个覆盖布局的控件，
 此时如果在onTouchEvent中返回flase则该控件不处理touch，并且底层控件可以处理touch事件
@@ -37,18 +37,18 @@ android:focusable="false"
 android:focusableInTouchMode="false"
 此时就会和listview本身的点击互不影响
 
-
+------------------------------------------------------------------------------------------------------------
 可以在canvas中通过控制矩阵Matrix来控制旋转rotate和缩放scale
 在使用Matrix处理bitmap旋转、缩放、平移时，平移会和旋转、缩放冲突，导致只能执行其中一个，
 可以先使用Matrix.setTranslate设置平移距离，再使用Matrix.postRotate、Matrix.postScale来处理冲突问题
-				
+------------------------------------------------------------------------------------------------------------
 				
 scroll的三大状态(能滑动的控件，listview，gridview，recycleview都有)： SCROLL_STATE_IDLE, SCROLL_STATE_DRAGGING or SCROLL_STATE_SETTLING.
 IDLE指的是控件没有在滑动(SCROLL_STATE_IDLE为0)
 DRAGGING指的是控件在滑动，手指在屏幕上移动(SCROLL_STATE_DRAGGING为1)
 SETTLING指的是控件在滑动，手指已经放开屏幕，控件处于自动的动画滑动中(SCROLL_STATE_SETTLING为2)
 
-
+------------------------------------------------------------------------------------------------------------
 主线程中创建handler，主要用来修改UI界面
 Handler handler;
 onCreate
@@ -129,23 +129,7 @@ mHandler.sendEmptyMessage(0);
 			
 综上，加载数据使用Thread开启一个线程，加载完成之后，在线程当中send或者post，handle消息，
 通知主线程修改界面。
-
-
-周报：
-2014.12.15-2014.12.19 周报——xxx
-
------------------- Original ------------------
-From:  "吴锐雄"<wuruixiong@emojikeyboard.mobi>;
-Date:  Fri, Dec 19, 2014 02:32 PM
-To:  "houhuihua"<houhuihua@emojikeyboard.mobi>;
-Subject:  一周工作总结报告-吴锐雄
-
-xxx先生
-　　您好：
-我因学校课业原因，于2015年4月17日将在学校进行体能考试，无法按时上班，特向xxx先生在2015年4月17日请假一天，请xxx先生批准。
-　　　　　　　　　　　　　　　　　　　　　　　　　　　——请假人：吴锐雄
-　　　　　　　　　　　　　　　　　　　　　　　　　　　　2015年4月16日
-
+------------------------------------------------------------------------------------------------------------
 
 改变背景颜色：
 这样输入：              layout.setBackgroundColor(Color.parseColor("#ffff00"));
@@ -153,94 +137,7 @@ xxx先生
 0xFF6db7ff是Android中特殊的16进制颜色编码，FF表示的是透明度，6db7ff表示颜色编码
 表达式顺序是“aabbggrr”，其中“aa=alpha”（00 到 ff,00透明度为0，ff透明度为100%）；“bb=blue”（00 到 ff）；“gg=green”（00 到 ff)；“rr=red”（00 到 ff）
 
-
-java 代码修改控件高宽
-        RelativeLayout.LayoutParams params=new RelativeLayout.LayoutParams((gwidth-40)/glistcount,(int)((gwidth-40)/glinecount*0.99));
-//new RelativeLayout.LayoutParams(40,40);像素值
-//new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,RelativeLayout.LayoutParams.WRAP_CONTENT);自适应
-        控件.setLayoutParams(params);
-
-
-android颜色color.xml设置  
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-<color name="white">#FFFFFF</color><!--白色 -->
-</resources>
-
-
-计时器控件chronometer
-chronometer.getText()得到时间
-chronometer.stop();结束
-chronometer.start();开始
-chronometer.setBase(SystemClock.elapsedRealtime());设施开始时间为00:00
-
-沉睡：
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace(); 
-        }
-
-
-
-WindowManager：
-//使用时加入许可
-//<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    WindowManager wmManager;
-    WindowManager.LayoutParams wmParams;
-        wmManager=(WindowManager) getSystemService(Context.WINDOW_SERVICE);
-        wmParams = new WindowManager.LayoutParams();
-        /**
-         *以下都是WindowManager.LayoutParams的相关属性
-         * 具体用途请参考SDK文档
-         */
-        wmParams.type=2002;   //这里是关键，你也可以试试2003
-        wmParams.format=1;
-        /**
-         *这里的flags也很关键
-         *代码实际是wmParams.flags |= FLAG_NOT_FOCUSABLE;
-         *40的由来是wmParams的默认属性（32）+ FLAG_NOT_FOCUSABLE（8）
-         */
-        wmParams.flags=80;
-
-	Button bb=new Button(getApplicationContext());
-
-                if(mm.getParent()!=null) {
-                    wmManager.removeView(bb);
-                }
-                else
-                {
-                    if(mm.getParent()==null)
-                    {
-                        wmManager.addView(bb, wmParams);
-
-                    }
-                }
-
-
-
-导航栏高度：
-ActionBar actionBar;
-actionBar=getActionBar();
-actionBar.getHeight();
-
-//得到gridview的子视图
-gridview.getChildAt(填入下标)
-
-PreferenceScreen点击之后没有actionbar是因为没有设置title属性的原因
-当工程失去R文件时重新编译就会出现一个新的R文件
-
-    //设置全背景为一张图，包括actionbar
-    private void setBackgrounnd() {
-        Activity context =this;
-        ViewGroup root =  (ViewGroup)context.getWindow().getDecorView();
-        if (root != null) {
-            ViewGroup group = ((ViewGroup)root.getChildAt(0));
-            group.setBackgroundResource(R.drawable.background);
-        }
-    }
-
-
+------------------------------------------------------------------------------------------------------------
 自定义View的监听回调机制
 
 public class colorpick extends View{
@@ -274,13 +171,7 @@ private OnColorChangedListener mListener;
                     }
                 }
                 ,0xff000000);
-
-
-
-混合渲染ComposeShader显示无效果时，需要在配置文件中加入
-<activity android:hardwareAccelerated="false" />
-或者
-<application android:hardwareAccelerated="false" >
+------------------------------------------------------------------------------------------------------------
 
 
 获取自定义view的颜色值
@@ -291,7 +182,7 @@ private OnColorChangedListener mListener;
                 bitmap = view.getDrawingCache();
                 pixel = bitmap.getPixel((int)event.getX(),(int)event.getY());
 
-
+------------------------------------------------------------------------------------------------------------
 
 设置EditText的输入范围
     private void setRegion_0_255(final EditText et)
@@ -350,65 +241,16 @@ private OnColorChangedListener mListener;
             }
         });
     }
-
-
-
-判断EditText中是否有字符串
-
-                if(TextUtils.isEmpty(rEditText.getText()))
-                {
-                    Log.w("r is null","r is null");
-                }
-                else
-                {
-                    if(!TextUtils.isEmpty(rEditText.getText()))
-                    {
-                        Log.w("r is value","value is"+rEditText.getText());
-                    }
-                }
-
-
-调节边距可以尝试padding和margin
-
+------------------------------------------------------------------------------------------------------------
 
 match_parent,在android线性布局中比较可以生效，需要加上  
 android:layout_weight="1"
-
-
-自定义控件，onMeasure可以设置空间的大小,只有当所在的控件设置为match_parent时才能有数值，
-而设置wrap_content时widthMeasureSpec和heightMeasureSpec是没有数值的，因为wrap_content是自己计算宽度和高度的。
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        w=measure(widthMeasureSpec);
-        setMeasuredDimension(w,w);
-    }
-
-    private int measure(int measureSpec) {
-        int result = 0;
-        int specMode = MeasureSpec.getMode(measureSpec);
-        int specSize = MeasureSpec.getSize(measureSpec);
-
-        if (specMode == MeasureSpec.EXACTLY) {
-            result = specSize;
-        } else {
-            if (specMode == MeasureSpec.AT_MOST) {
-                result = Math.min(result, specSize);
-            }
-        }
-        return result;
-    }
-
-
-
+------------------------------------------------------------------------------------------------------------
 android:digits
 指定接受固定的数字，如android:digits="012345"，则只接受0～5数字的输入
 
 
-context启动Activity
- getContext().startActivity(intent);
-或者mContext.startActivity(intent);
-
-
+------------------------------------------------------------------------------------------------------------
     使用别的包的资源：
 不把图片放在res/drawable下，而是存放在src某个package中（如：com.drawable.resource），这种情况下的调用方法为： 
 String path = "com/drawable/resource/imageName.png"; 
@@ -420,7 +262,7 @@ Drawable.createFromStream(is, "src");
 int resID = getResources().getIdentifier("imageName", "drawable", "com.test.image"); 
 Drawable image = getResources().getDrawable(resID);
 
-
+------------------------------------------------------------------------------------------------------------
 自定义layout
 使用以下方法加载布局，为控件找到ID
        LayoutInflater inflater=(LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -442,7 +284,7 @@ Drawable image = getResources().getDrawable(resID);
     <ImageButton/>
 </merge>
 
-
+------------------------------------------------------------------------------------------------------------
 
 输入法和EditText的光标移动，选择，粘贴，删除：
 
@@ -677,11 +519,7 @@ Drawable image = getResources().getDrawable(resID);
         });
 
 
-
-在AndroidManifest中
-android:launchMode 控制activitiy弹出方式 
-
-
+------------------------------------------------------------------------------------------------------------
 
 Time t=new Time(); 
 t.setToNow(); 
@@ -695,7 +533,7 @@ int second = t.second;
 1月份t.month为0，第一天t.yearDay为0.
 
 
-
+------------------------------------------------------------------------------------------------------------
 子View脱离父View再加入新View：
         InputView view = (InputView)mKeyboardSwitcher.getInputView();
         if (view.getParent() != null) {
@@ -706,7 +544,7 @@ int second = t.second;
         mLinearLayout.addView(view, p);
 
 
-	
+------------------------------------------------------------------------------------------------------------
 屏幕宽度：	
 	WindowManager wm = (WindowManager) getContext()
                     .getSystemService(Context.WINDOW_SERVICE);
@@ -714,7 +552,7 @@ int second = t.second;
      int width = wm.getDefaultDisplay().getWidth();
      int height = wm.getDefaultDisplay().getHeight();
 
-	 
+------------------------------------------------------------------------------------------------------------
 TextView文字居中：
 1.在xml文件设置：android:gravity="center"
 2.在程序中设置：m_TxtTitle.setGravity(Gravity.CENTER);
@@ -723,7 +561,7 @@ TextViews从dimen中获取字号
         mGetPaintTextView = new TextView(mContext);
         mGetPaintTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, mContext.getResources().getDimension(R.dimen.yantext_size));
 
-
+------------------------------------------------------------------------------------------------------------
 popupwindow:
 创建：
 view是什么布局参数2和3的LayoutParams可以采用什么，也可以填入固定整型数值
@@ -752,14 +590,14 @@ mPopupWindow.dismiss();隐藏
 
 LinearLayout设置控件居中，要在LinearLayout中设置：
 android:gravity="center"
+------------------------------------------------------------------------------------------------------------
 
 //点击外部PopupWindow消失
         mSharePopupWindow.setBackgroundDrawable(new BitmapDrawable());
         mSharePopupWindow.setOutsideTouchable(true);
 
+------------------------------------------------------------------------------------------------------------
 
-ImageView设置 android:scaleType="centerInside"
-如果设置了view的width和height大于wrap_content，内部的图片会wrap_content
 ListView设置
 xml：
 //去除ListView滑到顶部和底部时边缘的黑色阴影：
@@ -773,7 +611,7 @@ java：
 msgList.setDivider(null);  
 //ListView刷新后自动滚到最底部：
 msgList.setSelection(msgList.getAdapter().getCount()-1);
-
+------------------------------------------------------------------------------------------------------------
 
 字符串"R.drawable" 转换资源整型：
 方法1：
@@ -791,7 +629,7 @@ int i=res.getIdentifier("icon","drawable",getPackageName());
 Log.i("res",Integer.toString(i));
 
 
-
+------------------------------------------------------------------------------------------------------------
 检测apk是否安装在手机上：
 
 获得包名列表：
@@ -812,35 +650,35 @@ Log.i("res",Integer.toString(i));
  得到Asset资源
  InputStream is = res.getAssets().open(fileName);
  
- 
+------------------------------------------------------------------------------------------------------------
  在循环中，break是退出循环体，continue是结束当前这次循环开始下一次循环
 
- 
+------------------------------------------------------------------------------------------------------------
 在viewpager中如果删除页面并删除页面的数据，再显示控件，会有部分页面显示数据为空，
 mYanPagerAdapter = mViewPager.getAdapter(); 得到Adapter
 mViewPager.setAdapter(null); 			设置Adapter为空
 mViewPager.setAdapter(mYanPagerAdapter); 再把Adapter设置回去可解决
 
-
+------------------------------------------------------------------------------------------------------------
 获得安装的包的信息列表
         PackageManager packageManager = mContext.getPackageManager();
         List<ApplicationInfo> appList = packageManager.getInstalledApplications(PackageManager.GET_UNINSTALLED_PACKAGES); 
 
 		
-		
+------------------------------------------------------------------------------------------------------------
 设置view的可见性：
 View.setVisibility 
 GONE：不可见，不占据位置，即原来的位置会被有fill_parent的控件占据
 INVISIBLE：不可见，占据位置，即还有宽高
 VISIBLE：可见
 
-
+------------------------------------------------------------------------------------------------------------
 在ui thread中调用view的invalidate方法可以通知view重绘制(刷新)，重绘制将调用onDraw()方法来重新绘制view
-
+------------------------------------------------------------------------------------------------------------
 得到acticity中的contentview： content=(ViewGroup)this.findViewById(android.R.id.content)
-
+------------------------------------------------------------------------------------------------------------
 在FrameLayout中，放在下面的子控件是叠在上面的，即第一个子控件是位于最底层的
-
+------------------------------------------------------------------------------------------------------------
 在android的try，catch中可以利用Exception来输出类似于程序崩溃时的错误信息，包括了错误类型(Exception类)，
 具体的错误java文件和错误行数
 	try {
@@ -851,7 +689,7 @@ VISIBLE：可见
 	
 	
 
-
+------------------------------------------------------------------------------------------------------------
 
 在recycleview中，在getItemViewType返回position就可以在onCreateViewHolder中的viewType得到position，
 这种使用方法并不是对viewType的正确使用
@@ -915,7 +753,7 @@ public PieChart(Context context, AttributeSet attrs) {
 }
 (5)TypedArray.getResourceId();
 可以取得format="reference" 的数值
-
+------------------------------------------------------------------------------------------------------------
 
 多点触控：
 使用 onTouchEvent方法来实现，
@@ -935,7 +773,7 @@ switch (action)
 	case MotionEvent.ACTION_UP: //最后一个点离开屏幕
 
 
-
+------------------------------------------------------------------------------------------------------------
 分享图片：
 获取bitmap的URI
                 Bitmap bitmap = mDesignContainer.getDrawingCache();
@@ -978,7 +816,7 @@ switch (action)
 					
 					
 					
-
+------------------------------------------------------------------------------------------------------------
 给edittext或searchview设置提示字符串和提示图标:
 1.构建SpannableStringBuilder或者spannableString
 SpannableStringBuilder ssb = new SpannableStringBuilder("title");
@@ -1012,7 +850,7 @@ ssb.setSpan(new ImageSpan(searchIcon), 1, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
 注：在开发过程中遇到过想要去除searchview提示图标去除不了的情况，直接把一个字符串的id设置就可以了，例如：
 searchAutoComplete.setHint(R.string.mediapicker_gif_title);
 					
-					
+	
 SearchView
 关闭edittext collapseActionView()
 展开edittext expandActionView()
@@ -1020,12 +858,12 @@ SearchView
 也可以对SearchView对应的MenuItem调用collapseActionView()，也可以关闭
 mSearchItem = menu.findItem(R.id.action_gif_search);
 mSearchView = (SearchView) mSearchItem.getActionView();
-
+------------------------------------------------------------------------------------------------------------
 
 onSizeChanged()方法可以获取高宽，但是不合适在获取高宽之后再利用获取的数值进行子控件的设置
 
 
-
+------------------------------------------------------------------------------------------------------------
 Fragment
 放置在Activity中，可以通过FragmentManager进行交互和管理Fragment，
 
@@ -1056,15 +894,15 @@ ExampleFragment fragment = new ExampleFragment();
 fragmentTransaction.add(R.id.fragment_container, fragment);
 fragmentTransaction.commit();
 
-
+------------------------------------------------------------------------------------------------------------
 获取：使用find id和find tag获取fragment
 findFragmentById() 
 
-
+------------------------------------------------------------------------------------------------------------
 在设置visible时，设置layout为gone，layout的子布局的visible并不会为gone
 
 
-
+------------------------------------------------------------------------------------------------------------
 span:
 SpannableString 在setSpan时需要指定flag，以下四种中的其中一种，
 如果设置了SPAN_EXCLUSIVE_EXCLUSIVE指的是如果设置SpannableString改变字体颜色，那么在SpannableString的
@@ -1076,9 +914,9 @@ Spanned.SPAN_INCLUSIVE_EXCLUSIVE(前面包括，后面不包括)
 Spanned.SPAN_EXCLUSIVE_INCLUSIVE(前面不包括，后面包括)
 Spanned.SPAN_INCLUSIVE_INCLUSIVE(前后都包括)
 
-
+------------------------------------------------------------------------------------------------------------
 private abstract void print();  //抽象方法定义，继承该方法所在的类必须实现该方法
-
+------------------------------------------------------------------------------------------------------------
 
 在自定义的layout或者普通layout中如果设置了高宽为wrap_content，这时候再设置padding那么会挤压外部的空间
 如果设置了高宽为固定大小例如20dp，那么会挤压内部子view
@@ -1087,20 +925,11 @@ private abstract void print();  //抽象方法定义，继承该方法所在的�
 2.设置高度10dp下,设置paddingTop为100dp那么所有子view会看不见,设置paddingTop为5dp子view会只能在layout的下半部看到,而layout的上半部会是空白的
 
 
-// 得到缩放比例，scale乘以具体的dp数等于像素值
-final float scale = context.getResources().getDisplayMetrics().density;  
-scale * dp = px
-
-
-//得到APP的内部存储空间：/data/data/your.package.name/files
-getContext().getFilesDir()
-
-
+------------------------------------------------------------------------------------------------------------
 //Adapter.notifyDataSetChanged() 调用会重新计算，即调用onMeasure
-
 //如果一个View由gone变为visible就会调用onMeasure
 
-
+------------------------------------------------------------------------------------------------------------
 
 public class JavaClassTest {
     public JavaClassTest() {
@@ -1113,9 +942,9 @@ public class JavaClassTest {
 // 在类的外部使用类的内部类必须先实例化类，通过类去实例化其内部类
 JavaClassTest javaClassTest = new JavaClassTest();
 JavaClassTest.InternalClass internalClass = javaClassTest.new InternalClass();
+------------------------------------------------------------------------------------------------------------
 
-
-调用一下代码，不用点击editText，editText也会出现光标，并且被选中
+调用以下代码，不用点击editText，editText也会出现光标，并且被选中
 //前面2句只是设置使能，通常只调用第三句代码，即requestFocus
 editText.setFocusable(true);
 editText.setFocusableInTouchMode(true);
@@ -1124,7 +953,7 @@ editText.requestFocus();
 // editText可以被选中并出现光标，但不弹出键盘
 editText.setTextIsSelectable.(true)
 
-
+------------------------------------------------------------------------------------------------------------
 XmlResourceParser 解析
 
 xml文件：
@@ -1220,10 +1049,12 @@ getDimensionOrFraction(typedArray, R.styleable.Search_Keyboard_keyWidth,
 getDimensionOrFraction(typedArray, com.android.internal.R.styleable.Keyboard_keyWidth,
                     100, 50)
 
+------------------------------------------------------------------------------------------------------------
 // 得到随机颜色
 Random rnd = new Random(); 
 int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256)); 
 int color = Color.argb(255, rnd.nextInt(125) + 130, rnd.nextInt(125) + 130, rnd.nextInt(125) + 130);
+------------------------------------------------------------------------------------------------------------
 
 // 分享 bitmap
 private void shareBitmap(Bitmap bitmap) {
@@ -1257,7 +1088,7 @@ private void shareBitmap(Bitmap bitmap) {
 }
 
 
-
+------------------------------------------------------------------------------------------------------------
 // 从drawable中取得 inputstream 并转化成 uri
 // 参数1：context，参数2: 包名，参数3：图片名
 // 可以将生成出来的 uri 放浏览器的地址栏，可以出现一张图片
@@ -1301,7 +1132,7 @@ public static Uri getDataUri(Context context, String pkgName, String imageName) 
 	}
 	return null;
 }
-
+------------------------------------------------------------------------------------------------------------
 
 // 读取 其他apk包的 gif 资源，转化成输入流，保存为 .gif 文件
 // 核心方法 openRawResource() 该方法可以用来读取 drawable文件夹或者raw文件夹下的资源并转化为流
@@ -1349,14 +1180,7 @@ public static File getGifFile(Context context, String pkgName, String resName) {
 	}
 }
 
-
-// 自定义ViewHolder，
-// 利用ViewHolder持有的view可以ViewHolder里面在对view进行设置数据、修改属性
-class ViewHolder{  
-	pubilc CustomView view;
-}  
-
-
+------------------------------------------------------------------------------------------------------------
 
 定义方法设置高宽和android自带的XML设置高宽相兼容：
 这样写，就可以增加setWidth()方法和setHeight()方法的同时，不影响View其他原有功能
@@ -1403,7 +1227,7 @@ iconView.setBackgroundDrawable(drawable) <-> iconView.setBackgroundDrawable(null
 //如果不想调用onMeasure，则可以设置一个透明背景给该view，如下
 iconView.setBackgroundDrawable(drawable) <-> iconView.setBackgroundDrawable(transparentDrawable));
 
-
+------------------------------------------------------------------------------------------------------------
 
 view的晃动动画:
 res/anim/shaking.xml
@@ -1422,10 +1246,9 @@ ImageView mRotateImage.startAnimation(animation);
 
 android:repeatCount 晃动次数，infinite是一直晃动
 
-
+------------------------------------------------------------------------------------------------------------
 
 android中的4个文件保存路径
-
 getFilesDir()   /data/data/包名/files
 getCacheDir()   /data/data/包名/cache
 getExternalFilesDir()  /storage/emulated/0/Android/data/包名/files
@@ -1443,7 +1266,7 @@ Files和Cache的区别在于，当空间不足时，系统会删除cache
 
 Environment.getExternalStorageDirectory()  //外置存储卡 路径
 
-
+------------------------------------------------------------------------------------------------------------
 
 // 该方法指向 sd卡上的路径 /storage/emulated/0/Android/data/com.yourapp.package(应用包名)
 getExternalCacheDir().getAbsolutePath()
@@ -1458,7 +1281,7 @@ getExternalCacheDir().getAbsolutePath()
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
 
-
+------------------------------------------------------------------------------------------------------------
 
 Parcelable
 用于在Intent中压入对象，
@@ -1493,19 +1316,19 @@ Parcelable
 如果要使用Parcel的
 readArrayList和writeList方法，则列表的元素的类也要实现Parcelable接口
 
-
+------------------------------------------------------------------------------------------------------------
 
 绘制VIew本身的内容，通过调用View.onDraw(canvas)函数实现
 绘制自己的孩子通过dispatchDraw（canvas）实现
 
-
+------------------------------------------------------------------------------------------------------------
 
 打开输入法，布局中体上移
 步骤1 在manifest中对activity配置，android:windowSoftInputMode="adjustResize"
 步骤2 activity最外层的布局必须是RelativeLayout
 步骤3 将一个控件，置于RelativeLayout的底部，其他控件都基于该底部控件来布局
 
-
+------------------------------------------------------------------------------------------------------------
 
 异步任务AsyncTask的四个方法
 AsyncTask.execute()会启动异步任务，
@@ -1523,7 +1346,7 @@ mLoadBitmapTask.getStatus().equals(AsyncTask.Status.FINISHED)
 检测是否结束					
 					
 					
-					
+------------------------------------------------------------------------------------------------------------
 
 使用EditText让键盘弹出或者收起
 public void showKeyboard () {
@@ -1540,7 +1363,7 @@ public void hideKeyboard () {
 	imm.hideSoftInputFromWindow(mEditText.getWindowToken(), 0);
 }
 
-
+------------------------------------------------------------------------------------------------------------
 // 加密file name
 public static String getFileName(String uri) {
 	String fileName = null;
@@ -1556,7 +1379,7 @@ public static String getFileName(String uri) {
 	}
 }
 
-
+------------------------------------------------------------------------------------------------------------
 图库选图
 Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
 photoPickerIntent.setType("image/*");
@@ -1569,7 +1392,7 @@ Uri selectedImageUri = data.getData();
 
 
 
-
+------------------------------------------------------------------------------------------------------------
 
 BitmapFactory.Options options = new BitmapFactory.Options();
 options.inPreferredConfig = Bitmap.Config.ARGB_8888;
@@ -1578,7 +1401,7 @@ options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 options.inSampleSize = 2;
 Bitmap fileBitmapScale = BitmapFactory.decodeFile(imagePath, options);
 
-
+------------------------------------------------------------------------------------------------------------
 
 android 5.0以上
 使得status bar 和 自己的布局共用一张背景
@@ -1602,14 +1425,12 @@ styles:
     </style>
 
 
-	
-	
+------------------------------------------------------------------------------------------------------------
 	canvas 是不能绘制大于canvas.getMaximumBitmapWidth() 或者 canvas.getMaximumBitmapHeight()的图片
 	报错：
 	W/OpenGLRenderer: Bitmap too large to be uploaded into a texture (4208x2368, max=4096x4096)
-
 	
-	
+------------------------------------------------------------------------------------------------------------
 	
 	// 判断版本号
 	if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP){
@@ -1618,8 +1439,7 @@ styles:
     // do something for phones running an SDK before lollipop
 	}
 	
-	
-
+------------------------------------------------------------------------------------------------------------
 
 Bitmap 相关
 
@@ -1639,6 +1459,7 @@ bitmap.getByteCount()/1024/1024
 Bitmap.Config.ARGB_8888;
 Bitmap.Config.RGB_565;
 
+------------------------------------------------------------------------------------------------------------
 
 得到一张1MB以下的磁盘存储的图
 public static Bitmap get1MbOpts (String path) {
@@ -1673,7 +1494,7 @@ private static Bitmap getCompressionOpts (String path, double needSize) {
         return originBitmap;
     }
 
-
+------------------------------------------------------------------------------------------------------------
 
 
 GridLayoutMenager,子项间隔
@@ -1769,9 +1590,31 @@ GridLayoutMenager,子项分割线
         }
     }
 
+------------------------------------------------------------------------------------------------------------
+
+Activity 的 onCreate(@Nullable Bundle savedInstanceState)
+参数savedInstanceState, 用来恢复状态
+
+可以把一些缓存数据存在savedInstanceState里面
+  savedInstanceState.putBoolean("MyBoolean", true);
+  savedInstanceState.putDouble("myDouble", 1.9);
+  savedInstanceState.putInt("MyInt", 1);
+  savedInstanceState.putString("MyString", "Welcome back to Android");
+
+如果onSaveInstanceState被调用， 那么onCreate中的参数savedInstanceState就不是空的
+如果Activity是第一次被创建，那么savedInstanceState一般是空的
+onSaveInstanceState(Bundle savedInstanceState)
+
+一般点击home键会调用onSaveInstanceState，点击back键则不会调用
+
+void onRestoreInstanceState (Bundle savedInstanceState)
+This method is called between onStart() and onPostCreate(Bundle).
+
+void onSaveInstanceState (Bundle outState)
+If called, this method will occur before onStop(). There are no guarantees about whether it will occur before or after onPause().
 
 
-
+------------------------------------------------------------------------------------------------------------
 
 android的Touch（dispatchTouchEvent，onInterceptTouchEvent，onTouchEvent）
 
