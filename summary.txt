@@ -37,6 +37,25 @@ android:focusable="false"
 android:focusableInTouchMode="false"
 此时就会和listview本身的点击互不影响
 
+------------------------------------------------------------------------------------------------------------------------
+
+从 Android 6.0（API 级别 23）开始，用户开始在应用运行时向其授予权限，而不是在应用安装时授予。
+此方法可以简化应用安装过程，因为用户在安装或更新应用时不需要授予权限。
+系统权限分为两类：正常权限和危险权限：
+正常权限不会直接给用户隐私权带来风险。如果您的 app在其 manifest 中列出了正常权限，系统将自动授予该权限。
+危险权限会授予应用访问用户机密数据的权限。如果您列出了危险权限，则用户必须明确批准您的应用使用这些权限。
+
+在所有版本的 Android 中，都需要在其应用manifest中同时声明它需要的正常权限和危险权限
+该声明的影响因系统版本和应用的目标 SDK 级别的不同而有所差异
+如果设备运行的是 Android 5.1 或更低版本，或者应用的目标 SDK 为 22 或更低：如果您在清单中列出了危险权限，则用户必须在安装应用时授予此权限；如果他们不授予此权限，系统根本不会安装应用。
+如果设备运行的是 Android 6.0 或更高版本，或者应用的目标 SDK 为 23 或更高：应用必须在清单中列出权限，并且它必须在运行时请求其需要的每项危险权限。用户可以授予或拒绝每项权限，且即使用户拒绝权限请求，应用仍可以继续运行有限的功能。
+
+也就是说，在高于Android 6.0版本，那么需要在manifest配置权限，并且如果权限是危险权限的话，
+那么还需要在程序中调用checkSelfPermission() 和 requestPermissions()来检查和动态申请权限
+
+
+------------------------------------------------------------------------------------------------------------------------
+
 
 可以在canvas中通过控制矩阵Matrix来控制旋转rotate和缩放scale
 在使用Matrix处理bitmap旋转、缩放、平移时，平移会和旋转、缩放冲突，导致只能执行其中一个，
@@ -1769,8 +1788,107 @@ GridLayoutMenager,子项分割线
         }
     }
 
+-----------------------------------------------------------------------------------
+
+Activity动态申请权限, 只有危险权限才需要申请	
+	
+	//检测权限是否已经拥有
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+	    
+	    // 判断用户是否 选过禁止该权限
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+                // 如果用户曾经选择了不授予权限，弹出提示，提示该权限是必要的，并且重新弹出一个权限申请
+		Toast.makeText(getApplicationContext(), "please agree", Toast.LENGTH_SHORT).show();
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        1011);
+
+            } else {
+		
+		// 申请权限，一般第一次申请会走这里
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        1011);
+            }
+        }
 
 
+// 申请权限之后，用户点击了禁止或者允许 会调用
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case 1011: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(getApplicationContext(), "permission ok", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "permission cancel", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+        }
+    }
+
+
+
+
+-----------------------------------------------------------------------------------
+
+在项目中，app依赖了model，那么在model的build.gradle中的 dependencies，在app中不需要再写
+在model的AndroidManifest.xml中写入的权限，在app中也不需要再写
+
+
+-----------------------------------------------------------------------------------
+两种状态栏的设置
+
+一／修改状态栏图标和文字颜色（6.0以上）(放在 values-v23 文件夹下)：
+    <style name="MainStyle" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:statusBarColor" >@android:color/white</item>
+        <item name="android:windowLightStatusBar" >true</item>
+    </style>
+
+也可以这么写
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            getWindow().setBackgroundDrawableResource(android.R.color.white);
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        }
+
+--------------------------------
+
+二／修改状态栏背景，（状态栏背景和主布局背景一体）
+   
+    将activity的theme设置为MyBarTheme
+    <style name="MyBarTheme" parent="android:Theme.Holo.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowTranslucentStatus">true</item>
+    </style>
+
+	activity中写入
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+            Window window = getWindow();
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(0x00ffffff);
+        }
+
+
+-----------------------------------------------------------------------------------
+
+Fragment中嵌套使用 FragmentPagerAdapter
+在Fragment中创建FragmentPagerAdapter时，传入getChildFragmentManager()代替getActivity().getFragmentManager(）即可
+
+
+-----------------------------------------------------------------------------------
 
 
 android的Touch（dispatchTouchEvent，onInterceptTouchEvent，onTouchEvent）

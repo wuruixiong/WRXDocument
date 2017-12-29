@@ -1,8 +1,8 @@
 
-Glide������
+Glide官网：
 https://github.com/bumptech/glide
 
-���̻������ã�
+磁盘缓存配置：
 package com.mypackage;
 public class MyGlideModule implements GlideModule {
     @Override public void applyOptions(Context context, GlideBuilder builder) {
@@ -24,51 +24,304 @@ public class MyGlideModule implements GlideModule {
     </application>
 </manifest>
 
-���ú���֮���ڴ����лὫ����������ͼƬ����
-����ʹ������·����
+配置好了之后，在磁盘中会将下载下来的图片缓存
+建议使用以下路径，
 context.getCacheDir()
 context.getExternalCacheDir()
 
-�����ֱ��д��sd����·��������ͼƬ�����쳣��
-���� Environment.getExternalStorageState()
+如果是直接写入sd卡的路径，加载图片爆出异常，
+例如 Environment.getExternalStorageState()
 
 
-����ͼƬ��
-һ�������ַ�ʽ��
+加载图片：
+一般有三种方式；
 
-��ͨ��ʽ1��
+普通方式1：
 Glide.with(this).load(imageUri2).into(mImageView);
-��ͨ��ʽ2�����Ӵ��̻��棬ͼƬ�ᱣ�������úõĴ��̻���·���£�
-�ٴ�loadͼƬʱ����ֱ�Ӷ�ȡ����ͼƬ��
+普通方式2，增加磁盘缓存，图片会保存在配置好的磁盘缓存路径下，
+再次load图片时，会直接读取磁盘图片：
 Glide.with(this).load(imageUri2).diskCacheStrategy(DiskCacheStrategy.SOURCE).into(mImageView);
 
-���̻��淽ʽ�������أ�ͼƬ�ᱣ�������úõĴ��̻���·���£�
-�ٴ�loadͼƬʱ����ֱ�Ӷ�ȡ����ͼƬ��
+磁盘缓存方式，仅下载，图片会保存在配置好的磁盘缓存路径下，
+再次load图片时，会直接读取磁盘图片：
 FutureTarget<File> future = Glide.with(getApplication())
 		.load(imageUri3)
 		.downloadOnly(500, 500);
 cacheFile = future.get();
 
-��ȡbitmap��ʽ�����Թ��ڻ�ȡmyBitmapʱ
+获取bitmap方式，尝试过在获取myBitmap时
 Bitmap myBitmap = Glide.with(applicationContext)
     .load(yourUrl)
     .asBitmap()
     .into(500, 500)
     .get()
 
-��ȡbitmap�����̻���
+获取bitmap，磁盘缓存
 DrawableTypeRequest drawableTypeRequest = Glide.with(getApplicationContext()).load(imageUri);
 drawableTypeRequest.diskCacheStrategy(DiskCacheStrategy.SOURCE);
 theBitmap = (Bitmap) drawableTypeRequest.asBitmap().into(500, 500).get();
 
 
-��recycleview�������У�ʹ��glide����Ҫע����ǣ�
-��Ҫ��������һ��imageview�����Ұ����ڼ�������ͼƬ��������ᵼ��recycle��������
-Ҫ��iamgeview�������һ��layout
+在recycleview的子项中，使用glide，需要注意的是，
+不要让子项是一个imageview，并且把用于加载网络图片，该情况会导致recycle滑动残留
+要在iamgeview外面包裹一个layout
 
-�ڻ���ʱ�������ͣglide�ļ��أ����������ż���
+在滑动时，最好暂停glide的加载，滑动结束才加载
 
-����ʱ����ü���ռλ��
+加载时，最好加上占位符
+
+
+
+
+
+----------------------------------
+Glide 源代码解析
+
+
+
+
+
+
+
+
+
 
 
 -------------------------------------------------------------------------------------
+
+
+
+OK HTTP
+
+
+// 不管是同步还是异步，不管是get请求还是post请求，
+// 都是创建一个Request对象，得到一个RequestBody对象的过程
+
+
+
+get请求
+String url = "https://www.***.***;
+OkHttpClient okHttpClient = new OkHttpClient();
+Request request = new Request.Builder()
+    .url(url)
+    .build();
+Call call = okHttpClient.newCall(request);
+
+//同步get
+try {
+    Response response = call.execute();
+    (response.body().string());
+} catch (Exception e) {
+}
+
+//异步get
+call.enqueue(new Callback() {
+@Override
+public void onFailure(Call call, IOException e) {
+}
+@Override
+public void onResponse(Call call, final Response response) throws IOException {
+}
+});
+
+
+
+Post请求，以下例子是post发布，表单参数
+官方github上有教程用于使用post字节流、文件
+
+String url = "https://www.baidu.com/";
+OkHttpClient okHttpClient = new OkHttpClient();
+
+RequestBody body = new FormBody.Builder()
+    .add(“key”, “value”)
+    .add("key", "value")
+    ...
+    .build();
+
+Request request = new Request.Builder()
+    .url(url)
+    .post(body)
+    .build();
+
+//同步post
+Call call = okHttpClient.newCall(request);
+try {
+    Response response = call.execute();
+} catch (Exception e) {
+}
+
+//异步post
+call.enqueue(new Callback() {
+ @Override
+public void onFailure(Call call, IOException e) {
+}
+ @Override
+public void onResponse(Call call, final Response response) throws IOException {
+});
+
+----------
+
+所有的HTTP客户端配置都在OkHttpClient中，包括代理设置，超时和缓存。 
+当您需要更改单个呼叫的配置时，请调用OkHttpClient.newBuilder（）。
+
+请求时附加请求头
+    Request request = new Request.Builder()
+        .url("https://api.github.com/repos/square/okhttp/issues")
+        .header("User-Agent", "OkHttp Headers.java")
+        .addHeader("Accept", "application/json; q=0.5")
+        .addHeader("Accept", "application/vnd.github.v3+json")
+        .build();
+
+
+// 设置缓存，只能存get请求
+ 大多数应用程序应该只调用一次新的OkHttpClient（），配置它的缓存，并在任何地方使用同一个实例。
+  public CacheResponse(File cacheDirectory) throws Exception {
+    int cacheSize = 10 * 1024 * 1024; // 10 MiB
+    Cache cache = new Cache(cacheDirectory, cacheSize);
+
+    client = new OkHttpClient.Builder()
+        .cache(cache)
+        .build();
+  }
+
+
+// 自己实现一个post缓存,利用了okhttp的拦截接口Interceptor
+new OkHttpClient.Builder()
+.addInterceptor(new CachePostResponseInterceptor(context))
+.build();
+
+// 断网下使用磁盘缓存，没断网则正常读取网络数据
+// 缓存的磁盘文件夹，是位于属于该应用的磁盘缓存文件夹
+public class CachePostResponseInterceptor implements Interceptor {
+
+    private Context mContext;
+
+    public CachePostResponseInterceptor(Context context) {
+        mContext = context.getApplicationContext();
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    @Override
+    public Response intercept(Chain chain) throws IOException {
+        Request request = chain.request();
+        boolean netAvailable = isNetworkAvailable();
+
+        if (netAvailable) {
+            request = request.newBuilder()
+                    .cacheControl(CacheControl.FORCE_NETWORK)
+                    .build();
+            Response response = chain.proceed(request);
+
+            // save data POST request
+            if (request.method().equals("POST")) {
+                //String key = getKey(request);
+                String key = request.url().toString();
+                final String jsonData = response.body().string();
+
+                ResponseBody myResponseBody = new CachePostResponseBody(jsonData);
+                Response.Builder builder = response.newBuilder();
+                builder.body(myResponseBody);
+
+                File fileDir = DiskCache.getOkHttpCacheDir(mContext);
+                if (fileDir != null) {
+                    String fileName = DiskCache.getFileNameFromUri(key);
+                    File jsonFile = new File(fileDir, fileName);
+                    DiskCache.createNewFileAndWrite(jsonData, jsonFile);
+                }
+
+                return builder.build();
+            }
+            return response;
+        } else {
+            request = request.newBuilder()
+                    .cacheControl(CacheControl.FORCE_CACHE)
+                    .build();
+            Response response = chain.proceed(request);
+
+            // read data for POST request
+            if (request.method().equals("POST")) {
+                //String key = getKey(request);
+                String key = request.url().toString();
+
+                File fileDir = DiskCache.getOkHttpCacheDir(mContext);
+                if (fileDir != null) {
+                    String fileName = DiskCache.getFileNameFromUri(key);
+                    File jsonFile = new File(fileDir, fileName);
+                    // if jsonFile exists, load json from disk
+                    if (jsonFile.exists() && !jsonFile.isDirectory()) {
+                        final String jsonData = DiskCache.readFile(jsonFile);
+
+                        ResponseBody myResponseBody = new CachePostResponseBody(jsonData);
+                        Response.Builder builder = response.newBuilder().code(CACHE_CODE);
+                        builder.body(myResponseBody);
+                        Response myResponse = builder.build();
+                        myResponse.code();
+                        return myResponse;
+                    }
+                }
+            }
+            return response;
+        }
+    }
+
+    public static File getOkHttpCacheDir(Context context) {
+        String filePathStr;
+        if (existSDCard()) {
+            filePathStr = context.getExternalCacheDir() + "/" + "OkHttpCache";
+        } else {
+            filePathStr = context.getCacheDir() + "/" + "OkHttpCache";
+        }
+
+        File file = new File(filePathStr);
+        if (!file.exists()) {
+            file.mkdir();
+        } else if (!file.isDirectory()) {
+            file.delete();
+            file.mkdir();
+        }
+        return file;
+    }
+}
+
+
+
+使用Call.cancel（）立即停止正在进行的呼叫。 如果线程正在写入请求或读取响应，则会收到IOException。
+call.cancel();
+
+
+//设置超时
+    client = new OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .writeTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build();
+
+
+下载文件
+FileOutputStream fos = new FileOutputStream("d:/tmp.txt");
+            fos.write(response.body().bytes());
+            fos.close();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
