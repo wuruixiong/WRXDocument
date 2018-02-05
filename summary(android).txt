@@ -68,6 +68,64 @@ DRAGGING指的是控件在滑动，手指在屏幕上移动(SCROLL_STATE_DRAGGIN
 SETTLING指的是控件在滑动，手指已经放开屏幕，控件处于自动的动画滑动中(SCROLL_STATE_SETTLING为2)
 
 ------------------------------------------------------------------------------------------------------------
+
+
+android:launchMode 由以下几个：
+“standard” ， “singleTop” ， “singleTask” ， “singleInstance”
+默认模式是“standard”
+
+这些模式分为两大类，“standard”和“singleTop”Activity 为一类，“singleTask”和“singleInstance”为另一类。
+
+使用“standard”或“singleTop”启动模式的 Activity 可多次实例化（也就是允许有多个这种activity）
+
+（1） “standard”和“singleTop”模式只在一个方面有差异：
+当 startActivity() 时 , “standard”Activity”，系统都会创建新的类实例Activity 来响应 该Intent ;
+如果目标任务在其堆栈顶部已有一个 “singleTop”Activity 实例，那么该实例将接收新 Intent（通过调用 onNewIntent()）不会创建新实例
+如果“singleTop”Activity没有位于顶部，则会创建新的activity
+
+（2） “singleTask”和“singleInstance”Activity 只能启动任务。 它们始终位于 Activity 堆栈的根位置。
+此外，设备一次只能保留一个 Activity 实例 — 只允许一个此类任务。（也就是只有一个存在于栈task中）
+
+“singleTask”和“singleInstance”模式同样只在一个方面有差异： “singleTask”Activity 允许其他 Activity 成为其任务的组成部分。
+ “singleInstance”Activity 则不允许其他 Activity 成为其任务的组成部分。它是任务中唯一的 Activity。 
+
+ singleTask始终位于其任务的根位置，但其他 Activity（必然是“standard”和“singleTop”Activity）可以启动到该任务中。
+ 如果singleInstance 启动另一个 Activity，系统会将该 Activity 分配给其他任务 — 就好像 Intent 中包含 FLAG_ACTIVITY_NEW_TASK 一样。
+
+ 如果已存在一个 Activity 实例，则系统会通过调用该实例的 onNewIntent() 方法向 singleTask和singleInstance 传送 Intent，而不是创建新的 Activity 实例
+
+
+（3）普通的activity直接用默认的standard就可以，但是主页 HomeActivity 或者 MainActivity 这种 位于第一级页面的 activity最好是singleTask
+1.避免重复创建activity的开销，
+2.也方便保存离开时的状态，回到首页之后还是之前的状态，
+3.还有个优点是返回首页时，因为只有一个，所以不会出现在 HomeActivity点击 back键还有一个 HomeActivity的情况
+
+而通过onNewIntent与之进行数据状态交互
+
+
+-----------------------
+
+Task的概念
+Task (Activity任务堆栈)(A task is a stack of activities.) 
+task是一个具有栈结构的容器，可以放置多个Activity实例
+默认情况下，一个应用内的所有Activity都具有相同的affinity，
+都是从Application继承而来，而Application默认的affinity是<manifest>中的包名，
+我们可以为<application>设置taskAffinity属性值，这样可以应用到<application>下的所有<activity>，
+也可以单独为某个Activity设置taskAffinity。
+FLAG_ACTIVITY_NEW_TASK：当Intent对象包含这个标记时，系统会寻找或创建一个新的task来放置目标Activity，
+寻找时依据目标Activity的taskAffinity属性进行匹配，如果找到一个task的taskAffinity与之相同，
+就将目标Activity压入此task中，如果查找无果，则创建一个新的task。
+
+启动一个应用，系统就会为之创建一个task，来放置根Activity；默认情况下，
+一个Activity启动另一个Activity时，两个Activity是放置在同一个task中的，后者被压入前者所在的task栈，
+当用户按下后退键，后者从task被弹出，前者又显示在幕前，特别是启动其他应用中的Activity时，两个Activity对用户来说就好像是属于同一个应用；
+系统task和task之间是互相独立的，当我们运行一个应用时，按下Home键回到主屏，启动另一个应用，这个过程中，之前的task被转移到后台，
+新的task被转移到前台，其根Activity也会显示到幕前，过了一会之后，在此按下Home键回到主屏，再选择之前的应用，
+之前的task会被转移到前台，系统仍然保留着task内的所有Activity实例，而那个新的task会被转移到后台，如果这时用户再做后退等动作，
+就是针对该task内部进行操作了。
+
+
+------------------------------------------------------------------------------------------------------------
 主线程中创建handler，主要用来修改UI界面
 Handler handler;
 onCreate
@@ -1445,6 +1503,7 @@ styles:
 
 
 ------------------------------------------------------------------------------------------------------------
+
 	canvas 是不能绘制大于canvas.getMaximumBitmapWidth() 或者 canvas.getMaximumBitmapHeight()的图片
 	报错：
 	W/OpenGLRenderer: Bitmap too large to be uploaded into a texture (4208x2368, max=4096x4096)
@@ -1514,9 +1573,33 @@ private static Bitmap getCompressionOpts (String path, double needSize) {
     }
 
 ------------------------------------------------------------------------------------------------------------
-
-
 GridLayoutMenager,子项间隔
+ public class SpaceItemDecoration extends RecyclerView.ItemDecoration {
+
+        private int space;
+
+        public SpaceItemDecoration(int space) {
+            this.space = space;
+        }
+
+        @Override
+        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+            int gridPosition = parent.getChildLayoutPosition(view);
+            if (0 <= gridPosition) {
+                if (gridPosition % mManager.getSpanCount() == 0) {
+                    outRect.left = space;
+                }
+                if (gridPosition < mManager.getSpanCount()) {
+                    outRect.top = space;
+                }
+                outRect.right = space;
+                outRect.bottom = space;
+            }
+        }
+    }
+
+
+GridLayoutMenager,子项间隔,有title
  public class SpaceItemDecoration extends RecyclerView.ItemDecoration {
 
         private int space;
@@ -1609,7 +1692,6 @@ GridLayoutMenager,子项分割线
         }
     }
 
-<<<<<<< HEAD:summary(android).txt
 ------------------------------------------------------------------------------------------------------------
 
 Activity 的 onCreate(@Nullable Bundle savedInstanceState)
@@ -1733,6 +1815,22 @@ Activity动态申请权限, 只有危险权限才需要申请
 Fragment中嵌套使用 FragmentPagerAdapter
 在Fragment中创建FragmentPagerAdapter时，传入getChildFragmentManager()代替getActivity().getFragmentManager(）即可
 
+------------------------------------------------------------------------------------------------------------
+
+seekbar 分为Determinate（确定）和 Indeterminate（不确定）两种
+确定模式是有进度指示的，例如百分比进度，当进度跑完时，加载即完成
+不确定模式则没有进度，一般都是循环播放的动态效果
+
+设置seekbar的确定图片 android:progressDrawable="@android:drawable/progress_horizontal"
+
+设置seekbar的不确定图片  android:indeterminateDrawable="@android:drawable/progress_horizontal"
+
+设置seekbar的游标（即可拖动的滑块） android:thumb="@android:drawable/ic_menu_add"
+
+------------------------------------------------------------------------------------------------------------
+
+view的 dispatchKeyEventPreIme 可以用来捕获键盘弹出时，按下back键时的事件
+与activity的 onKeyDown 不一样，关闭键盘的back键不会调用onKeyDown
 
 
 ------------------------------------------------------------------------------------------------------------

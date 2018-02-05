@@ -1,3 +1,17 @@
+
+TCP/IPÎå²ãÄ£ÐÍ
+ÎïÀí²ã Êý¾ÝÁ´Â·²ã(MAC) ÍøÂç²ã(ip) ´«Êä²ã(tcp) Ó¦ÓÃ²ã(http,ftp)
+
+---------------------------------------
+
+httpÖÐ£¬getÊÇÄÃ£¬ÇëÇóÒ³Ãæ£¬
+postÊÇ·¢£¬Ìá½»±íµ¥
+
+
+socketÊÇÌ×½Ó×Ö£¬Î»ÓÚÓ¦ÓÃ²ãºÍ´«Êä²ãÖ®¼ä£¬ÓÃÓÚ·â×°TCP£¬UDP£¬
+ÀïÃæ»¹·â×°ÁËÓ¦ÓÃ²ãµÄÄ³Ò»¸ö¶Ë¿ÚºÅ£¬ÀýÈç£ºHTTPÄ¬ÈÏ¶Ë¿ÚºÅ80£¬FTPÄ¬ÈÏ¶Ë¿ÚºÅ21
+
+
 ---------------------------------------
 
 TCP £¨´«Êä²ã£©
@@ -65,7 +79,91 @@ FTPÐ­ÒéµÄ¿Í»§»úÓë·þÎñÆ÷Ö®¼äÐèÒª½¨Á¢Á½¸öÁ¬½Ó£¬ Ò»¸öÓÃÓÚ¿ØÖÆÊý¾Ý´«Êä£¨¶Ë¿Ú21£©£¬ Ò
 SMTP £¨¼òµ¥ÓÊ¼þ´«ÊäÐ­Òé£©£¨TCP£©£¨C/S£©
 
 
+---------------------------------------
+
 HTTP £¨³¬ÎÄ±¾´«ÊäÐ­Òé£©£¨C/S£©(TCP)
+
+ÓòÃû½âÎö --> ·¢ÆðTCPµÄ3´ÎÎÕÊÖ --> ½¨Á¢TCPÁ¬½Óºó·¢ÆðhttpÇëÇó --> ·þÎñÆ÷ÏìÓ¦httpÇëÇó£¬ä¯ÀÀÆ÷µÃµ½html´úÂë -->
+ä¯ÀÀÆ÷½âÎöhtml´úÂë£¬²¢ÇëÇóhtml´úÂëÖÐµÄ×ÊÔ´£¨Èçjs¡¢css¡¢Í¼Æ¬µÈ£© --> ä¯ÀÀÆ÷¶ÔÒ³Ãæ½øÐÐäÖÈ¾³ÊÏÖ¸øÓÃ»§
+
+Ò»´ÎÍêÕûµÄHTTPÇëÇó¹ý³Ì´ÓTCPÈý´ÎÎÕÊÖ½¨Á¢Á¬½Ó³É¹¦ºó¿ªÊ¼£¬¿Í»§¶Ë°´ÕÕÖ¸¶¨µÄ¸ñÊ½¿ªÊ¼Ïò·þÎñ¶Ë·¢ËÍHTTPÇëÇó£¬·þÎñ¶Ë½ÓÊÕÇëÇóºó£¬½âÎöHTTPÇëÇó£¬
+´¦ÀíÍêÒµÎñÂß¼­£¬×îºó·µ»ØÒ»¸öHTTPµÄÏìÓ¦¸ø¿Í»§¶Ë£¬HTTPµÄÏìÓ¦ÄÚÈÝÍ¬ÑùÓÐ±ê×¼µÄ¸ñÊ½¡£
+
+***************
+£¨HttpÇëÇóÓÉÒÔÏÂ²¿·Ö×é³É£¬·Ö±ðÊÇ£ºÇëÇóÐÐ¡¢ÏûÏ¢±¨Í·¡¢ÇëÇóÕýÎÄ£©
+HTTPÇëÇó¸ñÊ½Ö÷ÒªÓÐËÄ²¿·Ö×é³É£¬·Ö±ðÊÇ£ºÇëÇóÐÐ¡¢ÇëÇóÍ·¡¢¿ÕÐÐ¡¢ÏûÏ¢Ìå£¬Ã¿²¿·ÖÄÚÈÝÕ¼Ò»ÐÐ
+<request-line>
+<general-headers>
+<request-headers>
+<entity-headers>
+<empty-line>
+[<message-body>]
+
+ÇëÇóÐÐ£ºÇëÇóÐÐÊÇÇëÇóÏûÏ¢µÄµÚÒ»ÐÐ£¬ÓÉÈý²¿·Ö×é³É£º·Ö±ðÊÇÇëÇó·½·¨£¨GET/POST/DELETE/PUT/HEAD£©¡¢ÇëÇó×ÊÔ´µÄURIÂ·¾¶¡¢HTTPµÄ°æ±¾ºÅ
+GET /index.html HTTP/1.1
+
+ÇëÇóÍ·£ºÇëÇóÍ·ÖÐµÄÐÅÏ¢ÓÐºÍ»º´æÏà¹ØµÄÍ·£¨Cache-Control£¬If-Modified-Since£©¡¢¿Í»§¶ËÉí·ÝÐÅÏ¢£¨User-Agent£©µÈµÈ¡£
+Cache-Control:max-age=0
+Cookie:gsScrollPos=; _ga=GA1.2.329038035.1465891024; _gat=1
+If-Modified-Since:Sun, 01 May 2016 11:19:03 GMT
+User-Agent:Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36
+
+ÇëÇóÌå
+Èô·½·¨×Ö¶ÎÊÇGET£¬Ôò´ËÏîÎª¿Õ£¬Ã»ÓÐÊý¾Ý
+Èô·½·¨×Ö¶ÎÊÇPOST,ÔòÍ¨³£À´Ëµ´Ë´¦·ÅÖÃµÄ¾ÍÊÇÒªÌá½»µÄÊý¾Ý
+±ÈÈçÒªÊ¹ÓÃPOST·½·¨Ìá½»Ò»¸ö±íµ¥£¬ÆäÖÐÓÐuser×Ö¶ÎÖÐÊý¾ÝÎª¡°admin¡±, password×Ö¶ÎÎª123456£¬ÄÇÃ´ÕâÀïµÄÇëÇóÊý¾Ý¾ÍÊÇ user=admin&password=123456£¬Ê¹ÓÃ&À´Á¬½Ó¸÷¸ö×Ö¶Î¡£
+
+***************
+
+£¨HTTPÏìÓ¦Ò²ÊÇÓÉÒÔÏÂ×é³É£¬·Ö±ðÊÇ£º×´Ì¬ÐÐ¡¢ÏûÏ¢±¨Í·¡¢ÏìÓ¦ÕýÎÄ£©
+HTTPÏìÓ¦ÏûÏ¢µÄ¸ñÊ½°üÀ¨£º×´Ì¬ÐÐ¡¢ÏìÓ¦Í·¡¢¿ÕÐÐ¡¢ÏûÏ¢Ìå¡£Ã¿²¿·ÖÄÚÈÝÕ¼Ò»ÐÐ¡£
+<status-line>
+<general-headers>
+<response-headers>
+<entity-headers>
+<empty-line>
+[<message-body>]
+
+×´Ì¬ÐÐ£º×´Ì¬ÐÐÎ»ÓÚÏàÓ¦ÏûÏ¢µÄµÚÒ»ÐÐ£¬ÓÐHTTPÐ­Òé°æ±¾ºÅ£¬×´Ì¬ÂëºÍ×´Ì¬ËµÃ÷Èý²¿·Ö¹¹³É¡£Èç£º
+HTTP/1.1 200 OK
+
+ÏìÓ¦Í·£ºÏìÓ¦Í·ÊÇ·þÎñÆ÷´«µÝ¸ø¿Í»§¶ËÓÃÓÚËµÃ÷·þÎñÆ÷µÄÒ»Ð©ÐÅÏ¢£¬ÒÔ¼°½«À´¼ÌÐø·ÃÎÊ¸Ã×ÊÔ´Ê±µÄ²ßÂÔ¡£
+Connection:keep-alive
+Content-Encoding:gzip
+Content-Type:text/html; charset=utf-8
+Date:Fri, 24 Jun 2016 06:23:31 GMT
+Server:nginx/1.9.12
+Transfer-Encoding:chunked
+
+ÏìÓ¦Ìå£ºÏìÓ¦ÌåÊÇ·þÎñ¶Ë·µ»Ø¸ø¿Í»§¶ËµÄHTMLÎÄ±¾ÄÚÈÝ£¬»òÕßÆäËû¸ñÊ½µÄÊý¾Ý£¬±ÈÈç£ºÊÓÆµÁ÷¡¢Í¼Æ¬»òÕßÒôÆµÊý¾Ý¡£
+ÏìÓ¦Ìå¾ÍÊÇÏìÓ¦µÄÏûÏ¢Ìå£¬Èç¹ûÊÇ´¿Êý¾Ý¾ÍÊÇ·µ»Ø´¿Êý¾Ý£¬Èç¹ûÇëÇóµÄÊÇHTMLÒ³Ãæ£¬ÄÇÃ´·µ»ØµÄ¾ÍÊÇHTML´úÂë£¬Èç¹ûÊÇJS¾ÍÊÇJS´úÂë£¬Èç´ËÖ®Àà¡£
+
+
+
+***************
+
+Ö÷ÒªÇø·ÖÒ»ÏÂgetºÍpost
+
+1.Ìá½»Êý¾ÝµÄÐÎÊ½£º
+GETÇëÇóµÄÊý¾Ý»á¸½ÔÚURLÖ®ºó(¾ÍÊÇ°ÑÊý¾Ý·ÅÖÃÔÚHTTPÐ­ÒéÍ·ÖÐ)£¬»áÖ±½ÓÕ¹ÏÖÔÚµØÖ·À¸ÖÐ£¬ÒÔ?·Ö¸îURLºÍ´«ÊäÊý¾Ý£¬²ÎÊýÖ®¼äÒÔ&ÏàÁ¬£¬Èç£ºlogin.action?name=hyddd&password=idontknow&verify=%E4%BD%A0%E5 %A5%BD¡£
+Èç¹ûÊý¾ÝÊÇÓ¢ÎÄ×ÖÄ¸/Êý×Ö£¬Ô­Ñù·¢ËÍ£¬Èç¹ûÊÇ¿Õ¸ñ£¬×ª»»Îª+£¬Èç¹ûÊÇÖÐÎÄ/ÆäËû×Ö·û£¬ÔòÖ±½Ó°Ñ×Ö·û´®ÓÃBASE64¼ÓÃÜ£¬
+µÃ³öÈç£º%E4 %BD%A0%E5%A5%BD£¬ÆäÖÐ%XXÖÐµÄXXÎª¸Ã·ûºÅÒÔ16½øÖÆ±íÊ¾µÄASCII¡£
+¶øPOST·½·¨Ôò»á°ÑÊý¾Ý·Åµ½ ÇëÇóÊý¾Ý£¨ÇëÇóÌå£© ×Ö¶ÎÖÐÒÔ&·Ö¸ô¸÷¸ö×Ö¶Î£¬ÇëÇóÐÐ²»°üº¬Êý¾Ý²ÎÊý£¬µØÖ·À¸Ò²²»»á¶îÍâ¸½´ø²ÎÊý
+
+2.Ìá½»Êý¾ÝµÄ´óÐ¡
+  get·½·¨Ìá½»Êý¾ÝµÄ´óÐ¡Ö±½ÓÓ°Ïìµ½ÁËURLµÄ³¤¶È£¬µ«HTTPÐ­Òé¹æ·¶ÖÐÆäÊµÊÇÃ»ÓÐ¶ÔURLÏÞÖÆ³¤¶ÈµÄ£¬ÏÞÖÆURL³¤¶ÈµÄÊÇ¿Í»§¶Ë»ò·þÎñÆ÷µÄÖ§³ÖµÄ²»Í¬ËùÓ°Ïì£º
+±ÈÈçIE¶ÔURL³¤¶ÈµÄÏÞÖÆÊÇ2083×Ö½Ú(2K+35)¡£¶ÔÓÚÆäËûä¯ÀÀÆ÷£¬ÈçNetscape¡¢FireFoxµÈ£¬ÀíÂÛÉÏÃ»ÓÐ³¤¶ÈÏÞÖÆ£¬ÆäÏÞÖÆÈ¡¾öÓÚ²Ù×÷ÏµÍ³µÄÖ§³Ö¡£
+  post·½Ê½HTTPÐ­Òé¹æ·¶ÖÐÒ²Ã»ÓÐÏÞ¶¨£¬ÆðÏÞÖÆ×÷ÓÃµÄÊÇ·þÎñÆ÷µÄ´¦Àí³ÌÐòµÄ´¦ÀíÄÜÁ¦¡£
+ËùÒÔ´óÐ¡µÄÏÞÖÆ»¹ÊÇµÃÊÜ¸÷¸öweb·þÎñÆ÷ÅäÖÃµÄ²»Í¬¶øÓ°Ïì¡£
+
+3.Ìá½»Êý¾ÝµÄ°²È«
+POST±ÈGET·½Ê½µÄ°²È«ÐÔÒª¸ß
+Í¨¹ýGETÌá½»Êý¾Ý£¬ÓÃ»§ÃûºÍÃÜÂë½«Ã÷ÎÄ³öÏÖÔÚURLÉÏ£¬ÒòÎªÒ»ÏÂ¼¸¸öÔ­Òòget·½Ê½°²È«ÐÔ»á±ÈpostÈõ£º
+(1)µÇÂ¼Ò³ÃæÓÐ¿ÉÄÜ±»ä¯ÀÀÆ÷»º´æ
+(2)ÆäËûÈË²é¿´ä¯ÀÀÆ÷µÄÀúÊ·¼ÍÂ¼£¬ÄÇÃ´±ðÈË¾Í¿É ÒÔÄÃµ½ÄãµÄÕËºÅºÍÃÜÂëÁË
+(3)µ±ÓöÉÏ¿çÕ¾µÄ¹¥»÷Ê±£¬°²È«ÐÔµÄ±íÏÖ¸ü²îÁË
+
+---------------------------------------
 
 
 DNS £¨ÓòÃû½âÎöÏµÍ³£©£¨UDP£©
@@ -75,6 +173,7 @@ DNSÍ¨³£±»ÆäËûÓ¦ÓÃ²ãÐ­Òé£¨HTTP, SMTP, FTP£©ËùÊ¹ÓÃ£¬ ÒÔ±ã½«ÓÃ»§Ìá¹©µÄÖ÷»úÃû½âÎöÎªI
 µÚ¶þ¼¶ÓòÃûÊÇcom£¬ ±íÊ¾Õâ¸öÖ÷»úÊôÓÚ¹«Ë¾»ú¹¹£» ½ÓÏÂÀ´ÊÇsina±íÊ¾ÕâÌ¨Ö÷»úÊôÓÚÐÂÀËÍø£¬ 
 ×î×ó±ßµÄÊÇwww£¬±íÊ¾¸ÃÖ÷»úÊÇÒ»Ì¨web·þÎñÆ÷¡£ÈËÃÇ¿ÉÒÔºÜÈÝÒ×µÄ¾Í¼Ç×¡ËüµÄÓòÃû£¬¶ø²»ÓÃËûµÄIPµØÖ·¡£
 
+---------------------------------------
 
 SNMP £¨¼òµ¥ÍøÂç¹ÜÀíÐ­Òé£©£¨UDP£©
 
@@ -112,18 +211,21 @@ HTTPÐ­ÒéµÄÖ÷ÒªÌØµã¿É¸ÅÀ¨ÈçÏÂ£º
 
 ---------------------------------------
 
+TLS
+  
+°²È«´«Êä²ãÐ­Òé£¨Transport Layer Security£©ÓÃÓÚÔÚÁ½¸öÍ¨ÐÅÓ¦ÓÃ³ÌÐòÖ®¼äÌá¹©±£ÃÜÐÔºÍÊý¾ÝÍêÕûÐÔ¡£
+¸ÃÐ­ÒéÓÉÁ½²ã×é³É£º TLS ¼ÇÂ¼Ð­Òé£¨TLS Record£©ºÍ TLS ÎÕÊÖÐ­Òé£¨TLS Handshake£©¡£½ÏµÍµÄ²ãÎª TLS ¼ÇÂ¼Ð­Òé£¬Î»ÓÚÄ³¸ö¿É¿¿µÄ´«ÊäÐ­Òé£¨ÀýÈç TCP£©ÉÏÃæ£¬Óë¾ßÌåµÄÓ¦ÓÃÎÞ¹Ø£¬ËùÒÔ£¬Ò»°ã°ÑTLSÐ­Òé¹éÎª´«Êä²ã°²È«Ð­Òé¡£
 
   
-HttpÇëÇóÓÉÈý²¿·Ö×é³É£¬·Ö±ðÊÇ£ºÇëÇóÐÐ¡¢ÏûÏ¢±¨Í·¡¢ÇëÇóÕýÎÄ
 
 
-  
+
 
 ---------------------------------------
 
 
+·þÎñÆ÷¶Ë¿ÉÒÔÓÐ¶à¸öÓòÃû£¬µ±·ÃÎÊ·þÎñÆ÷ÓÃIPµØÖ·²»ÓÃÓòÃûÊ±£¬»áÓÐ·µ»Ø´íÎó
 
-HTTPÏìÓ¦Ò²ÊÇÓÉÈý¸ö²¿·Ö×é³É£¬·Ö±ðÊÇ£º×´Ì¬ÐÐ¡¢ÏûÏ¢±¨Í·¡¢ÏìÓ¦ÕýÎÄ
 
 
 

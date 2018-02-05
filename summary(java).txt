@@ -1,4 +1,4 @@
-﻿public
+public
 protected
 private
 abstract
@@ -14,6 +14,8 @@ strictfp
 
 Integer.MAX_VALUE
 整型最大值
+
+long是长整型，也就是说拿两个long去做除法，拿到的不会是浮点型
 
 
 内存分配基础
@@ -142,7 +144,7 @@ int mBorderRadius = d.intValue();
                     }
                 }
 				
-
+------------------------------------------------------------------------------
 在线程的使用过程中，要特别注意线程同步的问题，
 例如：在线程中遍历列表list，如果其他线程对列表list进行 删除操作，则可能出现 下标溢出、空指针等错误
 方法1：如果列表list在主线程创建，则在主线程中复制多个列表list，再作为参数赋给各个线程
@@ -152,7 +154,14 @@ int mBorderRadius = d.intValue();
 方法3：使用线程同步synchronized锁住方法，封装list，将list用另外的类A 封装，在该类A的实例化对象中对list操作，
 	   其他线程通过操作类A的实例化对象来对list操作， 在类A中的操作list的方法method前加入synchronized，将操作list的方法锁住，
 	   可以防止多个线程同时操作该方法，这样也就是对list操作实现了线程同步
+
+
+
+
+
+
 	   
+------------------------------------------------------------------------------
 
 实例化表： ArrayList list;
 list=new ArrayList();

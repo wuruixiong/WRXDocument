@@ -1,0 +1,284 @@
+
+
+synchronized用法
+
+synchronized 关键字，它包括两种用法：synchronized方法（锁方法） 和 synchronized块（锁代码块）  
+1. synchronized 方法：通过在方法声明中加入 synchronized关键字来声明 synchronized 方法。如：  
+public synchronized void accessVal(int newVal);  
+synchronized 方法控制对类成员变量的访问：每个类实例对应一把锁，每个 synchronized 方法都必须获得调用该方法的类实例的锁方能
+执行，否则所属线程阻塞，方法一旦执行，就独占该锁，直到从该方法返回时才将锁释放，此后被阻塞的线程方能获得该锁，重新进入可执行状态。
+--------------------------------------
+synchronized 方法的缺陷：若将一个大的方法声明为synchronized 将会大大影响效率，典型地，若将线程类的方法 run() 声明为
+synchronized ，由于在线程的整个生命期内它一直在运行，因此将导致它对本类任何 synchronized 方法的调用都永远不会成功。当然我们可
+以通过将访问类成员变量的代码放到专门的方法中，将其声明为 synchronized ，并在主方法中调用来解决这一问题，但是 Java 为我们提供
+了更好的解决办法，那就是 synchronized 块。  
+--------------------------------------
+2. synchronized 块：通过 synchronized关键字来声明synchronized 块。语法如下：  
+synchronized(syncObject) {  
+//允许访问控制的代码  
+} 
+其中的代码必须获得对象 syncObject （如前所述，可以是类实例或类）的锁方能执行，具体机
+制同前所述。由于可以针对任意代码块，且可任意指定上锁的对象，故灵活性较高。  
+------------------------------------------------------------------------------------------------------------------
+
+代码实例
+   一、当两个并发线程访问同一个对象object中的这个synchronized(this)同步代码块时，一个时间内只能有一个线程得到执行。另一个线程必须等待当前线程执行完这个代码块以后才能执行该代码块。
+public class Thread1 implements Runnable {  
+     public void run() {  
+          synchronized(this) {  
+               for (int i = 0; i < 5; i++) {  
+                    System.out.println(Thread.currentThread().getName() + " synchronized loop " + i);  
+               }  
+          }  
+     }
+     public static void main(String[] args) {  
+          Thread1 t1 = new Thread1();  
+          Thread ta = new Thread(t1, "A");  
+          Thread tb = new Thread(t1, "B");  
+          ta.start();  
+          tb.start();  
+     } 
+}
+
+结果：  
+     A synchronized loop 0  
+     A synchronized loop 1  
+     A synchronized loop 2  
+     A synchronized loop 3  
+     A synchronized loop 4  
+     B synchronized loop 0  
+     B synchronized loop 1  
+     B synchronized loop 2  
+     B synchronized loop 3  
+     B synchronized loop 4
+
+当一个线程访问object的一个synchronized(this)同步代码块时，其他线程对object中所有其它synchronized(this)同步代码块的访问将被阻塞。
+public class Thread2 {  
+     public void m4t1() {  
+          synchronized(this) {  
+               int i = 5;  
+               while( i-- > 0) {  
+                    System.out.println(Thread.currentThread().getName() + " : " + i);  
+                    try {  
+                         Thread.sleep(500);  
+                    } catch (InterruptedException ie) {  
+                    }  
+               }  
+          }  
+     }  
+     public void m4t2() {  
+          synchronized(this) {  
+               int i = 5;  
+               while( i-- > 0) {  
+                    System.out.println(Thread.currentThread().getName() + " : " + i);  
+                    try {  
+                         Thread.sleep(500);  
+                    } catch (InterruptedException ie) {  
+                    }  
+               }  
+          }
+
+     }
+     public static void main(String[] args) {  
+          final Thread2 myt2 = new Thread2();  
+          Thread t1 = new Thread(  new Runnable() {  public void run() {  myt2.m4t1();  }  }, "t1"  );  
+          Thread t2 = new Thread(  new Runnable() {  public void run() { myt2.m4t2();   }  }, "t2"  );  
+          t1.start();  
+          t2.start();  
+     } 
+}
+
+结果：
+     t1 : 4  
+     t1 : 3  
+     t1 : 2  
+     t1 : 1  
+     t1 : 0  
+     t2 : 4  
+     t2 : 3  
+     t2 : 2  
+     t2 : 1  
+     t2 : 0
+
+
+
+------------------------------------------------------------------------------------------------------------------
+
+
+多线程遗漏点：
+
+1.当两个并发线程访问同一个对象object中的这个synchronized(this)同步代码块时，一个时间内只能有一个线程得到执行。
+另一个线程必须等待当前线程执行完这个代码块以后才能执行该代码块。
+
+2.尤其关键的是，当一个线程访问object的一个synchronized(this)同步代码块时，
+其他线程对object中所有其它synchronized(this)同步代码块的访问将被阻塞。
+也就是说 当synchronized锁一块被线程访问，其他的被synchronized锁住的块也会被阻塞
+
+3.当一个线程访问object的一个synchronized(this)同步代码块时，它就获得了这个object的对象锁。
+结果，其它线程对该object对象所有同步代码部分的访问都被暂时阻塞。
+
+------------------------------------------------------------------------------------------------------------------
+
+其他概念
+java的内置锁：每个java对象都可以用做一个实现同步的锁(一个对象一把锁)，这些锁成为内置锁。线程进入同步代码块或方法的时候会自动获得该锁，在退出同步代码块或方法时会释放该锁。获得内置锁的唯一途径就是进入这个锁的保护的同步代码块或方法。
+
+java内置锁是一个互斥锁，这就是意味着最多只有一个线程能够获得该锁，当线程A尝试去获得线程B持有的内置锁时，线程A必须等待或者阻塞，知道线程B释放这个锁，如果B线程不释放这个锁，那么A线程将永远等待下去。
+
+java的对象锁和类锁：java的对象锁和类锁在锁的概念上基本上和内置锁是一致的，但是，两个锁实际是有很大的区别的，对象锁是用于对象实例方法，或者一个对象实例上的，类锁是用于类的静态方法或者一个类的class对象上的。我们知道，类的对象实例可以有很多个，但是每个类只有一个class对象，所以不同对象实例的对象锁是互不干扰的，但是每个类只有一个类锁。但是有一点必须注意的是，其实类锁只是一个概念上的东西，并不是真实存在的，它只是用来帮助我们理解锁定实例方法和静态方法的区别的
+
+------------------------------------------------------------------------------------------------------------------
+
+synchronized 静态方法
+将synchronized作用于static 函数，示例代码如下：
+
+Class Foo {
+  // 同步的static 函数
+  public synchronized static void methodAAA()  {
+  //….
+  }
+  public void methodBBB() {
+       synchronized(Foo.class)   // class literal(类名称字面常量)
+  }    
+}
+代码中的methodBBB()方法是把class literal作为锁的情况，它和同步的static函数产生的效果是一样的，取得的锁很特别，是当前调用这个方法的对象所属的类（Class，而不再是由这个Class产生的某个具体对象了）。
+
+------------------------------------------------------------------------------------------------------------------
+
+
+Java 的 wait, notify 和 notifyAll 
+
+(1). wait() 与 notify/notifyAll 方法必须在同步代码块中使用
+wait() 与 notify/notifyAll() 是Object类的方法，在执行两个方法时，要先获得锁。
+wait() 与 notify/notifyAll() 经常与synchronized搭配使用，
+即在synchronized修饰的同步代码块或方法里面调用wait() 与  notify/notifyAll()方法。
+
+(2). wait() 与  notify/notifyAll() 的执行过程
+由于 wait() 与  notify/notifyAll() 是放在同步代码块中的，因此线程在执行它们时，肯定是进入了临界区中的，即该线程肯定是获得了锁的。
+当线程执行wait()时，会把当前的锁释放，然后让出CPU，进入等待状态。
+当执行notify/notifyAll方法时，会唤醒一个处于等待该 对象锁 的线程，然后继续往下执行，
+直到执行完退出对象锁锁住的区域（synchronized修饰的代码块）后再释放锁。
+
+notify/notifyAll()执行后，并不立即释放锁，而是要等到执行完临界区中代码后，再释放。在实际编程中，我们应该尽量在线程调用notify/notifyAll()后，立即退出临界区。即不要在notify/notifyAll()后面再写一些耗时的代码。
+
+ 1 public class Service {
+ 2 
+ 3     public void testMethod(Object lock) {
+ 4         try {
+ 5             synchronized (lock) {
+ 6                 System.out.println("begin wait() ThreadName="
+ 7                         + Thread.currentThread().getName());
+ 8                 lock.wait();
+ 9                 System.out.println("  end wait() ThreadName="
+10                         + Thread.currentThread().getName());
+11             }
+12         } catch (InterruptedException e) {
+13             e.printStackTrace();
+14         }
+15     }
+16 
+17     public void synNotifyMethod(Object lock) {
+18         try {
+19             synchronized (lock) {
+20                 System.out.println("begin notify() ThreadName="
+21                         + Thread.currentThread().getName() + " time="
+22                         + System.currentTimeMillis());
+23                 lock.notify();
+24                 Thread.sleep(5000);
+25                 System.out.println("  end notify() ThreadName="
+26                         + Thread.currentThread().getName() + " time="
+27                         + System.currentTimeMillis());
+28             }
+29         } catch (InterruptedException e) {
+30             e.printStackTrace();
+31         }
+32     }
+33 }
+
+在第3行的testMethod()中调用 wait()，在第17行的synNotifyMethod()中调用notify()
+从上面的代码可以看出，wait() 与  notify/notifyAll()都是放在同步代码块中才能够执行的。如果在执行wait() 与  notify/notifyAll() 之前没有获得相应的对象锁，就会抛出：java.lang.IllegalMonitorStateException异常。
+在第8行，当ThreadA线程执行lock.wait();这条语句时，释放获得的对象锁lock，并放弃CPU，进入等待队列。
+当另一个线程执行第23行lock.notify();，会唤醒ThreadA，但是此时它并不立即释放锁，接下来它睡眠了5秒钟(sleep()是不释放锁的，事实上sleep()也可以不在同步代码块中调用)，直到第28行，退出synchronized修饰的临界区时，才会把锁释放。这时，ThreadA就有机会获得另一个线程释放的锁，并从等待的地方起（第9行）起开始执行。
+
+ 
+
+wait()、notify()、notifyAll()是三个定义在Object类里的方法，可以用来控制线程的状态。
+
+这三个方法最终调用的都是jvm级的native方法。随着jvm运行平台的不同可能有些许差异。
+如果对象调用了wait方法就会使持有该对象的线程把该对象的控制权交出去，然后处于等待状态。
+如果对象调用了notify方法就会通知某个正在等待这个对象的控制权的线程可以继续运行。
+如果对象调用了notifyAll方法就会通知所有等待这个对象控制权的线程继续运行。
+
+
+总结： 当线程调用 object.wait 时，会把当前的锁对象的释放，然后让出CPU，进入等待状态。
+      只有等到别的线程调用 object.notify 时，会在从原线程的object.wait的下一行代码开始执行
+
+public class NotifyTest {  
+    private String flag[] = { "true" };  
+  
+    class NotifyThread extends Thread {  
+        public NotifyThread(String name) {  
+            super(name);  
+        }  
+  
+        public void run() {  
+            try {  
+                sleep(3000);  
+            } catch (InterruptedException e) {  
+                e.printStackTrace();  
+            }  
+            synchronized (flag) {  
+                flag[0] = "false";  
+                flag.notifyAll();  
+            }  
+        }  
+    };  
+  
+    class WaitThread extends Thread {  
+        public WaitThread(String name) {  
+            super(name);  
+        }  
+  
+        public void run() {  
+            synchronized (flag) {  
+                while (flag[0] != "false") {  
+                    System.out.println(getName() + " begin waiting!");  
+                    long waitTime = System.currentTimeMillis();  
+                    try {  
+                        flag.wait();  
+  
+                    } catch (InterruptedException e) {  
+                        e.printStackTrace();  
+                    }  
+                    waitTime = System.currentTimeMillis() - waitTime;  
+                    System.out.println("wait time :" + waitTime);  
+                }  
+                System.out.println(getName() + " end waiting!");  
+            }  
+        }  
+    }  
+  
+    public static void main(String[] args) throws InterruptedException {  
+        System.out.println("Main Thread Run!");  
+        NotifyTest test = new NotifyTest();  
+        NotifyThread notifyThread = test.new NotifyThread("notify01");  
+        WaitThread waitThread01 = test.new WaitThread("waiter01");  
+        WaitThread waitThread02 = test.new WaitThread("waiter02");  
+        WaitThread waitThread03 = test.new WaitThread("waiter03");  
+        notifyThread.start();  
+        waitThread01.start();  
+        waitThread02.start();  
+        waitThread03.start();  
+    }  
+  
+}  
+
+
+
+
+
+
+
+
+
+
+
