@@ -161,6 +161,37 @@ Okhttp3 框架
 
 
 
+-------------------
+
+先是第一章的 Dispatcher会产生作用，然后 Dispatcher中会调用getResponseWithInterceptorChain
+
+特别要记住这个方法，它位于realcall类中，设置了多个非常重要的默认的拦截器，还有开发者自己实现并添加的拦截器
+例如：CacheInterceptor（与缓存有关的拦截器），ConnectInterceptor（与连接池复用有关的拦截器），
+     client.interceptors()（开发者自己实现并添加的拦截器）
+具体看拦截器篇
+  Response getResponseWithInterceptorChain() throws IOException {
+    // Build a full stack of interceptors.
+    List<Interceptor> interceptors = new ArrayList<>();
+    interceptors.addAll(client.interceptors());
+    interceptors.add(retryAndFollowUpInterceptor);
+    interceptors.add(new BridgeInterceptor(client.cookieJar()));
+    interceptors.add(new CacheInterceptor(client.internalCache()));
+    interceptors.add(new ConnectInterceptor(client));
+    if (!forWebSocket) {
+      interceptors.addAll(client.networkInterceptors());
+    }
+    interceptors.add(new CallServerInterceptor(forWebSocket));
+
+    Interceptor.Chain chain = new RealInterceptorChain(
+        interceptors, null, null, null, 0, originalRequest);
+    return chain.proceed(originalRequest);
+  }
+
+所有的拦截器最初始的调用也是在这里：
+    Interceptor.Chain chain = new RealInterceptorChain(
+        interceptors, null, null, null, 0, originalRequest);
+    return chain.proceed(originalRequest);
+
 ？ -> 
 工程模式
 builder模式
@@ -287,7 +318,7 @@ workQueue：线程池的任务队列， 通过execute方法提交的runnable对�
 threadFactory: 线程工厂, 为线程池提供创建新线程的功能.
 handler: 任务无法执行时，回调handler的rejectedExecution方法来通知调用者.
 
-Okhttp中的创建线程工程
+Okhttp中的创建线程工厂
   public static ThreadFactory threadFactory(final String name, final boolean daemon) {
     return new ThreadFactory() {
       @Override public Thread newThread(Runnable runnable) {
@@ -319,22 +350,388 @@ Object value=future.get();
 关闭线程池
 可以通过调用线程池的shutdown或shutdownNow方法来关闭线程池。
 
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+拦截器机制：
+
+1. getResponseWithInterceptorChain 中创建了Interceptor.Chain，
+参数interceptors就是所有的拦截器， 0 是当前index（表示从下标0的interceptor开始执行）
+ Interceptor.Chain chain = new RealInterceptorChain(
+        interceptors, null, null, null, 0, originalRequest);
+    return chain.proceed(originalRequest);
+
+2. 在proceed方法中的核心代码可以看到，proceed实际上也做了两件事：
+创建下一个拦截链。传入index + 1使得下一个拦截器链只能从下一个拦截器开始访问
+执行索引为index的intercept方法，并将下一个拦截器链传入该方法
+    RealInterceptorChain next = new RealInterceptorChain(
+        interceptors, streamAllocation, httpCodec, connection, index + 1, request);
+    Interceptor interceptor = interceptors.get(index);
+    Response response = interceptor.intercept(next);
+
+3. 首先是开发者自己在okhttpclient.builder里面add进去的Interceptor，
+例如：new OkHttpClient.Builder().addInterceptor(new Interceptor()
+之前写过一个Interceptor，我的Interceptor也是通过以下语句来获取response的，
+Response response = chain.proceed(request);
+而chain.proceed(request) 的 proceed方法就是 RealInterceptorChain的proceed方法，
+proceed方法又会去再次执行下一个拦截器的intercept方法
+
+
+4.总体的执行逻辑：
+第一个默认的拦截器RetryAndFollowUpInterceptor的intercept中
+这段代码最关键的代码是:
+response = ((RealInterceptorChain) chain).proceed(request, streamAllocation, null, null);
+这行代码就是执行下一个拦截器链的proceed方法。
+
+***而我们知道在下一个拦截器链中又会执行下一个拦截器的intercept方法。所以整个执行链就在拦截器与拦截器链中交替执行，最终完成所有拦截器的操作。
+这也是OkHttp拦截器的链式执行逻辑。而一个拦截器的intercept方法所执行的逻辑大致分为三部分：
+（1）在发起请求前对request进行处理
+（2）调用下一个拦截器，获取response
+（3）对response进行处理，返回给上一个拦截器
+
+这就是OkHttp拦截器机制的核心逻辑。
+所以一个网络请求实际上就是一个个拦截器执行其intercept方法的过程。
+而这其中除了用户自定义的拦截器外还有几个核心拦截器完成了网络访问的核心逻辑，按照先后顺序依次是：
+RetryAndFollowUpInterceptor
+BridgeInterceptor
+CacheInterceptor
+ConnectIntercetot
+CallServerInterceptor
+
+
+5. RetryAndFollowUpInterceptor
+如上文代码所示，RetryAndFollowUpInterceptor负责两部分逻辑：
+在网络请求失败后进行重试
+当服务器返回当前请求需要进行重定向时直接发起新的请求，并在条件允许情况下复用当前连接
+
+
+6. BridgeInterceptor主要负责以下几部分内容：
+设置内容长度，内容编码
+设置gzip压缩，并在接收到内容后进行解压。省去了应用层处理数据解压的麻烦
+添加cookie
+设置其他报头，如User-Agent,Host,Keep-alive等。其中Keep-Alive是实现多路复用的必要步骤
+
+
+7. CacheInterceptor的职责很明确，就是负责Cache的管理
+当网络请求有符合要求的Cache时直接返回Cache
+当服务器返回内容有改变时更新当前cache
+如果当前cache失效，删除
+
+
+8. ConnectInterceptor的intercept方法只有一行关键代码:
+RealConnection connection = streamAllocation.connection();
+即为当前请求找到合适的连接，可能复用已有连接也可能是重新创建的连接，返回的连接由连接池负责决定。
+
+
+9. CallServerInterceptor负责向服务器发起真正的访问请求，并在接收到服务器返回后读取响应返回。
+
+
+
+
 
 
 -----------------------------------------------------------------------------------------------------------------------------------------
-okhttp 连接池
+okhttp连接池 复用机制
 
-http中有一种叫做keepalive connections的机制，它可以在传输数据后仍然保持连接，当客户端需要再次获取数据时，直接使用刚刚空闲下来的连接而不需要再次握手
+keep-alive 就是浏览器和服务端之间保持长连接，这个连接是可以复用的。在HTTP1.1中是默认开启的。
+Connection是response中的头字段，他有两个值，其中之一就是keep-alive
+
+例如：浏览器加载一个HTML网页，HTML中可能需要加载数十个资源，典型场景下这些资源中大部分来自同一个站点。
+按照HTTP1.0的做法，这需要建立数十个TCP连接，每个连接负责一个资源请求。创建一个TCP连接需要3次握手，而释放连接则需要2次或4次握手。
+重复的创建和释放连接极大地影响了网络效率，同时也增加了系统开销。
+
+keep-alive在传输数据后仍然保持连接，当客户端需要再次获取数据时，直接使用刚刚空闲下来的连接而 不需要再次握手（这个很重要）
 在现代浏览器中，一般同时开启6～8个keepalive connections的socket连接，并保持一定的链路生命，当不需要时再关闭；
 而在服务器中，一般是由软件根据负载情况(比如FD最大值、Socket内存、超时时间、栈内存、栈数量等)决定是否主动关闭。
 
+缺点：如果存在大量空闲的keepalive connections（我们可以称作僵尸连接或者泄漏连接），其它客户端们的正常连接速度也会受到影响
+
+---------------------------
+这是 okhttpClient中的代码，很多地方都会使用到Internal.instance，
+特别是用到连接池的几个方法：connectionBecameIdle， get， put等等
+Internal.instance = new Internal()
+
+---------------------------
+
+在 ConnectInterceptor的intercept方法中，一步一步往下走，最终步骤是取得到一个RealConnection用来拿response
+RouteSelector（路由选择类） 
+    streamAllocation.newStream(client, doExtensiveHealthChecks) -> findHealthyConnection -> findConnection
+
+
+get是ConnectionPool中最为重要的方法，StreamAllocation在其findConnection方法内部通过调用get方法为其找到stream找到合适的连接，如果没有则新建一个连接。首先来看下findConnection的逻辑：
+查看当前streamAllocation是否有之前已经分配过的连接，有则直接使用
+从连接池中查找可复用的连接，有则返回该连接
+配置路由，配置后再次从连接池中查找是否有可复用连接，有则直接返回
+新建一个连接，并修改其StreamAllocation标记计数，将其放入连接池中
+查看连接池是否有重复的多路复用连接，有则清除
+
+
+private RealConnection findConnection(int connectTimeout, int readTimeout, int writeTimeout,
+                                        boolean connectionRetryEnabled) throws IOException {
+    Route selectedRoute;
+    synchronized (connectionPool) {
+      if (released) throw new IllegalStateException("released");
+      if (codec != null) throw new IllegalStateException("codec != null");
+      if (canceled) throw new IOException("Canceled");
+
+      // 一个StreamAllocation刻画的是一个Call的数据流动，一个Call可能存在多次请求(重定向，Authenticate等)，所以当发生类似重定向等事件时优先使用原有的连接
+      RealConnection allocatedConnection = this.connection;
+      if (allocatedConnection != null && !allocatedConnection.noNewStreams) {
+        return allocatedConnection;
+      }
+
+      // 试图从连接池中找到可复用的连接
+      Internal.instance.get(connectionPool, address, this, null);
+      if (connection != null) {
+        return connection;
+      }
+
+      selectedRoute = route;
+    }
+
+    // 获取路由配置，所谓路由其实就是代理，ip地址等参数的一个组合
+    if (selectedRoute == null) {
+      selectedRoute = routeSelector.next();
+    }
+
+    RealConnection result;
+    synchronized (connectionPool) {
+      if (canceled) throw new IOException("Canceled");
+
+      //拿到路由后可以尝试重新从连接池中获取连接，这里主要针对http2协议下清除域名碎片机制
+      Internal.instance.get(connectionPool, address, this, selectedRoute);
+      if (connection != null) return connection;
+
+      //新建连接
+      route = selectedRoute;
+      refusedStreamCount = 0;
+      result = new RealConnection(connectionPool, selectedRoute);
+      //修改result连接stream计数，方便connection标记清理
+      acquire(result);
+    }
+
+    // Do TCP + TLS handshakes. This is a blocking operation.
+    result.connect(connectTimeout, readTimeout, writeTimeout, connectionRetryEnabled);
+    routeDatabase().connected(result.route());
+
+    Socket socket = null;
+    synchronized (connectionPool) {
+      // 将新建的连接放入到连接池中
+      Internal.instance.put(connectionPool, result);
+
+      // 如果同时存在多个连向同一个地址的多路复用连接，则关闭多余连接，只保留一个
+      if (result.isMultiplexed()) {
+        socket = Internal.instance.deduplicate(connectionPool, address, this);
+        result = connection;
+      }
+    }
+    closeQuietly(socket);
+
+    return result;
+  }
+
+
+
+Internal.instance实在okhttpclient中创建实例的，实例的get方法就是直接调用的 connectionPool 的get方法
+有关于connectionPool的逻辑，看一下篇
+
+
+---------------------------
+
 Okhttp支持5个并发KeepAlive，默认链路生命为5分钟(链路空闲后，保持存活的时间)
 
-Connection: 对jdk的socket物理连接的包装，它内部有List<WeakReference<StreamAllocation>>的引用
+*Connection: （其实是RealConnection，Connection只是一个接口，一个RealConnection对应一个socket）
+对jdk的socket物理连接的包装，它内部有List<WeakReference<StreamAllocation>>的引用
+
 ConnectionPool: Socket连接池，对连接缓存进行回收与管理，与CommonPool有类似的设计
 Call: 对http的请求封装，属于程序员能够接触的上层高级代码
-StreamAllocation: 表示Connection被上层高级代码的引用次数
+StreamAllocation: 表示RealConnection被上层高级代码的引用次数
 Deque: Deque也就是双端队列，双端队列同时具有队列和栈性质，经常在缓存中被使用，这个是java基础
+
+*在socket连接中，也就是RealConnection中，本质是封装好的流操作，除非手动close掉连接，基本不会被GC掉，非常容易引发内存泄露。
+
+*小结：在okhttp中，在高层代码的调用中，使用了类似于引用计数的方式跟踪Socket流的调用，这里的计数对象是StreamAllocation，它被反复执行aquire与release操作(点击函数可以进入github查看)，这两个函数其实是在改变RealConnection中的List<WeakReference<StreamAllocation>>大小。List中Allocation的数量也就是物理socket被引用的计数（Refference Count），如果计数为0的话，说明此连接没有被使用，是空闲的，需要通过下文的算法实现回收；如果上层代码仍然引用，就不需要关闭连接。
+
+引用计数法：给对象中添加一个引用计数器，每当有一个地方引用它时，计数器值就加1；当引用失效时，计数器值就减1；任何时刻计数器为0的对象就是不可能再被使用。它不能处理循环引用的问题。
+
+代码分析：
+okhttpclient的build方法，创建ConnectionPool，当然，也可以在builder中将自己创建的ConnectionPool传入
+      connectionPool = new ConnectionPool();
+
+连接池内部维护了一个叫做OkHttp ConnectionPool的ThreadPool，专门用来淘汰末位的socket，当满足以下条件时，就会进行末位淘汰，非常像GC
+1. 并发socket空闲连接超过5个
+2. 某个socket的keepalive时间大于5分钟
+源码：  private static final Executor executor = new ThreadPoolExecutor(0 /* corePoolSize */,
+      Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
+      new SynchronousQueue<Runnable>(), Util.threadFactory("OkHttp ConnectionPool", true));
+
+维护着一个Deque<Connection>，提供get/put/remove等数据结构的功能
+  private final Deque<RealConnection> connections = new ArrayDeque<>();
+
+维护着一个RouteDatabase，它用来记录连接失败的Route的黑名单，当连接失败的时候就会把失败的线路加进去（本文不讨论）
+  final RouteDatabase routeDatabase = new RouteDatabase();
+
+在连接池ConnectionPool中，提供如下的操作，这里可以看成是对deque的一个简单的包装
+//从连接池中获取
+get
+//放入连接池
+put
+//线程变成空闲，并调用清理线程池
+connectionBecameIdle
+//关闭所有连接
+evictAll
+
+例如 get方法，遍历了 connections，并返回其中一个满足条件的RealConnection，RealConnection中有一个socket对象，
+  @Nullable RealConnection get(Address address, StreamAllocation streamAllocation, Route route) {
+    assert (Thread.holdsLock(this));
+    for (RealConnection connection : connections) {
+      if (connection.isEligible(address, route)) {
+        streamAllocation.acquire(connection);
+        return connection;
+      }
+    }
+    return null;
+  }
+
+随着上述操作被更高级的对象调用，RealConnection中的StreamAllocation被不断的aquire与release，
+也就是List<WeakReference<StreamAllocation>>的大小将时刻变化
+
+
+-----------------------------
+
+自动回收机制：
+
+当用户socket连接成功，向连接池中put新的socket时，回收函数会被主动调用，线程池就会执行cleanupRunnable，如下
+//Socket清理的Runnable，每当put操作时，就会被主动调用
+//注意put操作是在网络线程， executor 是 ThreadPoolExecutor对象
+      executor.execute(cleanupRunnable);
+
+//而Socket清理是在`OkHttp ConnectionPool`线程池中调用
+  private final Runnable cleanupRunnable = new Runnable() {
+    @Override public void run() {
+      while (true) {
+        long waitNanos = cleanup(System.nanoTime());
+        if (waitNanos == -1) return;
+        if (waitNanos > 0) {
+          long waitMillis = waitNanos / 1000000L;
+          waitNanos -= (waitMillis * 1000000L);
+          synchronized (ConnectionPool.this) {
+            try {
+              ConnectionPool.this.wait(waitMillis, (int) waitNanos);
+            } catch (InterruptedException ignored) {
+            }
+          }
+        }
+      }
+    }
+  };
+这段死循环实际上是一个阻塞的清理任务，首先进行清理(clean)，并返回下次需要清理的间隔时间，
+然后调用wait(timeout)进行等待以释放锁与时间片，当等待时间到了后，再次进行清理，并返回下次要清理的间隔时间
+
+Connect变得闲置时调用了 connectionBecameIdle方法，里面调用了 notifyAll() ，唤醒通知：
+
+
+Cleanup:
+cleanup使用了类似于GC的标记-清除算法，也就是首先标记出最不活跃的连接(我们可以叫做泄漏连接，或者空闲连接)，接着进行清除，流程如下:
+ long cleanup(long now) {
+    int inUseConnectionCount = 0;
+    int idleConnectionCount = 0;
+    RealConnection longestIdleConnection = null;
+    long longestIdleDurationNs = Long.MIN_VALUE;
+
+    // Find either a connection to evict, or the time that the next eviction is due.
+    synchronized (this) {
+      // 迭代器遍历
+      for (Iterator<RealConnection> i = connections.iterator(); i.hasNext(); ) {
+        RealConnection connection = i.next();
+
+        // If the connection is in use, keep searching.
+        if (pruneAndGetAllocationCount(connection, now) > 0) {
+          // 如果是被使用的，就是活跃的，跳过这个connection，被使用数量加一
+          inUseConnectionCount++;
+          continue;
+        }
+
+        // 如果上面的判断失败，就是不活跃的, 闲置数量加一
+        idleConnectionCount++;
+
+        // If the connection is ready to be evicted, we're done.
+        long idleDurationNs = now - connection.idleAtNanos;
+        // 遍历找出最不活跃的连接,选择排序法
+        if (idleDurationNs > longestIdleDurationNs) {
+          longestIdleDurationNs = idleDurationNs;
+          longestIdleConnection = connection;
+        }
+      }
+
+
+
+    if (longestIdleDurationNs >= this.keepAliveDurationNs
+        || idleConnectionCount > this.maxIdleConnections) {
+      //如果(`空闲socket连接超过5个`
+      //且`keepalive时间大于5分钟`)
+      //就将此泄漏连接从`Deque`中移除
+      connections.remove(longestIdleConnection);
+    } else if (idleConnectionCount > 0) {
+      //返回此连接即将到期的时间，供下次清理
+      //这里依据是在上文`connectionBecameIdle`中设定的计时
+      return keepAliveDurationNs - longestIdleDurationNs;
+    } else if (inUseConnectionCount > 0) {
+      //全部都是活跃的连接，5分钟后再次清理
+      return keepAliveDurationNs;
+    } else {
+      //没有任何连接，跳出循环
+      cleanupRunning = false;
+      return -1;
+    }
+  }
+
+  //关闭连接，返回`0`，也就是立刻再次清理
+  closeQuietly(longestIdleConnection.socket());
+  return 0;
+  }
+
+
+1. 遍历Deque中所有的RealConnection，标记泄漏的连接
+2. 如果被标记的连接满足(空闲socket连接超过5个&&keepalive时间大于5分钟)，就将此连接从Deque中移除，并关闭连接，返回0，也就是将要执行wait(0)，提醒立刻再次扫描
+3. 如果(目前还可以塞得下5个连接，但是有可能泄漏的连接(即空闲时间即将达到5分钟))，就返回此连接即将到期的剩余时间，供下次清理
+4. 如果(全部都是活跃的连接)，就返回默认的keep-alive时间，也就是5分钟后再执行清理
+5. 如果(没有任何连接)，就返回-1,跳出清理的死循环
+
+
+需要注意的是pruneAndGetAllocationCount方法，这个方法标记并找到最不活跃的连接呢，这里使用了pruneAndGetAllocationCount的方法，它主要依据弱引用是否为null而判断这个连接是否泄漏
+
+//类似于引用计数法，如果引用全部为空，返回立刻清理
+private int pruneAndGetAllocationCount(RealConnection connection, long now) {
+  //虚引用列表
+  List<Reference<StreamAllocation>> references = connection.allocations;
+  //遍历弱引用列表
+  for (int i = 0; i < references.size(); ) {
+    Reference<StreamAllocation> reference = references.get(i);
+    //如果正在被使用，跳过，接着循环
+    //是否置空是在上文`connectionBecameIdle`的`release`控制的
+    if (reference.get() != null) {
+      //非常明显的引用计数
+      i++;
+      continue;
+    }
+
+    //否则移除引用
+    references.remove(i);
+    connection.noNewStreams = true;
+
+    //如果所有分配的流均没了，标记为已经距离现在空闲了5分钟
+    if (references.isEmpty()) {
+      connection.idleAtNanos = now - keepAliveDurationNs;
+      return 0;
+    }
+  }
+    
+  return references.size();
+}
+遍历RealConnection连接中的StreamAllocationList，它维护着一个弱引用列表
+查看此StreamAllocation是否为空(它是在线程池的put/remove手动控制的)，如果为空，说明已经没有代码引用这个对象了，需要在List中删除
+遍历结束，如果List中维护的StreamAllocation删空了，就返回0，表示这个连接已经没有代码引用了，是泄漏的连接;否则返回非0的值，表示这个仍然被引用，是活跃的连接。
+
 
 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -585,8 +982,10 @@ public void writeTo(DiskLruCache.Editor editor) throws IOException {
       ......
       }
 
-最后，去查看okhttpclient中设置的缓存目录，可以看到用MD5加密文件名出来的文件
 
+
+最后，去查看okhttpclient中设置的缓存目录，可以看到用MD5加密文件名出来的文件
+联系上一篇，可以在 CacheInterceptor中看到 对InternalCache cache 的各种操作
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
