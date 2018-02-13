@@ -157,6 +157,7 @@ Okhttp3 框架
 
 核心入口OkHttpClient
   OkHttpClient知晓子模块的所有配置以及提供需要的参数。client会将所有从客户端发来的请求委派到相应的子系统去，例如上面的cache、连接以及连接池相关类的集合、网络配置相关类集合等等。每个子系统都可以被客户端直接调用，或者被门面角色调用。子系统并不知道门面的存在，对于子系统而言，门面仅仅是另外一个客户端而已。同时，OkHttpClient可以看作是整个框架的上下文。
+
   该框架的几大核心子系统；路由、连接协议、拦截器、代理、安全性认证、连接池以及网络适配。从client大大降低了开发者使用难度。同时非常明了的展示了该框架在所有需要的配置以及获取结果的方式。
 
 
@@ -360,6 +361,7 @@ Object value=future.get();
         interceptors, null, null, null, 0, originalRequest);
     return chain.proceed(originalRequest);
 
+
 2. 在proceed方法中的核心代码可以看到，proceed实际上也做了两件事：
 创建下一个拦截链。传入index + 1使得下一个拦截器链只能从下一个拦截器开始访问
 执行索引为index的intercept方法，并将下一个拦截器链传入该方法
@@ -367,6 +369,7 @@ Object value=future.get();
         interceptors, streamAllocation, httpCodec, connection, index + 1, request);
     Interceptor interceptor = interceptors.get(index);
     Response response = interceptor.intercept(next);
+
 
 3. 首先是开发者自己在okhttpclient.builder里面add进去的Interceptor，
 例如：new OkHttpClient.Builder().addInterceptor(new Interceptor()
@@ -382,7 +385,8 @@ proceed方法又会去再次执行下一个拦截器的intercept方法
 response = ((RealInterceptorChain) chain).proceed(request, streamAllocation, null, null);
 这行代码就是执行下一个拦截器链的proceed方法。
 
-***而我们知道在下一个拦截器链中又会执行下一个拦截器的intercept方法。所以整个执行链就在拦截器与拦截器链中交替执行，最终完成所有拦截器的操作。
+***而我们知道在下一个拦截器链（RealInterceptorChain）中又会执行（proceed）下一个拦截器的intercept方法。
+所以整个执行链就在拦截器与拦截器链中交替执行，最终完成所有拦截器的操作。
 这也是OkHttp拦截器的链式执行逻辑。而一个拦截器的intercept方法所执行的逻辑大致分为三部分：
 （1）在发起请求前对request进行处理
 （2）调用下一个拦截器，获取response
@@ -422,9 +426,21 @@ RealConnection connection = streamAllocation.connection();
 即为当前请求找到合适的连接，可能复用已有连接也可能是重新创建的连接，返回的连接由连接池负责决定。
 
 
-9. CallServerInterceptor负责向服务器发起真正的访问请求，并在接收到服务器返回后读取响应返回。
+9. client.networkInterceptors()，开发者自己加进来的 networkInterceptors，其实也是 Interceptors接口的实现，但是是开发者自己实现的
 
 
+10. CallServerInterceptor负责向服务器发起真正的访问请求，并在接收到服务器返回后读取响应返回。
+
+
+
+总结（再一次写出执行流程）：
+1. 分发机制Dispatcher调用 RealCall.getResponseWithInterceptorChain(此过程中将 拦截器列表给了RealInterceptorChain) ->
+2. RealInterceptorChain.proceed此过程中 
+读取拦截器列表，
+创建新的new RealInterceptorChain(本chain的变量给了新的chain，包括了List<Interceptor>,StreamAllocation,HttpCodec,RealConnection,index,Request)
+执行 interceptor.intercept()，拦截器index+1
+3. intercept又再次执行了 RealInterceptorChain.proceed（为了获取response）
+4. 最后由 CallServerInterceptor返回真正从网络拿到的 response
 
 
 
@@ -902,14 +918,6 @@ getCandidate()总体分为两部分：
 
 
 
-
-2. RealInterceptorChain类
-
-
-
-
-
-
 -----------------------------------------------------------------------------------------------------------------------------------------
 
 序列化 (Serialization)是将对象的状态信息转换为可以存储或传输的形式的过程。一般将一个对象存储至一个储存媒介，例如档案或是记亿体缓冲等。在网络传输过程中，可以是字节或是XML等格式。而字节的或XML编码格式可以还原完全相等的对象。这个相反的过程又称为反序列化。
@@ -986,6 +994,295 @@ public void writeTo(DiskLruCache.Editor editor) throws IOException {
 
 最后，去查看okhttpclient中设置的缓存目录，可以看到用MD5加密文件名出来的文件
 联系上一篇，可以在 CacheInterceptor中看到 对InternalCache cache 的各种操作
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+最后一个拦截器：CallServerInterceptor，负责发出网络请求
+
+不过其实在这个拦截器之前，还可以自定义networkInterceptors。
+在Okhttp的拦截器链条里面有两个地方可以自定义拦截：
+最开始的时候（Interceptors）：对发出去的请求做最初的处理，以及在拿到最后Reponse时候做最后的处理；
+最后数据交换前（networkInterceptors）：对发出去的请求做最后的处理，以及在拿到结果时候做最初的处理。
+我们可以自定义拦截器，去处理我们需要做的事情。
+
+我们知道Http发送网络请求前两个步骤是： 
+1、建立TCP链接 
+2、客户端向web服务器发送请求命令：形如GET /login/login.jsp?username=android&password=123 HTTP/1.1的信息
+在Okhttp中ConnectInterceptor负责第一个步骤，
+第二个步骤是是httpCodec对象的writeRequestHeaders方法。(该方法在CallserverInterceptor的intercept里面调用)
+
+代码
+ public Response intercept(Chain chain) throws IOException {
+    // 省略部分代码
+    // 获取HttpCodec 
+    HttpCodec httpCodec = realChain.httpStream();
+    // 省略部分代码
+    Request request = realChain.request();
+    //向服务器发送请求
+    httpCodec.writeRequestHeaders(request);
+
+    Response.Builder responseBuilder = null;
+    // 检测是否有请求body
+    if (HttpMethod.permitsRequestBody(request.method()) && request.body() != null) {
+
+      if ("100-continue".equalsIgnoreCase(request.header("Expect"))) {
+        httpCodec.flushRequest();
+        //构建responseBuilder对象
+        responseBuilder = httpCodec.readResponseHeaders(true);
+      }
+
+       //如果服务器允许发送请求body发送
+      if (responseBuilder == null) {
+        Sink requestBodyOut = httpCodec.createRequestBody(request, request.body().contentLength());
+        BufferedSink bufferedRequestBody = Okio.buffer(requestBodyOut);
+        request.body().writeTo(bufferedRequestBody);
+        bufferedRequestBody.close();
+      } else if (!connection.isMultiplexed()) {
+         //省略部分代码
+      }
+    }
+
+    //结束请求
+    httpCodec.finishRequest();
+
+    //构建请求buidder对象
+    if (responseBuilder == null) {
+      responseBuilder = httpCodec.readResponseHeaders(false);
+    }
+
+    Response response = responseBuilder
+        .request(request)
+        .handshake(streamAllocation.connection().handshake())
+        .sentRequestAtMillis(sentRequestMillis)
+        .receivedResponseAtMillis(System.currentTimeMillis())
+        .build();
+
+    int code = response.code();
+    if (forWebSocket && code == 101) {
+      //省略部分代码
+    } else {
+      response = response.newBuilder()
+          .body(httpCodec.openResponseBody(response))
+          .build();
+    }
+
+    //省略部分代码
+
+    return response;
+  }
+
+
+1. 该方法首先是获取了httpCodec对象，该对象的主要功能就是对不同http协议（http1.1和http/2）的请求和响应做处理，
+该对象的初始化是在ConnectIntercepor的intercept里面：
+ HttpCodec httpCodec = streamAllocation.newStream(client, doExtensiveHealthChecks);
+
+
+2. 最终httpCodec的初始化又是在StreamAllocation的newStream方法
+  public HttpCodec newStream(OkHttpClient client, boolean doExtensiveHealthChecks) {
+     //：省略部分代码;
+      HttpCodec resultCodec = resultConnection.newCodec(client, this);
+
+  }
+    public HttpCodec newCodec(
+      OkHttpClient client, StreamAllocation streamAllocation) throws SocketException {
+    if (http2Connection != null) {
+      return new Http2Codec(client, streamAllocation, http2Connection);
+    } else {
+      //设置socket的读超时时间
+      socket.setSoTimeout(client.readTimeoutMillis());
+      //InputStream的超时时间
+      source.timeout().timeout(client.readTimeoutMillis(), MILLISECONDS);
+      //OutputStream的超时时间
+      sink.timeout().timeout(client.writeTimeoutMillis(), MILLISECONDS);
+      return new Http1Codec(client, streamAllocation, source, sink);
+    }
+  }
+
+3. 可以发现Okhttp的提供了两种HttpCodec的实现类，如果使用了http2协议则返回Http2Codec，否则返回Http1Codec！并且设置了超时时间,本篇就以Http1Codec对象来进行分析。
+
+4. 调用了
+public void writeRequestHeaders(Request request) throws IOException {
+  //RequestLine.get用来构建形如GET xx HTTP/1.1的字符串
+    String requestLine = RequestLine.get(
+        request, streamAllocation.connection().route().proxy().type());
+  //像服务器发送请求，形如GET xxx HTTP/1.1
+    writeRequest(request.headers(), requestLine);
+  }  
+
+5. 可以发现Okhttp通过OkIO的Sink对象（该对象可以看做Socket的OutputStream对象）的writeRequest来向服务器发送请求的。
+public void writeRequest(Headers headers, String requestLine) throws IOException {
+    if (state != STATE_IDLE) throw new IllegalStateException("state: " + state);
+    sink.writeUtf8(requestLine).writeUtf8("\r\n");
+    for (int i = 0, size = headers.size(); i < size; i++) {
+      sink.writeUtf8(headers.name(i))
+          .writeUtf8(": ")
+          .writeUtf8(headers.value(i))
+          .writeUtf8("\r\n");
+    }
+    sink.writeUtf8("\r\n");
+    state = STATE_OPEN_REQUEST_BODY;
+  }
+
+
+6. 我们知道HTTP支持post,delete,get,put等方法，而post，put等方法是需要请求体的（在Okhttp中用RequestBody来表示）。所以接着writeRequestHeaders之后Okhttp对请求体也做了响应的处理：
+
+    //如果当前request请求需要请求体
+    if (HttpMethod.permitsRequestBody(request.method()) && request.body() != null) {
+
+      //询问Server使用愿意接受数据 
+      if ("100-continue".equalsIgnoreCase(request.header("Expect"))) {
+        httpCodec.flushRequest();
+        //构建responseBuilder对象
+        responseBuilder = httpCodec.readResponseHeaders(true);
+      }
+
+       //向服务器发送请求体
+      if (responseBuilder == null) {
+
+         //发送请求体，详见下文描述
+      } else if (!connection.isMultiplexed()) {
+        //省略部分代码
+      }
+    }
+通过上面的代码可以发现Okhttp对Expect头部也做了支持，上面代码对客户端是否使用该头部做了判断，“100 continue”的作用就是：客户端有一个RequestBody(比如post或者PUT方法)要发给服务器，但是客户端希望在发送RequestBody之前查看服务器是否接受这个body,服务端在接受到这个请求后必须进行响应。客户端通过Expect首部来发送这个消息，当然如果客户端没有实体发送，就不应该发送100 continue 首部，因为这样会使服务器误以为客户端有body要发送。所以okhttp在发送这个之前要permitsRequestBody来判断。当然常规的get请求是不会走这个方法的。
+
+7.   //构建请求体对象组成的输入流
+  Sink requestBodyOut = httpCodec.createRequestBody(request, request.body().contentLength());
+        BufferedSink bufferedRequestBody = Okio.buffer(requestBodyOut);
+        //发送请求体
+        request.body().writeTo(bufferedRequestBody);
+
+8.   //构建请求体对象组成的输入流
+  Sink requestBodyOut = httpCodec.createRequestBody(request, request.body().contentLength());
+        BufferedSink bufferedRequestBody = Okio.buffer(requestBodyOut);
+        //发送请求体
+        request.body().writeTo(bufferedRequestBody);
+
+
+9. 客户端向服务端发送请求的部分已经讲解完毕，下面就剩下读取服务器响应然后构建Response对象了
+//构建请求buider对象
+    if (responseBuilder == null) {
+      responseBuilder = httpCodec.readResponseHeaders(false);
+    }
+
+    //构建response对象
+    Response response = responseBuilder
+        .request(request)
+        .handshake(streamAllocation.connection().handshake())
+        .sentRequestAtMillis(sentRequestMillis)
+        .receivedResponseAtMillis(System.currentTimeMillis())
+        .build();
+
+    int code = response.code();
+    if (forWebSocket && code == 101) {
+      //返回空的即无效的响应
+      response = response.newBuilder()
+          .body(Util.EMPTY_RESPONSE)
+          .build();
+    } else {
+      response = response.newBuilder()
+          .body(httpCodec.openResponseBody(response))
+          .build();
+    }
+
+上面的代码做了三个工作： 
+（1）、调用HttpCodec的readResponseHeaders方法读取服务器响应的数据，构建Response.Builder对象（以Hppt1Codec分析）：
+
+ public Response.Builder readResponseHeaders(boolean expectContinue) throws IOException {
+      //省略部分代码
+      //读取服务器
+      StatusLine statusLine = StatusLine.parse(source.readUtf8LineStrict());
+
+      Response.Builder responseBuilder = new Response.Builder()
+          .protocol(statusLine.protocol)//http协议版本
+          .code(statusLine.code)//http响应状态码
+          //http的message :like "OK" or "Not Modified"
+          .message(statusLine.message)
+          .headers(readHeaders());//http响应header
+      //省略部分代码
+
+      return responseBuilder;
+
+  }
+
+（2）、通过ResopnseBuilder对象来最终创建Response对象，并返回。 
+最关键的是服务器的响应体或者响应内容是如果传给Response的，代码如下：
+
+  response = response.newBuilder()
+          .body(httpCodec.openResponseBody(response))
+
+Response的body通过httpCodec对象的openResponseBody传进来,进入Http1Codec对象的openResponseBody方法看看都做了些神马：
+
+public ResponseBody openResponseBody(Response response) throws IOException {
+    Source source = getTransferStream(response);
+    return new RealResponseBody(response.headers(), Okio.buffer(source));
+  }
+
+很简单，openResponseBody将Socket的输入流InputStream对象交给OkIo的Source对象(在本篇博文中只需简单的将Sink作为Socket的输入流，Source作为Socket的输入流看待即可，详细的分析可参考OKIO），然后封装成RealResponseBody（该类是ResponseBody的子类）作为Response的body.
+
+那么我们怎么通过这个body来获取服务器发送过来的字符串呢？ResponseBody提供了string()方法：
+
+  public final String string() throws IOException {
+    BufferedSource source = source();
+    try {
+      Charset charset = Util.bomAwareCharset(source, charset());
+      //InputStream 读取数据
+      return source.readString(charset);
+    } finally {
+      Util.closeQuietly(source);
+    }
+  }
+
+string(）方法也很简单，就是通过一些处理然后让调用source.readString来读取服务器的数据。需要注意的是该方法最后调用closeQuietly来关闭了当前请求的InputStream输入流，所以string()方法只能调用一次,再次调用的话会报错，毕竟输入流已经关闭了，你还怎么读取数据呢？
+
+
+总结：
+到此为止CallServerInterceptor简单分析完毕，总结下主要做了如下工作： 
+（1）获取HttpCodec对象，对<=Http1.1之前的或者http/2不同协议的http请求处理。 
+（2）发送http请求数据，构建Resposne.Builder对象，然后构建Response并返回。
+
+
+
+
+其他小结：
+1. streamAllocation被创建于RetryAndFollowUpInterceptor，从RetryAndFollowUpInterceptor开始， streamAllocation在RealInterceptorChain中就不再是null，每一次走Interceptor.Intercept 都会被传递给下一个RealInterceptorChain
+这个类是用于 连接池的复用计数的，具体看连接池篇
+
+2. HttpCodec 的创建
+ConnectInterceptor中 -> streamAllocation.newStream，
+StreamAllocation中 -> resultConnection.newCodec 这里判断是支持http1或http2来返回
+注释翻译：
+/** Flush the request to the underlying socket. */
+/** 将请求刷新到底层套接字。*/
+HttpCodec.flushRequest
+
+/** Flush the request to the underlying socket and signal no more bytes will be transmitted. */
+/** 将请求刷新到底层套接字，并且不会传输更多的字节。*/
+HttpCodec.finishRequest
+
+3. sink和source 位于 RealConnection 中，是这么创建的
+source = Okio.buffer(Okio.source(socket));
+sink = Okio.buffer(Okio.sink(socket));
+sink封装了socket的OutputStream输出流
+source封装了socket的InputStream输出流
+sink和source只是接口，但他们都在Okio.java中被实现了，
+他们的flush() close() 等方法都是拿 socket 的输入流和输出流去操作的
+具体查看Okio.java
+
+4. http 100-continue 用于客户端在发送POST数据给服务器前，征询服务器情况，看服务器是否处理POST的数据，
+如果不处理，客户端则不上传POST数据，如果处理，则POST上传数据。在现实应用中，通过在POST大数据时，才会使用100-continue协议。
+客户端策略:
+　　　　1）如果客户端有POST数据要上传，可以考虑使用100-continue协议。加入头{"Expect":"100-continue"}
+　　　　2）如果没有POST数据，不能使用100-continue协议，因为这会让服务端造成误解。
+　　　　3）并不是所有的Server都会正确实现100-continue协议，如果Client发送Expect:100-continue消息后，在timeout时间内无响应，Client需要立马上传POST数据。
+　　　　4）有些Server会错误实现100-continue协议，在不需要此协议时返回100，此时客户端应该忽略。
+服务端策略:
+　　　　1）正确情况下，收到请求后，返回100或错误码。
+　　　　2）如果在发送100-continue前收到了POST数据（客户端提前发送POST数据），则不发送100响应码(略去)。
+
+
+
+
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
