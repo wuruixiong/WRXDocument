@@ -16,6 +16,89 @@ When using a subclass of AsyncTask to run network operations, you must be cautio
 ------------------------------------------------------------------------
 
 
+网络协议中的套接字
+常用的TCP/IP协议的3种套接字类型如下所示。
+1.流式套接字（SOCK_STREAM）：
+流式套接字用于提供面向连接、可靠的数据传输服务。该服务将保证数据能够实现无差错、无重复发送，并按顺序接收。流式套接字之所以能够实现可靠的数据服务，原因在于其使用了传输控制协议，即TCP（The Transmission Control Protocol）协议。
+
+2.数据报套接字（SOCK_DGRAM）：
+数据报套接字提供了一种无连接的服务。该服务并不能保证数据传输的可靠性，数据有可能在传输过程中丢失或出现数据重复，且无法保证顺序地接收到数据。数据报套接字使用UDP（User Datagram Protocol）协议进行数据的传输。由于数据报套接字不能保证数据传输的可靠性，对于有可能出现的数据丢失情况，需要在程序中做相应的处理。
+
+3.原始套接字（SOCK_RAW）：
+原始套接字(SOCKET_RAW)允许对较低层次的协议直接访问，比如IP、 ICMP协议，它常用于检验新的协议实现，或者访问现有服务中配置的新设备，因为RAW SOCKET可以自如地控制Windows下的多种协议，能够对网络底层的传输机制进行控制，所以可以应用原始套接字来操纵网络层和传输层应用。比如，我们可以通过RAW SOCKET来接收发向本机的ICMP、IGMP协议包，或者接收TCP/IP栈不能够处理的IP包，也可以用来发送一些自定包头或自定协议的IP包。网络监听技术很大程度上依赖于SOCKET_RAW
+原始套接字与标准套接字（标准套接字指的是前面介绍的流式套接字和数据报套接字）的区别在于：原始套接字可以读写内核没有处理的IP数据包，而流式套接字只能读取TCP协议的数据，数据报套接字只能读取UDP协议的数据。因此，如果要访问其他协议发送数据必须使用原始套接字。
+
+4. Socket=Ip address+ TCP/UDP + port
+区分不同应用程序进程间的网络通信和连接,主要有3个参数：通信的目的IP地址、使用的传输层协议(TCP或UDP)和使用的端口号。
+
+5. HTTP是一个客户端和服务器端请求和应答的标准（TCP）
+HTTP使用TCP而不是UDP的原因在于一个网页必须传送很多数据，而TCP协议提供传输控制，按顺序组织数据，和错误纠正。
+
+6.UDP是 非连接，就是数据只管发送，不理会接收方是不是能收到
+也就没有 连接状态，关闭连接等等行为
+
+Java中的的socket类
+ Java中的网络支持针对网络通信的不同层次，Java提供了不同的API，其提供的网络功能有四大类： 
+    InetAddress:用于标识网络上的硬件资源，主要是IP地址  
+    URL：统一资源定位符，通过URL可以直接读取或写入网络上的数据  
+    Sockets：使用TCP协议实现的网络通信Socket相关的类  
+    Datagram:使用UDP协议，将数据保存在用户数据报中，通过网络进行通信。
+
+重点是用于 TCP协议 Socket类（服务器端ServerSocket类），（Socket类几乎就是为了TCP连接而设计的，其中大量全局变量保存了许多连接状态）
+用于 UDP协议 DatagramSocket
+
+InetAddress类用于标识网络上的硬件资源，标识互联网协议(IP)地址。  该类没有构造方法
+//获取本机的InetAddress实例 
+InetAddress address =InetAddress.getLocalHost(); 
+address.getHostName();//获取计算机名 
+address.getHostAddress();//获取IP地址 
+byte[] bytes = address.getAddress();//获取字节数组形式的IP地址,以点分隔的四部分 
+//获取其他主机的InetAddress实例 
+InetAddress address2 =InetAddress.getByName("其他主机名"); 
+InetAddress address3 =InetAddress.getByName("IP地址"); 
+
+URL类
+//创建一个URL的实例 
+URL baidu =new URL("http://www.baidu.com"); 
+URL url =new URL(baidu,"/index.html?username=tom#test");//？表示参数，#表示锚点 
+url.getProtocol();//获取协议 
+url.getHost();//获取主机 
+url.getPort();//如果没有指定端口号，根据协议不同使用默认端口。此时getPort()方法的返回值为 -1 
+url.getPath();//获取文件路径 
+url.getFile();//文件名，包括文件路径+参数 
+url.getRef();//相对路径，就是锚点，即#号后面的内容 
+url.getQuery();//查询字符串，即参数 
+
+
+TCP编程
+1、TCP协议是面向连接的、可靠的、有序的、以字节流的方式发送数据，通过三次握手方式建立连接，形成传输数据的通道，在连接中进行大量数据的传输，效率会稍低  
+2、Java中基于TCP协议实现网络通信的类  客户端的Socket类  服务器端的ServerSocket类
+3、Socket通信的步骤
+① 创建ServerSocket和Socket ② 打开连接到Socket的输入/输出流 ③ 按照协议对Socket进行读/写操作  ④ 关闭输入输出流、关闭Socket
+
+
+UDP编程
+UDP协议（用户数据报协议）是无连接的、不可靠的、无序的,速度快
+进行数据传输时，首先将要传输的数据定义成数据报（Datagram），大小限制在64k，在数据报中指明数据索要达到的Socket（主机地址和端口号），然后再将数据报发送出去
+DatagramPacket类:表示数据报包
+DatagramSocket类：进行端到端通信的类
+1、服务器端实现步骤
+① 创建DatagramSocket，指定端口号  ② 创建DatagramPacket  ③ 接受客户端发送的数据信息  ④ 读取数据
+2、客户端实现步骤
+① 定义发送信息  ② 创建DatagramPacket，包含将要发送的信息  ③ 创建DatagramSocket  ④ 发送数据
+
+
+
+Socket中有许多构造器，有些构造方法是会创建套接字并连接的（有些则不会在构造时连接目标服务器），例如以下构造方法：
+Socket(String host, int port)
+Socket(InetAddress address, int port)
+Socket(String host, int port, InetAddress localAddr, int localPort) 
+Socket(InetAddress address, int port, InetAddress localAddr, int localPort)
+
+
+------------------------------------------------------------------------
+
+
 Android 原生的http请求
 
 使用HttpURLConnection或者他的子类HttpsURLConnection
@@ -160,7 +243,7 @@ Okhttp3 框架
 
   该框架的几大核心子系统；路由、连接协议、拦截器、代理、安全性认证、连接池以及网络适配。从client大大降低了开发者使用难度。同时非常明了的展示了该框架在所有需要的配置以及获取结果的方式。
 
-
+（路由，代理，安全性认证，https，安全传输层协议TLS，dns）
 
 -------------------
 
@@ -442,311 +525,158 @@ RealConnection connection = streamAllocation.connection();
 3. intercept又再次执行了 RealInterceptorChain.proceed（为了获取response）
 4. 最后由 CallServerInterceptor返回真正从网络拿到的 response
 
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+301访问的资源已经永久删除，客户端要根据新的URI访问重定向；
+301代表永久性转移(Permanently Moved)
+302访问的资源可能暂时先用location的URI访问，但旧资源还在的，下次再来访问的时候可能就不用重定向了。
+302代表暂时性转移(Temporarily Moved )
+
+RetryAndFollowUpInterceptor （重定向）拦截器
+
+其实就是个死循环，在死循环中重复请求，重复销毁和创建请求，
+当不需要重定向返回，或者抛出异常，就退出死循环，
+值得注意的是，有个循环20次的限制，此时也是抛出异常退出死循环
 
 
+1. 会根据客户端请求Request以及OkHttpClient，创建出StreamAllocation，它主要用于管理客户端与服务器之间的连接，同时管理连接池，以及请求成功后的连接释放等操作，
+streamAllocation = new StreamAllocation(
+        client.connectionPool(), createAddress(request.url()), callStackTrace);
+
+2. 在执行StreamAllocation创建时，可以看到根据客户端请求的地址url，还调用了createAddress方法。进入该方法可以看出，这里返回了一个创建成功的Address，实际上Address就是将客户端请求的网络地址，以及服务器的相关信息，进行了统一的包装，也就是将客户端请求的数据，转换为OkHttp框架中所定义的服务器规范，这样一来，OkHttp框架就可以根据这个规范来与服务器之间进行请求分发了。关于createAddress方法的源代码如下所示，我们这里不针对Address进行详细分析。
+  private Address createAddress(HttpUrl url) {
+    SSLSocketFactory sslSocketFactory = null;
+    HostnameVerifier hostnameVerifier = null;
+    CertificatePinner certificatePinner = null;
+    if (url.isHttps()) {
+      sslSocketFactory = client.sslSocketFactory();
+      hostnameVerifier = client.hostnameVerifier();
+      certificatePinner = client.certificatePinner();
+    }
+
+    return new Address(url.host(), url.port(), client.dns(), client.socketFactory(),
+        sslSocketFactory, hostnameVerifier, certificatePinner, client.proxyAuthenticator(),
+        client.proxy(), client.protocols(), client.connectionSpecs(), client.proxySelector());
+  }
+
+
+3. 这时我们分析StreamAllocation的构造方法，观察此构造方法可以看出，StreamAllocation创建时，又根据Address，创建了一个路由选择器RouteSelector，可以这样理解，OkHttp通过层层的封装，将请求的服务器相关信息，封装到了不同层次中，而每个层次所处理的职责不同，而Address、RouteSelector等，都是不同层次中，用于对服务器相关信息的包装处理，同时也起到了桥梁的作用。
+
+
+4. 接下来继续回到RetryAndFollowUpInterceptor，
+这时会进入一个while死循环，在这个循环中，一旦出现抛出异常的判断或者退出了死循环（返回resonance），就会释放streamAllocation.release()，
+而如果需要重定向，会一直在死循环中跑
+
+
+5. 首先会进行一个安全检查操作，检查当前请求是否被取消，如果这时请求被取消了，则会通过StreamAllocation释放连接，并抛出异常，
+如果这时没有发生上述情况，接下来会通过RealInterceptorChain的proceed方法处理请求，在请求过程中，只要发生异常，releaseConnection就会为true，一旦变为true，就会将StreamAllocation释放掉，
+
+
+6. 如果这时没有产生异常情况，接下来则会通过响应Response来执行followUpRequest方法，来检查是否需要进行重定向操作。这里我们暂且先不分析此方法，继续在while循环中向下分析，当不需要进行重新定向操作时，就会直接返回Response，
+** 注意，这里是死循环（while）中，套一个 try/catch，再执行followUpRequest，如果不需要重定向则返回Response，如果需要重定向，会一只在死循环中跑代码
+代码：
+      Request followUp = followUpRequest(response);
+      if (followUp == null) {
+        if (!forWebSocket) {
+          streamAllocation.release();
+        }
+        return response;
+      }
+
+
+7.   // 如果需要重定向，则关闭取回来的response.body
+     closeQuietly(response.body());
+
+       // 重定向数量加一，并且不能大于20 个
+       // Chrome follows 21 redirects; Firefox,curl, and wget follow 20; Safari follows 16; and HTTP/1.0 recommends 5.
+       // Chrome遵循21次重定向; Firefox，curl和wget遵循20; Safari遵循16; HTTP / 1.0建议5。
+      if (++followUpCount > MAX_FOLLOW_UPS) {
+        streamAllocation.release();
+        throw new ProtocolException("Too many follow-up requests: " + followUpCount);
+      }
+
+     // UnrepeatableRequestBody 不可重复的的请求
+      if (followUp.body() instanceof UnrepeatableRequestBody) {
+        streamAllocation.release();
+        throw new HttpRetryException("Cannot retry streamed HTTP body", response.code());
+      }
+
+     // 如果连接的url不同，重新创建一个streamAllocation
+      if (!sameConnection(response, followUp.url())) {
+        streamAllocation.release();
+        streamAllocation = new StreamAllocation(
+            client.connectionPool(), createAddress(followUp.url()), callStackTrace);
+      } else if (streamAllocation.codec() != null) {
+        throw new IllegalStateException("Closing the body of " + response
+            + " didn't close its backing stream. Bad interceptor?");
+      }
+
+      request = followUp;
+      priorResponse = response;
 
 -----------------------------------------------------------------------------------------------------------------------------------------
-okhttp连接池 复用机制
 
-keep-alive 就是浏览器和服务端之间保持长连接，这个连接是可以复用的。在HTTP1.1中是默认开启的。
-Connection是response中的头字段，他有两个值，其中之一就是keep-alive
+通常，HTTP协议中使用Content-Length这个头来告知数据的长度。
+然后，在数据下行的过程中，Content-Length的方式要预先在服务器中缓存所有数据，然后所有数据再一股脑儿地发给客户端。
+如果要一边产生数据，一边发给客户端，WEB 服务器就需要使用"Transfer-Encoding: chunked"这样的方式来代替Content-Length。
 
-例如：浏览器加载一个HTML网页，HTML中可能需要加载数十个资源，典型场景下这些资源中大部分来自同一个站点。
-按照HTTP1.0的做法，这需要建立数十个TCP连接，每个连接负责一个资源请求。创建一个TCP连接需要3次握手，而释放连接则需要2次或4次握手。
-重复的创建和释放连接极大地影响了网络效率，同时也增加了系统开销。
+BridgeInterceptor,
+Bridges from application code to network code. First it builds a network request from a user request. Then it proceeds to call the network. Finally it builds a user response from the network response.
 
-keep-alive在传输数据后仍然保持连接，当客户端需要再次获取数据时，直接使用刚刚空闲下来的连接而 不需要再次握手（这个很重要）
-在现代浏览器中，一般同时开启6～8个keepalive connections的socket连接，并保持一定的链路生命，当不需要时再关闭；
-而在服务器中，一般是由软件根据负载情况(比如FD最大值、Socket内存、超时时间、栈内存、栈数量等)决定是否主动关闭。
-
-缺点：如果存在大量空闲的keepalive connections（我们可以称作僵尸连接或者泄漏连接），其它客户端们的正常连接速度也会受到影响
-
----------------------------
-这是 okhttpClient中的代码，很多地方都会使用到Internal.instance，
-特别是用到连接池的几个方法：connectionBecameIdle， get， put等等
-Internal.instance = new Internal()
-
----------------------------
-
-在 ConnectInterceptor的intercept方法中，一步一步往下走，最终步骤是取得到一个RealConnection用来拿response
-RouteSelector（路由选择类） 
-    streamAllocation.newStream(client, doExtensiveHealthChecks) -> findHealthyConnection -> findConnection
-
-
-get是ConnectionPool中最为重要的方法，StreamAllocation在其findConnection方法内部通过调用get方法为其找到stream找到合适的连接，如果没有则新建一个连接。首先来看下findConnection的逻辑：
-查看当前streamAllocation是否有之前已经分配过的连接，有则直接使用
-从连接池中查找可复用的连接，有则返回该连接
-配置路由，配置后再次从连接池中查找是否有可复用连接，有则直接返回
-新建一个连接，并修改其StreamAllocation标记计数，将其放入连接池中
-查看连接池是否有重复的多路复用连接，有则清除
-
-
-private RealConnection findConnection(int connectTimeout, int readTimeout, int writeTimeout,
-                                        boolean connectionRetryEnabled) throws IOException {
-    Route selectedRoute;
-    synchronized (connectionPool) {
-      if (released) throw new IllegalStateException("released");
-      if (codec != null) throw new IllegalStateException("codec != null");
-      if (canceled) throw new IOException("Canceled");
-
-      // 一个StreamAllocation刻画的是一个Call的数据流动，一个Call可能存在多次请求(重定向，Authenticate等)，所以当发生类似重定向等事件时优先使用原有的连接
-      RealConnection allocatedConnection = this.connection;
-      if (allocatedConnection != null && !allocatedConnection.noNewStreams) {
-        return allocatedConnection;
+1. 给请求加一些请求头，值得注意的是，有gzip和Cookie这两个代码比较多的头
+      ......
+      if (contentType != null) {
+        requestBuilder.header("Content-Type", contentType.toString());
       }
-
-      // 试图从连接池中找到可复用的连接
-      Internal.instance.get(connectionPool, address, this, null);
-      if (connection != null) {
-        return connection;
+      ......
+      if (contentLength != -1) {
+        requestBuilder.header("Content-Length", Long.toString(contentLength));
+        requestBuilder.removeHeader("Transfer-Encoding");
+      } else {
+        requestBuilder.header("Transfer-Encoding", "chunked");
+        requestBuilder.removeHeader("Content-Length");
       }
+      ......
+  if (userRequest.header("Host") == null) {
+    requestBuilder.header("Host", hostHeader(userRequest.url(), false));
+  }
 
-      selectedRoute = route;
-    }
+  if (userRequest.header("Connection") == null) {
+    requestBuilder.header("Connection", "Keep-Alive");
+  }
 
-    // 获取路由配置，所谓路由其实就是代理，ip地址等参数的一个组合
-    if (selectedRoute == null) {
-      selectedRoute = routeSelector.next();
-    }
-
-    RealConnection result;
-    synchronized (connectionPool) {
-      if (canceled) throw new IOException("Canceled");
-
-      //拿到路由后可以尝试重新从连接池中获取连接，这里主要针对http2协议下清除域名碎片机制
-      Internal.instance.get(connectionPool, address, this, selectedRoute);
-      if (connection != null) return connection;
-
-      //新建连接
-      route = selectedRoute;
-      refusedStreamCount = 0;
-      result = new RealConnection(connectionPool, selectedRoute);
-      //修改result连接stream计数，方便connection标记清理
-      acquire(result);
-    }
-
-    // Do TCP + TLS handshakes. This is a blocking operation.
-    result.connect(connectTimeout, readTimeout, writeTimeout, connectionRetryEnabled);
-    routeDatabase().connected(result.route());
-
-    Socket socket = null;
-    synchronized (connectionPool) {
-      // 将新建的连接放入到连接池中
-      Internal.instance.put(connectionPool, result);
-
-      // 如果同时存在多个连向同一个地址的多路复用连接，则关闭多余连接，只保留一个
-      if (result.isMultiplexed()) {
-        socket = Internal.instance.deduplicate(connectionPool, address, this);
-        result = connection;
-      }
-    }
-    closeQuietly(socket);
-
-    return result;
+  // If we add an "Accept-Encoding: gzip" header field we're responsible for also decompressing
+  // the transfer stream.
+  // 如果传了 Accept-Encoding: gzip这个头给服务器，那么需要将服务器回传的 response解压
+  boolean transparentGzip = false;
+  if (userRequest.header("Accept-Encoding") == null && userRequest.header("Range") == null) {
+    transparentGzip = true;
+    requestBuilder.header("Accept-Encoding", "gzip");
+  }
+  // 创建Okhpptclitent时候配置的cookieJar，
+  List<Cookie> cookies = cookieJar.loadForRequest(userRequest.url());
+  if (!cookies.isEmpty()) {
+    requestBuilder.header("Cookie", cookieHeader(cookies));
+  }
+  // 默认的是 okhttp3/3.0.1，即版本号
+  if (userRequest.header("User-Agent") == null) {
+    requestBuilder.header("User-Agent", Version.userAgent());
   }
 
 
+2. 取到Response之后, 保存了cookie，条件判断之后解压了networkResponse.body()
 
-Internal.instance实在okhttpclient中创建实例的，实例的get方法就是直接调用的 connectionPool 的get方法
-有关于connectionPool的逻辑，看一下篇
-
-
----------------------------
-
-Okhttp支持5个并发KeepAlive，默认链路生命为5分钟(链路空闲后，保持存活的时间)
-
-*Connection: （其实是RealConnection，Connection只是一个接口，一个RealConnection对应一个socket）
-对jdk的socket物理连接的包装，它内部有List<WeakReference<StreamAllocation>>的引用
-
-ConnectionPool: Socket连接池，对连接缓存进行回收与管理，与CommonPool有类似的设计
-Call: 对http的请求封装，属于程序员能够接触的上层高级代码
-StreamAllocation: 表示RealConnection被上层高级代码的引用次数
-Deque: Deque也就是双端队列，双端队列同时具有队列和栈性质，经常在缓存中被使用，这个是java基础
-
-*在socket连接中，也就是RealConnection中，本质是封装好的流操作，除非手动close掉连接，基本不会被GC掉，非常容易引发内存泄露。
-
-*小结：在okhttp中，在高层代码的调用中，使用了类似于引用计数的方式跟踪Socket流的调用，这里的计数对象是StreamAllocation，它被反复执行aquire与release操作(点击函数可以进入github查看)，这两个函数其实是在改变RealConnection中的List<WeakReference<StreamAllocation>>大小。List中Allocation的数量也就是物理socket被引用的计数（Refference Count），如果计数为0的话，说明此连接没有被使用，是空闲的，需要通过下文的算法实现回收；如果上层代码仍然引用，就不需要关闭连接。
-
-引用计数法：给对象中添加一个引用计数器，每当有一个地方引用它时，计数器值就加1；当引用失效时，计数器值就减1；任何时刻计数器为0的对象就是不可能再被使用。它不能处理循环引用的问题。
-
-代码分析：
-okhttpclient的build方法，创建ConnectionPool，当然，也可以在builder中将自己创建的ConnectionPool传入
-      connectionPool = new ConnectionPool();
-
-连接池内部维护了一个叫做OkHttp ConnectionPool的ThreadPool，专门用来淘汰末位的socket，当满足以下条件时，就会进行末位淘汰，非常像GC
-1. 并发socket空闲连接超过5个
-2. 某个socket的keepalive时间大于5分钟
-源码：  private static final Executor executor = new ThreadPoolExecutor(0 /* corePoolSize */,
-      Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
-      new SynchronousQueue<Runnable>(), Util.threadFactory("OkHttp ConnectionPool", true));
-
-维护着一个Deque<Connection>，提供get/put/remove等数据结构的功能
-  private final Deque<RealConnection> connections = new ArrayDeque<>();
-
-维护着一个RouteDatabase，它用来记录连接失败的Route的黑名单，当连接失败的时候就会把失败的线路加进去（本文不讨论）
-  final RouteDatabase routeDatabase = new RouteDatabase();
-
-在连接池ConnectionPool中，提供如下的操作，这里可以看成是对deque的一个简单的包装
-//从连接池中获取
-get
-//放入连接池
-put
-//线程变成空闲，并调用清理线程池
-connectionBecameIdle
-//关闭所有连接
-evictAll
-
-例如 get方法，遍历了 connections，并返回其中一个满足条件的RealConnection，RealConnection中有一个socket对象，
-  @Nullable RealConnection get(Address address, StreamAllocation streamAllocation, Route route) {
-    assert (Thread.holdsLock(this));
-    for (RealConnection connection : connections) {
-      if (connection.isEligible(address, route)) {
-        streamAllocation.acquire(connection);
-        return connection;
-      }
-    }
-    return null;
-  }
-
-随着上述操作被更高级的对象调用，RealConnection中的StreamAllocation被不断的aquire与release，
-也就是List<WeakReference<StreamAllocation>>的大小将时刻变化
-
-
------------------------------
-
-自动回收机制：
-
-当用户socket连接成功，向连接池中put新的socket时，回收函数会被主动调用，线程池就会执行cleanupRunnable，如下
-//Socket清理的Runnable，每当put操作时，就会被主动调用
-//注意put操作是在网络线程， executor 是 ThreadPoolExecutor对象
-      executor.execute(cleanupRunnable);
-
-//而Socket清理是在`OkHttp ConnectionPool`线程池中调用
-  private final Runnable cleanupRunnable = new Runnable() {
-    @Override public void run() {
-      while (true) {
-        long waitNanos = cleanup(System.nanoTime());
-        if (waitNanos == -1) return;
-        if (waitNanos > 0) {
-          long waitMillis = waitNanos / 1000000L;
-          waitNanos -= (waitMillis * 1000000L);
-          synchronized (ConnectionPool.this) {
-            try {
-              ConnectionPool.this.wait(waitMillis, (int) waitNanos);
-            } catch (InterruptedException ignored) {
-            }
-          }
-        }
-      }
-    }
-  };
-这段死循环实际上是一个阻塞的清理任务，首先进行清理(clean)，并返回下次需要清理的间隔时间，
-然后调用wait(timeout)进行等待以释放锁与时间片，当等待时间到了后，再次进行清理，并返回下次要清理的间隔时间
-
-Connect变得闲置时调用了 connectionBecameIdle方法，里面调用了 notifyAll() ，唤醒通知：
-
-
-Cleanup:
-cleanup使用了类似于GC的标记-清除算法，也就是首先标记出最不活跃的连接(我们可以叫做泄漏连接，或者空闲连接)，接着进行清除，流程如下:
- long cleanup(long now) {
-    int inUseConnectionCount = 0;
-    int idleConnectionCount = 0;
-    RealConnection longestIdleConnection = null;
-    long longestIdleDurationNs = Long.MIN_VALUE;
-
-    // Find either a connection to evict, or the time that the next eviction is due.
-    synchronized (this) {
-      // 迭代器遍历
-      for (Iterator<RealConnection> i = connections.iterator(); i.hasNext(); ) {
-        RealConnection connection = i.next();
-
-        // If the connection is in use, keep searching.
-        if (pruneAndGetAllocationCount(connection, now) > 0) {
-          // 如果是被使用的，就是活跃的，跳过这个connection，被使用数量加一
-          inUseConnectionCount++;
-          continue;
-        }
-
-        // 如果上面的判断失败，就是不活跃的, 闲置数量加一
-        idleConnectionCount++;
-
-        // If the connection is ready to be evicted, we're done.
-        long idleDurationNs = now - connection.idleAtNanos;
-        // 遍历找出最不活跃的连接,选择排序法
-        if (idleDurationNs > longestIdleDurationNs) {
-          longestIdleDurationNs = idleDurationNs;
-          longestIdleConnection = connection;
-        }
-      }
+    ......
+    Response networkResponse = chain.proceed(requestBuilder.build());
+    // 将cookie 保存到cookieJar
+    HttpHeaders.receiveHeaders(cookieJar, userRequest.url(), networkResponse.headers());
+    ......
+    // 交给okio解压 gzip，注意之前是有判断响应头的 Content-Encoding是不是 gzip
+    GzipSource responseBody = new GzipSource(networkResponse.body().source());
 
 
 
-    if (longestIdleDurationNs >= this.keepAliveDurationNs
-        || idleConnectionCount > this.maxIdleConnections) {
-      //如果(`空闲socket连接超过5个`
-      //且`keepalive时间大于5分钟`)
-      //就将此泄漏连接从`Deque`中移除
-      connections.remove(longestIdleConnection);
-    } else if (idleConnectionCount > 0) {
-      //返回此连接即将到期的时间，供下次清理
-      //这里依据是在上文`connectionBecameIdle`中设定的计时
-      return keepAliveDurationNs - longestIdleDurationNs;
-    } else if (inUseConnectionCount > 0) {
-      //全部都是活跃的连接，5分钟后再次清理
-      return keepAliveDurationNs;
-    } else {
-      //没有任何连接，跳出循环
-      cleanupRunning = false;
-      return -1;
-    }
-  }
 
-  //关闭连接，返回`0`，也就是立刻再次清理
-  closeQuietly(longestIdleConnection.socket());
-  return 0;
-  }
-
-
-1. 遍历Deque中所有的RealConnection，标记泄漏的连接
-2. 如果被标记的连接满足(空闲socket连接超过5个&&keepalive时间大于5分钟)，就将此连接从Deque中移除，并关闭连接，返回0，也就是将要执行wait(0)，提醒立刻再次扫描
-3. 如果(目前还可以塞得下5个连接，但是有可能泄漏的连接(即空闲时间即将达到5分钟))，就返回此连接即将到期的剩余时间，供下次清理
-4. 如果(全部都是活跃的连接)，就返回默认的keep-alive时间，也就是5分钟后再执行清理
-5. 如果(没有任何连接)，就返回-1,跳出清理的死循环
-
-
-需要注意的是pruneAndGetAllocationCount方法，这个方法标记并找到最不活跃的连接呢，这里使用了pruneAndGetAllocationCount的方法，它主要依据弱引用是否为null而判断这个连接是否泄漏
-
-//类似于引用计数法，如果引用全部为空，返回立刻清理
-private int pruneAndGetAllocationCount(RealConnection connection, long now) {
-  //虚引用列表
-  List<Reference<StreamAllocation>> references = connection.allocations;
-  //遍历弱引用列表
-  for (int i = 0; i < references.size(); ) {
-    Reference<StreamAllocation> reference = references.get(i);
-    //如果正在被使用，跳过，接着循环
-    //是否置空是在上文`connectionBecameIdle`的`release`控制的
-    if (reference.get() != null) {
-      //非常明显的引用计数
-      i++;
-      continue;
-    }
-
-    //否则移除引用
-    references.remove(i);
-    connection.noNewStreams = true;
-
-    //如果所有分配的流均没了，标记为已经距离现在空闲了5分钟
-    if (references.isEmpty()) {
-      connection.idleAtNanos = now - keepAliveDurationNs;
-      return 0;
-    }
-  }
-    
-  return references.size();
-}
-遍历RealConnection连接中的StreamAllocationList，它维护着一个弱引用列表
-查看此StreamAllocation是否为空(它是在线程池的put/remove手动控制的)，如果为空，说明已经没有代码引用这个对象了，需要在List中删除
-遍历结束，如果List中维护的StreamAllocation删空了，就返回0，表示这个连接已经没有代码引用了，是泄漏的连接;否则返回非0的值，表示这个仍然被引用，是活跃的连接。
 
 
 
@@ -994,6 +924,355 @@ public void writeTo(DiskLruCache.Editor editor) throws IOException {
 
 最后，去查看okhttpclient中设置的缓存目录，可以看到用MD5加密文件名出来的文件
 联系上一篇，可以在 CacheInterceptor中看到 对InternalCache cache 的各种操作
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+okhttp连接池 复用机制
+
+keep-alive 就是浏览器和服务端之间保持长连接，这个连接是可以复用的。在HTTP1.1中是默认开启的。
+Connection是response中的头字段，他有两个值，其中之一就是keep-alive
+
+例如：浏览器加载一个HTML网页，HTML中可能需要加载数十个资源，典型场景下这些资源中大部分来自同一个站点。
+按照HTTP1.0的做法，这需要建立数十个TCP连接，每个连接负责一个资源请求。创建一个TCP连接需要3次握手，而释放连接则需要2次或4次握手。
+重复的创建和释放连接极大地影响了网络效率，同时也增加了系统开销。
+
+keep-alive在传输数据后仍然保持连接，当客户端需要再次获取数据时，直接使用刚刚空闲下来的连接而 不需要再次握手（这个很重要）
+在现代浏览器中，一般同时开启6～8个keepalive connections的socket连接，并保持一定的链路生命，当不需要时再关闭；
+而在服务器中，一般是由软件根据负载情况(比如FD最大值、Socket内存、超时时间、栈内存、栈数量等)决定是否主动关闭。
+
+缺点：如果存在大量空闲的keepalive connections（我们可以称作僵尸连接或者泄漏连接），其它客户端们的正常连接速度也会受到影响
+
+---------------------------
+
+怎么去取到一个已经存在的可靠连接？ 
+RealConnection中的isEligible(address, route)方法判断连接符合,
+判断代理方式必须是DIRECT（直连），判断此次连接的主机名是否与遍历中的主机名相同，验证证书
+
+路由选择起到什么样的作用？
+
+
+怎么保持的keep-alive？
+tcp连接tcp释放 (socket 不调用close就是 keep-alive)
+
+
+个人总结：
+1.连接池产生作用是在ConnectInterceptor这个拦截器中，ConnectInterceptor只做了一件事情，就是 拿到一个HttpCodec和RealConnection
+（这个Connection在连接池内有对应连接连接时，是复用的；在没有时，则是一个重新创建的对象）传递给realChain.proceed
+2.在ConnectInterceptor 的intercept中调用 streamAllocation.newStream，newStream使用了 连接池机制
+3.连接池ConnectionPool 复用connection（RealConnection封装了socket，其实就是复用socket），节省了创建对象和网络TCP连接 所消耗的时间和资源
+4.为了避免复用socket带来的内存泄漏，空闲连接没有被使用等等问题，连接池维持一套自动创建和销毁 connection的机制（这套机制就是连接池的核心）
+  (1). streamAllocation.newStream层层调用下去，最终调用findConnection，
+       findConnection在连接池查找两次connection（Internal.instance.get() -> ConnectionPool.get()），
+       找到后返回connection复用，没找到则new新的RealConnection
+  (2). ConnectionPool.get() 和 new RealConnection，都会调用acquire方法，使得RealConnection的 弱引用列表 加一
+  (3). 如果是复用直接返回connection，如果是new则把result，
+       put进connectionPool中（Internal.instance.put），最终调用的是ConnectionPool的put方法
+  (4). Put方法会用线程池去执行executor.execute(cleanupRunnable)，这儿调用了cleanup方法来清理不符合要求的connection，
+      （弱引用列表为零的connection不一定会被清理，清理规则是：空闲连接数量大于5，存在时间超过5分钟等等）
+       清理方法分两步，先是把connection从ConnectionPool中移除，接着再关闭Connection中的socket
+  (5). RealConnection中的弱引用列表 List<Reference<StreamAllocation>> allocations，(加一就是List.add(),减一就是List.remove())
+       加一是StreamAllocation中 RealConnection在被复用或者被创建时，
+       减一是StreamAllocation中 的release(connection)。release的调用者deallocate方法 被多处调用，情况复杂，
+       大体调用情况是 外部的拦截器拿到了response之后，调用streamAllocation.release()主动释放了弱引用，
+       或者在获取response的过程中出错，调用streamAllocation.streamFailed主动释放了弱引用，
+       或者连接池中重复了connection，调用Internal.instance.deduplicate主动释放了弱引用，
+       还有其他许多情况也会主动释放弱引用。
+
+
+---------------------------
+这是 okhttpClient中的代码，很多地方都会使用到Internal.instance，
+特别是用到连接池的几个方法：connectionBecameIdle， get， put等等
+Internal.instance = new Internal()
+
+---------------------------
+
+1. 在 ConnectInterceptor的intercept方法中，一步一步往下走，最终步骤是取得到一个RealConnection（这个类会调用socket的connect方法来进行tcp连接）用来拿response
+关键代码：创建一个HttpCodec然后传下去（交给最后一个拦截器：CallServerInterceptor）：
+streamAllocation.newStream(client, doExtensiveHealthChecks) -> findHealthyConnection -> findConnection
+
+
+2. get是ConnectionPool中最为重要的方法，StreamAllocation在其findConnection方法内部通过调用get方法为其找到stream找到合适的连接，如果没有则新建一个连接。首先来看下findConnection的逻辑：
+查看当前streamAllocation是否有之前已经分配过的连接，有则直接使用
+从连接池中查找可复用的连接，有则返回该连接
+配置路由，配置后再次从连接池中查找是否有可复用连接，有则直接返回
+新建一个连接，并修改其StreamAllocation标记计数，将其放入连接池中
+查看连接池是否有重复的多路复用连接，有则清除
+
+
+private RealConnection findConnection(int connectTimeout, int readTimeout, int writeTimeout,
+                                        boolean connectionRetryEnabled) throws IOException {
+    Route selectedRoute;
+    synchronized (connectionPool) {
+      if (released) throw new IllegalStateException("released");
+      if (codec != null) throw new IllegalStateException("codec != null");
+      if (canceled) throw new IOException("Canceled");
+
+      // 一个StreamAllocation刻画的是一个Call的数据流动，一个Call可能存在多次请求(重定向，Authenticate等)，所以当发生类似重定向等事件时优先使用原有的连接
+      RealConnection allocatedConnection = this.connection;
+      if (allocatedConnection != null && !allocatedConnection.noNewStreams) {
+        return allocatedConnection;
+      }
+
+      // 试图从连接池中找到可复用的连接
+      // 这里的get很绕，最终调用的是 connectionPool的get方法，而这个方法里面，又会对 this(streamAllocation), 的connection对象赋值，
+      // 所以接下来才可以直接判断connection
+      Internal.instance.get(connectionPool, address, this, null);
+      if (connection != null) {
+        return connection;
+      }
+
+      selectedRoute = route;
+    }
+
+    // 获取路由配置，所谓路由其实就是代理，ip地址等参数的一个组合
+    if (selectedRoute == null) {
+      selectedRoute = routeSelector.next();
+    }
+
+    RealConnection result;
+    synchronized (connectionPool) {
+      if (canceled) throw new IOException("Canceled");
+
+      //拿到路由后可以尝试重新从连接池中获取连接，这里主要针对http2协议下清除域名碎片机制
+      Internal.instance.get(connectionPool, address, this, selectedRoute);
+      if (connection != null) return connection;
+
+      //新建连接
+      route = selectedRoute;
+      refusedStreamCount = 0;
+      result = new RealConnection(connectionPool, selectedRoute);
+      //修改result连接stream计数，方便connection标记清理
+      acquire(result);
+    }
+
+    // Do TCP + TLS handshakes. This is a blocking operation.
+    result.connect(connectTimeout, readTimeout, writeTimeout, connectionRetryEnabled);
+    routeDatabase().connected(result.route());
+
+    Socket socket = null;
+    synchronized (connectionPool) {
+      // 将新建的连接放入到连接池中
+      Internal.instance.put(connectionPool, result);
+
+      // 如果同时存在多个连向同一个地址的多路复用连接，则关闭多余连接，只保留一个
+      if (result.isMultiplexed()) {
+        socket = Internal.instance.deduplicate(connectionPool, address, this);
+        result = connection;
+      }
+    }
+    closeQuietly(socket);
+
+    return result;
+  }
+
+
+
+Internal.instance实在okhttpclient中创建实例的，实例的get方法就是直接调用的 connectionPool 的get方法
+有关于connectionPool的逻辑，看一下篇
+
+
+3. 调用了Internal.instance.get会调用ConnectionPool的get方法，调用StreamAllocation的acquire进行计数加1，
+新创建出来的connect也会调用acquire加一计数
+
+
+---------------------------
+
+Okhttp支持5个并发KeepAlive，默认链路生命为5分钟(链路空闲后，保持存活的时间)
+
+*Connection: （其实是RealConnection，Connection只是一个接口，一个RealConnection对应一个socket）
+对jdk的socket物理连接的包装，它内部有List<WeakReference<StreamAllocation>>的引用
+
+ConnectionPool: Socket连接池，对连接缓存进行回收与管理，与CommonPool有类似的设计
+Call: 对http的请求封装，属于程序员能够接触的上层高级代码
+StreamAllocation: 表示RealConnection被上层高级代码的引用次数
+Deque: Deque也就是双端队列，双端队列同时具有队列和栈性质，经常在缓存中被使用，这个是java基础
+
+*在socket连接中，也就是RealConnection中，本质是封装好的流操作，除非手动close掉连接，基本不会被GC掉，非常容易引发内存泄露。
+
+*小结：在okhttp中，在高层代码的调用中，使用了类似于引用计数的方式跟踪Socket流的调用，这里的计数对象是StreamAllocation，它被反复执行acquire方法（加一计数）与release方法(减一计数)，这两个函数其实是在改变RealConnection中的List<WeakReference<StreamAllocation>>大小。List中Allocation的数量也就是物理socket被引用的计数（Refference Count），如果计数为0的话，说明此连接没有被使用，是空闲的，需要通过下文的算法实现回收；如果上层代码仍然引用，就不需要关闭连接。
+（ StreamAllocation 中的 acquire方法是创建一个StreamAllocationReference弱引用并把this传给这个弱引用，接着把StreamAllocationReference对象add进
+List<WeakReference<StreamAllocation>>列表中，
+release方法是遍历List<WeakReference<StreamAllocation>>列表查找和this相同的对象并remove）
+
+引用计数法：给对象中添加一个引用计数器，每当有一个地方引用它时，计数器值就加1；当引用失效时，计数器值就减1；任何时刻计数器为0的对象就是不可能再被使用。它不能处理循环引用的问题。
+
+代码分析：
+okhttpclient的build方法，创建ConnectionPool，当然，也可以在builder中将自己创建的ConnectionPool传入
+      connectionPool = new ConnectionPool();
+
+连接池内部维护了一个叫做OkHttp ConnectionPool的ThreadPool，专门用来淘汰末位的socket，当满足以下条件时，就会进行末位淘汰，非常像GC
+1. 并发socket空闲连接超过5个
+2. 某个socket的keepalive时间大于5分钟
+源码：  private static final Executor executor = new ThreadPoolExecutor(0 /* corePoolSize */,
+      Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
+      new SynchronousQueue<Runnable>(), Util.threadFactory("OkHttp ConnectionPool", true));
+
+维护着一个Deque<Connection>，提供get/put/remove等数据结构的功能
+  private final Deque<RealConnection> connections = new ArrayDeque<>();
+
+维护着一个RouteDatabase，它用来记录连接失败的Route的黑名单，当连接失败的时候就会把失败的线路加进去（本文不讨论）
+  final RouteDatabase routeDatabase = new RouteDatabase();
+
+在连接池ConnectionPool中，提供如下的操作，这里可以看成是对deque的一个简单的包装
+//从连接池中获取
+get
+//放入连接池
+put
+//线程变成空闲，并调用清理线程池
+connectionBecameIdle
+//关闭所有连接
+evictAll
+
+例如 get方法，遍历了 connections，并返回其中一个满足条件的RealConnection，RealConnection中有一个socket对象，
+  @Nullable RealConnection get(Address address, StreamAllocation streamAllocation, Route route) {
+    assert (Thread.holdsLock(this));
+    for (RealConnection connection : connections) {
+      if (connection.isEligible(address, route)) {
+        streamAllocation.acquire(connection);
+        return connection;
+      }
+    }
+    return null;
+  }
+
+随着上述操作被更高级的对象调用，RealConnection中的StreamAllocation被不断的aquire与release，
+也就是List<WeakReference<StreamAllocation>>的大小将时刻变化
+
+
+-----------------------------
+
+自动回收机制：
+
+当用户socket连接成功，向连接池中put新的socket时，回收函数会被主动调用，线程池就会执行cleanupRunnable，如下
+//Socket清理的Runnable，每当put操作时，就会被主动调用
+//注意put操作是在网络线程， executor 是 ThreadPoolExecutor对象
+      executor.execute(cleanupRunnable);
+
+//而Socket清理是在`OkHttp ConnectionPool`线程池中调用
+  private final Runnable cleanupRunnable = new Runnable() {
+    @Override public void run() {
+      while (true) {
+        long waitNanos = cleanup(System.nanoTime());
+        if (waitNanos == -1) return;
+        if (waitNanos > 0) {
+          long waitMillis = waitNanos / 1000000L;
+          waitNanos -= (waitMillis * 1000000L);
+          synchronized (ConnectionPool.this) {
+            try {
+              ConnectionPool.this.wait(waitMillis, (int) waitNanos);
+            } catch (InterruptedException ignored) {
+            }
+          }
+        }
+      }
+    }
+  };
+这段死循环实际上是一个阻塞的清理任务，首先进行清理(clean)，并返回下次需要清理的间隔时间，
+然后调用wait(timeout)进行等待以释放锁与时间片，当等待时间到了后，再次进行清理，并返回下次要清理的间隔时间
+
+Connect变得闲置时调用了 connectionBecameIdle方法，里面调用了 notifyAll() ，唤醒通知：
+
+
+Cleanup:
+cleanup使用了类似于GC的标记-清除算法，也就是首先标记出最不活跃的连接(我们可以叫做泄漏连接，或者空闲连接)，接着进行清除，流程如下:
+ long cleanup(long now) {
+    int inUseConnectionCount = 0;
+    int idleConnectionCount = 0;
+    RealConnection longestIdleConnection = null;
+    long longestIdleDurationNs = Long.MIN_VALUE;
+
+    // Find either a connection to evict, or the time that the next eviction is due.
+    synchronized (this) {
+      // 迭代器遍历
+      for (Iterator<RealConnection> i = connections.iterator(); i.hasNext(); ) {
+        RealConnection connection = i.next();
+
+        // If the connection is in use, keep searching.
+        if (pruneAndGetAllocationCount(connection, now) > 0) {
+          // 如果是被使用的，就是活跃的，跳过这个connection，被使用数量加一
+          inUseConnectionCount++;
+          continue;
+        }
+
+        // 如果上面的判断失败，就是不活跃的, 闲置数量加一
+        idleConnectionCount++;
+
+        // If the connection is ready to be evicted, we're done.
+        long idleDurationNs = now - connection.idleAtNanos;
+        // 遍历找出最不活跃的连接,选择排序法
+        if (idleDurationNs > longestIdleDurationNs) {
+          longestIdleDurationNs = idleDurationNs;
+          longestIdleConnection = connection;
+        }
+      }
+
+
+
+    if (longestIdleDurationNs >= this.keepAliveDurationNs
+        || idleConnectionCount > this.maxIdleConnections) {
+      //如果(`空闲socket连接超过5个`
+      //且`keepalive时间大于5分钟`)
+      //就将此泄漏连接从`Deque`中移除
+      connections.remove(longestIdleConnection);
+    } else if (idleConnectionCount > 0) {
+      //返回此连接即将到期的时间，供下次清理
+      //这里依据是在上文`connectionBecameIdle`中设定的计时
+      return keepAliveDurationNs - longestIdleDurationNs;
+    } else if (inUseConnectionCount > 0) {
+      //全部都是活跃的连接，5分钟后再次清理
+      return keepAliveDurationNs;
+    } else {
+      //没有任何连接，跳出循环
+      cleanupRunning = false;
+      return -1;
+    }
+  }
+
+  //关闭连接，返回`0`，也就是立刻再次清理
+  closeQuietly(longestIdleConnection.socket());
+  return 0;
+  }
+
+
+1. 遍历Deque中所有的RealConnection，标记泄漏的连接
+2. 如果被标记的连接满足(空闲socket连接超过5个&&keepalive时间大于5分钟)，就将此连接从Deque中移除，并关闭连接，返回0，也就是将要执行wait(0)，提醒立刻再次扫描
+3. 如果(目前还可以塞得下5个连接，但是有可能泄漏的连接(即空闲时间即将达到5分钟))，就返回此连接即将到期的剩余时间，供下次清理
+4. 如果(全部都是活跃的连接)，就返回默认的keep-alive时间，也就是5分钟后再执行清理
+5. 如果(没有任何连接)，就返回-1,跳出清理的死循环
+
+
+需要注意的是pruneAndGetAllocationCount方法，这个方法标记并找到最不活跃的连接呢，这里使用了pruneAndGetAllocationCount的方法，它主要依据弱引用是否为null而判断这个连接是否泄漏
+
+//类似于引用计数法，如果引用全部为空，返回立刻清理
+private int pruneAndGetAllocationCount(RealConnection connection, long now) {
+  //虚引用列表
+  List<Reference<StreamAllocation>> references = connection.allocations;
+  //遍历弱引用列表
+  for (int i = 0; i < references.size(); ) {
+    Reference<StreamAllocation> reference = references.get(i);
+    //如果正在被使用，跳过，接着循环
+    //是否置空是在上文`connectionBecameIdle`的`release`控制的
+    if (reference.get() != null) {
+      //非常明显的引用计数
+      i++;
+      continue;
+    }
+
+    //否则移除引用
+    references.remove(i);
+    connection.noNewStreams = true;
+
+    //如果所有分配的流均没了，标记为已经距离现在空闲了5分钟
+    if (references.isEmpty()) {
+      connection.idleAtNanos = now - keepAliveDurationNs;
+      return 0;
+    }
+  }
+    
+  return references.size();
+}
+遍历RealConnection连接中的StreamAllocationList，它维护着一个弱引用列表
+查看此StreamAllocation是否为空(它是在线程池的put/remove手动控制的)，如果为空，说明已经没有代码引用这个对象了，需要在List中删除
+遍历结束，如果List中维护的StreamAllocation删空了，就返回0，表示这个连接已经没有代码引用了，是泄漏的连接;否则返回非0的值，表示这个仍然被引用，是活跃的连接。
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1281,6 +1560,1032 @@ sink和source只是接口，但他们都在Okio.java中被实现了，
 　　　　2）如果在发送100-continue前收到了POST数据（客户端提前发送POST数据），则不发送100响应码(略去)。
 
 
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+okhttp代理和路由
+
+??
+-> 怎么选择路由，怎么知道网络地址可用
+普通的网络请求会不会过路由选择器
+
+HTTP请求的整体处理过程大体可以理解为，
+
+建立TCP连接。
+如果是HTTPS的话，完成SSL/TLS的协商。
+发送请求。
+获取响应。
+结束请求，关闭连接。
+
+然而，当为系统设置了代理的时候，整个数据流都会经过代理服务器。
+代理分为两种类型，一种是SOCKS代理，另一种是HTTP代理。对于SOCKS代理，在HTTP的场景下，代理服务器完成TCP数据包的转发工作。而HTTP代理服务器，在转发数据之外，还会解析HTTP的请求及响应，并根据请求及响应的内容做一些处理。
+
+这里看一下OkHttp中对代理的处理。
+(路由选择和代理在StreamAllocation中使用)
+
+1. 这个是java底层代码，可以看出，代理有三种形势，1.直连（无代理或者代理缺失） 2.http代理  3. SOCKS代理
+    java.net.Proxy
+    public enum Type {
+        /**
+         * Represents a direct connection, or the absence of a proxy.
+         */
+        DIRECT,
+        /**
+         * Represents proxy for high level protocols such as HTTP or FTP.
+         */
+        HTTP,
+        /**
+         * Represents a SOCKS (V4 or V5) proxy.
+         */
+        SOCKS
+    };
+
+
+2. 中抽象出Route来描述网络数据包的传输路径，最主要还是要描述直接与其建立TCP连接的目标端点。
+public final class Route {
+  final Address address;
+  final Proxy proxy;
+  final InetSocketAddress inetSocketAddress;
+
+  public Route(Address address, Proxy proxy, InetSocketAddress inetSocketAddress) {
+    if (address == null) {
+      throw new NullPointerException("address == null");
+    }
+    if (proxy == null) {
+      throw new NullPointerException("proxy == null");
+    }
+    if (inetSocketAddress == null) {
+      throw new NullPointerException("inetSocketAddress == null");
+    }
+    this.address = address;
+    this.proxy = proxy;
+    this.inetSocketAddress = inetSocketAddress;
+  }
+  ......
+}
+主要通过 代理服务器的信息proxy ，及 连接的目标地址 描述路由。 连接的目标地址inetSocketAddress 根据代理类型的不同而有着不同的含义，这主要是由不同代理协议的差异而造成的。对于无需代理的情况， 连接的目标地址inetSocketAddress 中包含HTTP服务器经过了DNS域名解析的IP地址及协议端口号；对于SOCKS代理，其中包含HTTP服务器的域名及协议端口号；对于HTTP代理，其中则包含代理服务器经过域名解析的IP地址及端口号。
+
+
+3. RouteSelector 工作于StreamAllocation
+
+* HTTP请求处理过程中所需的TCP连接建立过程，主要是找到一个Route，然后依据代理协议的规则与特定目标建立TCP连接。对于无代理的情况，是与HTTP服务器建立TCP连接；对于SOCKS代理及HTTP代理，是与代理服务器建立TCP连接，虽然都是与代理服务器建立TCP连接，而SOCKS代理协议与HTTP代理协议做这个动作的方式又会有一定的区别。
+
+借助于域名解析做负载均衡已经是网络中非常常见的手法了，因而，常常会有相同域名对应不同IP地址的情况。同时相同系统也可以设置多个代理，这使Route的选择变得复杂起来。
+
+在OkHttp中，对Route连接失败有一定的错误处理机制。OkHttp会逐个尝试找到的Route建立TCP连接，直到找到可用的那一个。这同样要求，对Route信息有良好的管理。
+
+OkHttp3借助于 RouteSelector 类管理所有的路由信息，并帮助选择路由。 RouteSelector 主要完成3件事：
+
+（1）收集所有可用的路由。
+public final class RouteSelector {
+  private final Address address;
+  private final RouteDatabase routeDatabase;
+
+  /* The most recently attempted route. */
+  private Proxy lastProxy;
+  private InetSocketAddress lastInetSocketAddress;
+
+  /* State for negotiating the next proxy to use. */
+  private List<Proxy> proxies = Collections.emptyList();
+  private int nextProxyIndex;
+
+  /* State for negotiating the next socket address to use. */
+  private List<InetSocketAddress> inetSocketAddresses = Collections.emptyList();
+  private int nextInetSocketAddressIndex;
+
+  /* State for negotiating failed routes */
+  private final List<Route> postponedRoutes = new ArrayList<>();
+
+  public RouteSelector(Address address, RouteDatabase routeDatabase) {
+    this.address = address;
+    this.routeDatabase = routeDatabase;
+
+    resetNextProxy(address.url(), address.proxy());
+  }
+. . . . . .
+
+  /** Prepares the proxy servers to try. */
+  private void resetNextProxy(HttpUrl url, Proxy proxy) {
+    if (proxy != null) {
+      // If the user specifies a proxy, try that and only that.
+      proxies = Collections.singletonList(proxy);
+    } else {
+      // Try each of the ProxySelector choices until one connection succeeds. If none succeed
+      // then we'll try a direct connection below.
+      proxies = new ArrayList<>();
+      List<Proxy> selectedProxies = address.proxySelector().select(url.uri());
+      if (selectedProxies != null) proxies.addAll(selectedProxies);
+      // Finally try a direct connection. We only try it once!
+      proxies.removeAll(Collections.singleton(Proxy.NO_PROXY));
+      proxies.add(Proxy.NO_PROXY);
+    }
+    nextProxyIndex = 0;
+  }
+收集路由分为两个步骤：第一步收集所有的代理；第二步则是收集特定代理服务器选择情况下的所有 连接的目标地址 。
+收集代理的过程如上面的这段代码所示，有两种方式，一是外部通过address传入了代理，此时代理集合将包含这唯一的代理。address的代理最终来源于OkHttpClient，我们可以在构造OkHttpClient时设置代理，来指定由该client执行的所有请求经过特定的代理。
+另一种方式是，借助于ProxySelector获取多个代理。ProxySelector最终也来源于OkHttpClient，OkHttp的用户当然也可以对此进行配置。但通常情况下，使用系统默认的ProxySelector，来获取系统中配置的代理。
+收集到的所有代理保存在列表 proxies 中。
+为OkHttpClient配置Proxy或ProxySelector的场景大概是，需要让连接使用代理，但不使用系统的代理配置的情况。
+收集特定代理服务器选择情况下的所有路由，因代理类型的不同而有着不同的过程：
+
+  /** Returns the next proxy to try. May be PROXY.NO_PROXY but never null. */
+  private Proxy nextProxy() throws IOException {
+    if (!hasNextProxy()) {
+      throw new SocketException("No route to " + address.url().host()
+          + "; exhausted proxy configurations: " + proxies);
+    }
+    Proxy result = proxies.get(nextProxyIndex++);
+    resetNextInetSocketAddress(result);
+    return result;
+  }
+
+  /** Prepares the socket addresses to attempt for the current proxy or host. */
+  private void resetNextInetSocketAddress(Proxy proxy) throws IOException {
+    // Clear the addresses. Necessary if getAllByName() below throws!
+    inetSocketAddresses = new ArrayList<>();
+
+    String socketHost;
+    int socketPort;
+    if (proxy.type() == Proxy.Type.DIRECT || proxy.type() == Proxy.Type.SOCKS) {
+      socketHost = address.url().host();
+      socketPort = address.url().port();
+    } else {
+      SocketAddress proxyAddress = proxy.address();
+      if (!(proxyAddress instanceof InetSocketAddress)) {
+        throw new IllegalArgumentException(
+            "Proxy.address() is not an " + "InetSocketAddress: " + proxyAddress.getClass());
+      }
+      InetSocketAddress proxySocketAddress = (InetSocketAddress) proxyAddress;
+      socketHost = getHostString(proxySocketAddress);
+      socketPort = proxySocketAddress.getPort();
+    }
+
+    if (socketPort < 1 || socketPort > 65535) {
+      throw new SocketException("No route to " + socketHost + ":" + socketPort
+          + "; port is out of range");
+    }
+
+    if (proxy.type() == Proxy.Type.SOCKS) {
+      inetSocketAddresses.add(InetSocketAddress.createUnresolved(socketHost, socketPort));
+    } else {
+      // Try each address for best behavior in mixed IPv4/IPv6 environments.
+      List<InetAddress> addresses = address.dns().lookup(socketHost);
+      for (int i = 0, size = addresses.size(); i < size; i++) {
+        InetAddress inetAddress = addresses.get(i);
+        inetSocketAddresses.add(new InetSocketAddress(inetAddress, socketPort));
+      }
+    }
+
+    nextInetSocketAddressIndex = 0;
+  }
+
+  /**
+   * Obtain a "host" from an {@link InetSocketAddress}. This returns a string containing either an
+   * actual host name or a numeric IP address.
+   */
+  // Visible for testing
+  static String getHostString(InetSocketAddress socketAddress) {
+    InetAddress address = socketAddress.getAddress();
+    if (address == null) {
+      // The InetSocketAddress was specified with a string (either a numeric IP or a host name). If
+      // it is a name, all IPs for that name should be tried. If it is an IP address, only that IP
+      // address should be tried.
+      return socketAddress.getHostName();
+    }
+    // The InetSocketAddress has a specific address: we should only try that address. Therefore we
+    // return the address and ignore any host name that may be available.
+    return address.getHostAddress();
+  }
+收集一个特定代理服务器选择下的 连接的目标地址 因代理类型的不同而不同，这主要分为3种情况。 对于没有配置代理的情况，会对HTTP服务器的域名进行DNS域名解析，并为每个解析到的IP地址创建 连接的目标地址；对于SOCKS代理，直接以HTTP服务器的域名及协议端口号创建 连接的目标地址；而对于HTTP代理，则会对HTTP代理服务器的域名进行DNS域名解析，并为每个解析到的IP地址创建 连接的目标地址。
+这里是OkHttp中发生DNS域名解析唯一的场合。对于使用代理的场景，没有对HTTP服务器的域名做DNS域名解析，也就意味着HTTP服务器的域名解析要由代理服务器完成。
+代理服务器的收集是在创建 RouteSelector 完成的；而一个特定代理服务器选择下的 连接的目标地址 收集则是在选择Route时根据需要完成的。
+
+
+2. RouteSelector 做的第二件事情是选择可用的路由。
+  /**
+   * Returns true if there's another route to attempt. Every address has at least one route.
+   */
+  public boolean hasNext() {
+    return hasNextInetSocketAddress()
+        || hasNextProxy()
+        || hasNextPostponed();
+  }
+
+  public Route next() throws IOException {
+    // Compute the next route to attempt.
+    if (!hasNextInetSocketAddress()) {
+      if (!hasNextProxy()) {
+        if (!hasNextPostponed()) {
+          throw new NoSuchElementException();
+        }
+        return nextPostponed();
+      }
+      lastProxy = nextProxy();
+    }
+    lastInetSocketAddress = nextInetSocketAddress();
+
+    Route route = new Route(address, lastProxy, lastInetSocketAddress);
+    if (routeDatabase.shouldPostpone(route)) {
+      postponedRoutes.add(route);
+      // We will only recurse in order to skip previously failed routes. They will be tried last.
+      return next();
+    }
+
+    return route;
+  }
+
+  /** Returns true if there's another proxy to try. */
+  private boolean hasNextProxy() {
+    return nextProxyIndex < proxies.size();
+  }
+
+  /** Returns true if there's another socket address to try. */
+  private boolean hasNextInetSocketAddress() {
+    return nextInetSocketAddressIndex < inetSocketAddresses.size();
+  }
+
+  /** Returns the next socket address to try. */
+  private InetSocketAddress nextInetSocketAddress() throws IOException {
+    if (!hasNextInetSocketAddress()) {
+      throw new SocketException("No route to " + address.url().host()
+          + "; exhausted inet socket addresses: " + inetSocketAddresses);
+    }
+    return inetSocketAddresses.get(nextInetSocketAddressIndex++);
+  }
+
+  /** Returns true if there is another postponed route to try. */
+  private boolean hasNextPostponed() {
+    return !postponedRoutes.isEmpty();
+  }
+
+  /** Returns the next postponed route to try. */
+  private Route nextPostponed() {
+    return postponedRoutes.remove(0);
+  }
+RouteSelector 实现了两级迭代器来提供选择路由的服务。
+
+3.维护接失败的路由的信息，以避免浪费时间去连接一些不可用的路由。 RouteSelector 借助于RouteDatabase 维护失败的路由的信息。
+  /**
+   * Clients should invoke this method when they encounter a connectivity failure on a connection
+   * returned by this route selector.
+   */
+  public void connectFailed(Route failedRoute, IOException failure) {
+    if (failedRoute.proxy().type() != Proxy.Type.DIRECT && address.proxySelector() != null) {
+      // Tell the proxy selector when we fail to connect on a fresh connection.
+      address.proxySelector().connectFailed(
+          address.url().uri(), failedRoute.proxy().address(), failure);
+    }
+
+    routeDatabase.failed(failedRoute);
+  }
+RouteDatabase是一个简单的容器：
+
+public final class RouteDatabase {
+  private final Set<Route> failedRoutes = new LinkedHashSet<>();
+
+  /** Records a failure connecting to {@code failedRoute}. */
+  public synchronized void failed(Route failedRoute) {
+    failedRoutes.add(failedRoute);
+  }
+
+  /** Records success connecting to {@code failedRoute}. */
+  public synchronized void connected(Route route) {
+    failedRoutes.remove(route);
+  }
+
+  /** Returns true if {@code route} has failed recently and should be avoided. */
+  public synchronized boolean shouldPostpone(Route route) {
+    return failedRoutes.contains(route);
+  }
+}
+
+代理选择器ProxySelector的实现
+在OkHttp3中，ProxySelector对象由OkHttpClient维护。
+
+public class OkHttpClient implements Cloneable, Call.Factory {
+. . . . . .
+  final ProxySelector proxySelector;
+  
+  private OkHttpClient(Builder builder) {
+    this.dispatcher = builder.dispatcher;
+    this.proxy = builder.proxy;
+    this.protocols = builder.protocols;
+    this.connectionSpecs = builder.connectionSpecs;
+    this.interceptors = Util.immutableList(builder.interceptors);
+    this.networkInterceptors = Util.immutableList(builder.networkInterceptors);
+    this.proxySelector = builder.proxySelector;
+
+. . . . . .
+
+  public ProxySelector proxySelector() {
+    return proxySelector;
+  }
+
+. . . . . .
+
+    public Builder() {
+      dispatcher = new Dispatcher();
+      protocols = DEFAULT_PROTOCOLS;
+      connectionSpecs = DEFAULT_CONNECTION_SPECS;
+      proxySelector = ProxySelector.getDefault();
+
+. . . . . .
+
+    Builder(OkHttpClient okHttpClient) {
+      this.dispatcher = okHttpClient.dispatcher;
+      this.proxy = okHttpClient.proxy;
+      this.protocols = okHttpClient.protocols;
+      this.connectionSpecs = okHttpClient.connectionSpecs;
+      this.interceptors.addAll(okHttpClient.interceptors);
+      this.networkInterceptors.addAll(okHttpClient.networkInterceptors);
+      this.proxySelector = okHttpClient.proxySelector;
+在创建OkHttpClient时，可以通过为OkHttpClient.Builder设置ProxySelector来定制ProxySelector。若没有指定，则使用系统默认的ProxySelector。OpenJDK 1.8版默认的ProxySelector为sun.net.spi.DefaultProxySelector：
+
+public abstract class ProxySelector {
+    /**
+     * The system wide proxy selector that selects the proxy server to
+     * use, if any, when connecting to a remote object referenced by
+     * an URL.
+     *
+     * @see #setDefault(ProxySelector)
+     */
+    private static ProxySelector theProxySelector;
+
+    static {
+        try {
+            Class<?> c = Class.forName("sun.net.spi.DefaultProxySelector");
+            if (c != null && ProxySelector.class.isAssignableFrom(c)) {
+                theProxySelector = (ProxySelector) c.newInstance();
+            }
+        } catch (Exception e) {
+            theProxySelector = null;
+        }
+    }
+
+    /**
+     * Gets the system-wide proxy selector.
+     *
+     * @throws  SecurityException
+     *          If a security manager has been installed and it denies
+     * {@link NetPermission}{@code ("getProxySelector")}
+     * @see #setDefault(ProxySelector)
+     * @return the system-wide {@code ProxySelector}
+     * @since 1.5
+     */
+    public static ProxySelector getDefault() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(SecurityConstants.GET_PROXYSELECTOR_PERMISSION);
+        }
+        return theProxySelector;
+    }
+在Android平台上，默认ProxySelector所用的则是另外的实现：
+
+public abstract class ProxySelector {
+
+    private static ProxySelector defaultSelector = new ProxySelectorImpl();
+
+    /**
+     * Returns the default proxy selector, or null if none exists.
+     */
+    public static ProxySelector getDefault() {
+        return defaultSelector;
+    }
+
+    /**
+     * Sets the default proxy selector. If {@code selector} is null, the current
+     * proxy selector will be removed.
+     */
+    public static void setDefault(ProxySelector selector) {
+        defaultSelector = selector;
+    }
+Android平台下，默认的ProxySelector ProxySelectorImpl，其实现 (不同Android版本实现不同，这里以android-6.0.1_r61为例) 如下：
+
+package java.net;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+final class ProxySelectorImpl extends ProxySelector {
+    @Override public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+        if (uri == null || sa == null || ioe == null) {
+            throw new IllegalArgumentException();
+        }
+    }
+    @Override public List<Proxy> select(URI uri) {
+        return Collections.singletonList(selectOneProxy(uri));
+    }
+    private Proxy selectOneProxy(URI uri) {
+        if (uri == null) {
+            throw new IllegalArgumentException("uri == null");
+        }
+        String scheme = uri.getScheme();
+        if (scheme == null) {
+            throw new IllegalArgumentException("scheme == null");
+        }
+        int port = -1;
+        Proxy proxy = null;
+        String nonProxyHostsKey = null;
+        boolean httpProxyOkay = true;
+        if ("http".equalsIgnoreCase(scheme)) {
+            port = 80;
+            nonProxyHostsKey = "http.nonProxyHosts";
+            proxy = lookupProxy("http.proxyHost", "http.proxyPort", Proxy.Type.HTTP, port);
+        } else if ("https".equalsIgnoreCase(scheme)) {
+            port = 443;
+            nonProxyHostsKey = "https.nonProxyHosts"; // RI doesn't support this
+            proxy = lookupProxy("https.proxyHost", "https.proxyPort", Proxy.Type.HTTP, port);
+        } else if ("ftp".equalsIgnoreCase(scheme)) {
+            port = 80; // not 21 as you might guess
+            nonProxyHostsKey = "ftp.nonProxyHosts";
+            proxy = lookupProxy("ftp.proxyHost", "ftp.proxyPort", Proxy.Type.HTTP, port);
+        } else if ("socket".equalsIgnoreCase(scheme)) {
+            httpProxyOkay = false;
+        } else {
+            return Proxy.NO_PROXY;
+        }
+        if (nonProxyHostsKey != null
+                && isNonProxyHost(uri.getHost(), System.getProperty(nonProxyHostsKey))) {
+            return Proxy.NO_PROXY;
+        }
+        if (proxy != null) {
+            return proxy;
+        }
+        if (httpProxyOkay) {
+            proxy = lookupProxy("proxyHost", "proxyPort", Proxy.Type.HTTP, port);
+            if (proxy != null) {
+                return proxy;
+            }
+        }
+        proxy = lookupProxy("socksProxyHost", "socksProxyPort", Proxy.Type.SOCKS, 1080);
+        if (proxy != null) {
+            return proxy;
+        }
+        return Proxy.NO_PROXY;
+    }
+    /**
+     * Returns the proxy identified by the {@code hostKey} system property, or
+     * null.
+     */
+    private Proxy lookupProxy(String hostKey, String portKey, Proxy.Type type, int defaultPort) {
+        String host = System.getProperty(hostKey);
+        if (host == null || host.isEmpty()) {
+            return null;
+        }
+        int port = getSystemPropertyInt(portKey, defaultPort);
+        return new Proxy(type, InetSocketAddress.createUnresolved(host, port));
+    }
+    private int getSystemPropertyInt(String key, int defaultValue) {
+        String string = System.getProperty(key);
+        if (string != null) {
+            try {
+                return Integer.parseInt(string);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return defaultValue;
+    }
+    /**
+     * Returns true if the {@code nonProxyHosts} system property pattern exists
+     * and matches {@code host}.
+     */
+    private boolean isNonProxyHost(String host, String nonProxyHosts) {
+        if (host == null || nonProxyHosts == null) {
+            return false;
+        }
+        // construct pattern
+        StringBuilder patternBuilder = new StringBuilder();
+        for (int i = 0; i < nonProxyHosts.length(); i++) {
+            char c = nonProxyHosts.charAt(i);
+            switch (c) {
+            case '.':
+                patternBuilder.append("\\.");
+                break;
+            case '*':
+                patternBuilder.append(".*");
+                break;
+            default:
+                patternBuilder.append(c);
+            }
+        }
+        // check whether the host is the nonProxyHosts.
+        String pattern = patternBuilder.toString();
+        return host.matches(pattern);
+    }
+}
+在Android平台上，主要是从系统属性System properties中获取代理服务器的配置信息，这里会过滤掉不能进行代理的主机的访问。
+
+前面我们看到 RouteSelector 通过 Address 提供的Proxy和ProxySelector来收集Proxy信息及连接的目标地址信息。OkHttp3中用 Address 描述建立连接所需的配置信息，包括HTTP服务器的地址，DNS，SocketFactory，Proxy，ProxySelector及TLS所需的一些设施等等：
+
+public final class Address {
+  final HttpUrl url;
+  final Dns dns;
+  final SocketFactory socketFactory;
+  final Authenticator proxyAuthenticator;
+  final List<Protocol> protocols;
+  final List<ConnectionSpec> connectionSpecs;
+  final ProxySelector proxySelector;
+  final Proxy proxy;
+  final SSLSocketFactory sslSocketFactory;
+  final HostnameVerifier hostnameVerifier;
+  final CertificatePinner certificatePinner;
+
+  public Address(String uriHost, int uriPort, Dns dns, SocketFactory socketFactory,
+      SSLSocketFactory sslSocketFactory, HostnameVerifier hostnameVerifier,
+      CertificatePinner certificatePinner, Authenticator proxyAuthenticator, Proxy proxy,
+      List<Protocol> protocols, List<ConnectionSpec> connectionSpecs, ProxySelector proxySelector) {
+    this.url = new HttpUrl.Builder()
+        .scheme(sslSocketFactory != null ? "https" : "http")
+        .host(uriHost)
+        .port(uriPort)
+        .build();
+
+    if (dns == null) throw new NullPointerException("dns == null");
+    this.dns = dns;
+
+    if (socketFactory == null) throw new NullPointerException("socketFactory == null");
+    this.socketFactory = socketFactory;
+
+    if (proxyAuthenticator == null) {
+      throw new NullPointerException("proxyAuthenticator == null");
+    }
+    this.proxyAuthenticator = proxyAuthenticator;
+
+    if (protocols == null) throw new NullPointerException("protocols == null");
+    this.protocols = Util.immutableList(protocols);
+
+    if (connectionSpecs == null) throw new NullPointerException("connectionSpecs == null");
+    this.connectionSpecs = Util.immutableList(connectionSpecs);
+
+    if (proxySelector == null) throw new NullPointerException("proxySelector == null");
+    this.proxySelector = proxySelector;
+
+    this.proxy = proxy;
+    this.sslSocketFactory = sslSocketFactory;
+    this.hostnameVerifier = hostnameVerifier;
+    this.certificatePinner = certificatePinner;
+  }
+
+  /**
+   * Returns a URL with the hostname and port of the origin server. The path, query, and fragment of
+   * this URL are always empty, since they are not significant for planning a route.
+   */
+  public HttpUrl url() {
+    return url;
+  }
+
+  /** Returns the service that will be used to resolve IP addresses for hostnames. */
+  public Dns dns() {
+    return dns;
+  }
+
+  /** Returns the socket factory for new connections. */
+  public SocketFactory socketFactory() {
+    return socketFactory;
+  }
+
+  /** Returns the client's proxy authenticator. */
+  public Authenticator proxyAuthenticator() {
+    return proxyAuthenticator;
+  }
+
+  /**
+   * Returns the protocols the client supports. This method always returns a non-null list that
+   * contains minimally {@link Protocol#HTTP_1_1}.
+   */
+  public List<Protocol> protocols() {
+    return protocols;
+  }
+
+  public List<ConnectionSpec> connectionSpecs() {
+    return connectionSpecs;
+  }
+
+  /**
+   * Returns this address's proxy selector. Only used if the proxy is null. If none of this
+   * selector's proxies are reachable, a direct connection will be attempted.
+   */
+  public ProxySelector proxySelector() {
+    return proxySelector;
+  }
+
+  /**
+   * Returns this address's explicitly-specified HTTP proxy, or null to delegate to the {@linkplain
+   * #proxySelector proxy selector}.
+   */
+  public Proxy proxy() {
+    return proxy;
+  }
+
+  /** Returns the SSL socket factory, or null if this is not an HTTPS address. */
+  public SSLSocketFactory sslSocketFactory() {
+    return sslSocketFactory;
+  }
+
+  /** Returns the hostname verifier, or null if this is not an HTTPS address. */
+  public HostnameVerifier hostnameVerifier() {
+    return hostnameVerifier;
+  }
+
+  /** Returns this address's certificate pinner, or null if this is not an HTTPS address. */
+  public CertificatePinner certificatePinner() {
+    return certificatePinner;
+  }
+
+. . . . . .
+}
+OkHttp3中通过职责链执行HTTP请求。在其中的RetryAndFollowUpInterceptor里创建Address对象时，从OkHttpClient对象获取ProxySelector。Address对象会被用于创建StreamAllocation对象。StreamAllocation在建立连接时，从Address对象中获取ProxySelector以选择路由。
+
+public final class RetryAndFollowUpInterceptor implements Interceptor {
+. . . . . .
+  private Address createAddress(HttpUrl url) {
+    SSLSocketFactory sslSocketFactory = null;
+    HostnameVerifier hostnameVerifier = null;
+    CertificatePinner certificatePinner = null;
+    if (url.isHttps()) {
+      sslSocketFactory = client.sslSocketFactory();
+      hostnameVerifier = client.hostnameVerifier();
+      certificatePinner = client.certificatePinner();
+    }
+
+    return new Address(url.host(), url.port(), client.dns(), client.socketFactory(),
+        sslSocketFactory, hostnameVerifier, certificatePinner, client.proxyAuthenticator(),
+        client.proxy(), client.protocols(), client.connectionSpecs(), client.proxySelector());
+  }
+在StreamAllocation中，Address对象会被用于创建 RouteSelector 对象：
+
+public final class StreamAllocation {
+. . . . . .
+
+  public StreamAllocation(ConnectionPool connectionPool, Address address) {
+    this.connectionPool = connectionPool;
+    this.address = address;
+    this.routeSelector = new RouteSelector(address, routeDatabase());
+  }
+代理协议
+如我们在 OkHttp3 HTTP请求执行流程分析 中看到的，OkHttp3对HTTP请求是通过Interceptor链来处理的。
+RetryAndFollowUpInterceptor创建StreamAllocation对象，处理http的重定向及出错重试。对后续Interceptor的执行的影响为修改Request并创建StreamAllocation对象。
+BridgeInterceptor补全缺失的一些http header。对后续Interceptor的执行的影响主要为修改了Request。
+CacheInterceptor处理http缓存。对后续Interceptor的执行的影响为，若缓存中有所需请求的响应，则后续Interceptor不再执行。
+ConnectInterceptor借助于前面分配的StreamAllocation对象建立与服务器之间的连接，并选定交互所用的协议是HTTP 1.1还是HTTP 2。对后续Interceptor的执行的影响为，创建了HttpStream和connection。
+CallServerInterceptor作为Interceptor链中的最后一个Interceptor，用于处理IO，与服务器进行数据交换。
+
+在OkHttp3中，收集的路由信息，是在ConnectInterceptor中建立连接时用到的。ConnectInterceptor 借助于 StreamAllocation 完成整个连接的建立，包括TCP连接建立，代理协议所要求的协商，以及SSL/TLS协议的协商，如ALPN等。我们暂时略过整个连接建立的完整过程，主要关注TCP连接建立及代理协议的协商过程的部分。
+
+StreamAllocation 的findConnection()用来为某次特定的网络请求寻找一个可用的连接。
+
+/**
+   * Returns a connection to host a new stream. This prefers the existing connection if it exists,
+   * then the pool, finally building a new connection.
+   */
+  private RealConnection findConnection(int connectTimeout, int readTimeout, int writeTimeout,
+      boolean connectionRetryEnabled) throws IOException {
+    Route selectedRoute;
+    synchronized (connectionPool) {
+      if (released) throw new IllegalStateException("released");
+      if (codec != null) throw new IllegalStateException("codec != null");
+      if (canceled) throw new IOException("Canceled");
+
+      RealConnection allocatedConnection = this.connection;
+      if (allocatedConnection != null && !allocatedConnection.noNewStreams) {
+        return allocatedConnection;
+      }
+
+      // Attempt to get a connection from the pool.
+      RealConnection pooledConnection = Internal.instance.get(connectionPool, address, this);
+      if (pooledConnection != null) {
+        this.connection = pooledConnection;
+        return pooledConnection;
+      }
+
+      selectedRoute = route;
+    }
+
+    if (selectedRoute == null) {
+      selectedRoute = routeSelector.next();
+      synchronized (connectionPool) {
+        route = selectedRoute;
+        refusedStreamCount = 0;
+      }
+    }
+    RealConnection newConnection = new RealConnection(selectedRoute);
+    acquire(newConnection);
+
+    synchronized (connectionPool) {
+      Internal.instance.put(connectionPool, newConnection);
+      this.connection = newConnection;
+      if (canceled) throw new IOException("Canceled");
+    }
+
+    newConnection.connect(connectTimeout, readTimeout, writeTimeout, address.connectionSpecs(),
+        connectionRetryEnabled);
+    routeDatabase().connected(newConnection.route());
+
+    return newConnection;
+  }
+OkHttp3中有一套连接池的机制，这里先尝试从连接池中寻找可用的连接，找不到时才会新建连接。新建连接的过程是：
+
+选择一个Route；
+创建 RealConnection 连接对象。
+将连接对象保存进连接池中。
+建立连接。
+RealConnection 中建立连接的过程是这样的：
+
+public final class RealConnection extends Http2Connection.Listener implements Connection {
+  private final Route route;
+
+  /** The low-level TCP socket. */
+  private Socket rawSocket;
+
+  /**
+   * The application layer socket. Either an {@link SSLSocket} layered over {@link #rawSocket}, or
+   * {@link #rawSocket} itself if this connection does not use SSL.
+   */
+  public Socket socket;
+  private Handshake handshake;
+  private Protocol protocol;
+  public volatile Http2Connection http2Connection;
+  public int successCount;
+  public BufferedSource source;
+  public BufferedSink sink;
+  public int allocationLimit;
+  public final List<Reference<StreamAllocation>> allocations = new ArrayList<>();
+  public boolean noNewStreams;
+  public long idleAtNanos = Long.MAX_VALUE;
+
+  public RealConnection(Route route) {
+    this.route = route;
+  }
+
+  public void connect(int connectTimeout, int readTimeout, int writeTimeout,
+      List<ConnectionSpec> connectionSpecs, boolean connectionRetryEnabled) {
+    if (protocol != null) throw new IllegalStateException("already connected");
+
+    RouteException routeException = null;
+    ConnectionSpecSelector connectionSpecSelector = new ConnectionSpecSelector(connectionSpecs);
+
+    if (route.address().sslSocketFactory() == null) {
+      if (!connectionSpecs.contains(ConnectionSpec.CLEARTEXT)) {
+        throw new RouteException(new UnknownServiceException(
+            "CLEARTEXT communication not enabled for client"));
+      }
+      String host = route.address().url().host();
+      if (!Platform.get().isCleartextTrafficPermitted(host)) {
+        throw new RouteException(new UnknownServiceException(
+            "CLEARTEXT communication to " + host + " not permitted by network security policy"));
+      }
+    }
+
+    while (protocol == null) {
+      try {
+        if (route.requiresTunnel()) {
+          buildTunneledConnection(connectTimeout, readTimeout, writeTimeout,
+              connectionSpecSelector);
+        } else {
+          buildConnection(connectTimeout, readTimeout, writeTimeout, connectionSpecSelector);
+        }
+      } catch (IOException e) {
+        closeQuietly(socket);
+        closeQuietly(rawSocket);
+        socket = null;
+        rawSocket = null;
+        source = null;
+        sink = null;
+        handshake = null;
+        protocol = null;
+
+        if (routeException == null) {
+          routeException = new RouteException(e);
+        } else {
+          routeException.addConnectException(e);
+        }
+
+        if (!connectionRetryEnabled || !connectionSpecSelector.connectionFailed(e)) {
+          throw routeException;
+        }
+      }
+    }
+  }
+在这个方法中，SSLSocketFactory为空，也就是要求请求/响应明文传输时，先做安全性检查，以确认系统允许明文传输，允许以请求的域名做明文传输。
+
+然后根据路由的具体情况，执行不同的连接建立过程。对于需要创建隧道连接的路由，执行buildTunneledConnection()，对于其它情况，则执行buildConnection()。
+
+判断是否要建立隧道连接的依据是代理的类型，以及连接的类型：
+
+  /**
+   * Returns true if this route tunnels HTTPS through an HTTP proxy. See <a
+   * href="http://www.ietf.org/rfc/rfc2817.txt">RFC 2817, Section 5.2</a>.
+   */
+  public boolean requiresTunnel() {
+    return address.sslSocketFactory != null && proxy.type() == Proxy.Type.HTTP;
+  }
+如果是HTTP代理，且请求建立SSL/TLS加密通道 (http/1.1的https和http2) ，则需要建立隧道连接。其它情形不需要建立隧道连接。
+
+
+非隧道连接的建立
+非隧道连接的建立过程为：
+
+  /** Does all the work necessary to build a full HTTP or HTTPS connection on a raw socket. */
+  private void buildConnection(int connectTimeout, int readTimeout, int writeTimeout,
+      ConnectionSpecSelector connectionSpecSelector) throws IOException {
+    connectSocket(connectTimeout, readTimeout);
+    establishProtocol(readTimeout, writeTimeout, connectionSpecSelector);
+  }
+
+  private void connectSocket(int connectTimeout, int readTimeout) throws IOException {
+    Proxy proxy = route.proxy();
+    Address address = route.address();
+
+    rawSocket = proxy.type() == Proxy.Type.DIRECT || proxy.type() == Proxy.Type.HTTP
+        ? address.socketFactory().createSocket()
+        : new Socket(proxy);
+
+    rawSocket.setSoTimeout(readTimeout);
+    try {
+      Platform.get().connectSocket(rawSocket, route.socketAddress(), connectTimeout);
+    } catch (ConnectException e) {
+      throw new ConnectException("Failed to connect to " + route.socketAddress());
+    }
+    source = Okio.buffer(Okio.source(rawSocket));
+    sink = Okio.buffer(Okio.sink(rawSocket));
+  }
+有 3 种情况需要建立非隧道连接：
+
+无代理。
+明文的HTTP代理。
+SOCKS代理。
+非隧道连接的建立过程为，建立TCP连接，然后在需要时完成SSL/TLS的握手及HTTP/2的握手建立Protocol。建立TCP连接的过程为：
+
+创建Socket。非SOCKS代理的情况下，通过SocketFactory创建；在SOCKS代理则传入proxy手动new一个出来。
+为Socket设置读超时。
+完成特定于平台的连接建立。
+创建用语IO的source和sink。
+AndroidPlatform 的 connectSocket() 是这样的：
+
+  @Override public void connectSocket(Socket socket, InetSocketAddress address,
+      int connectTimeout) throws IOException {
+    try {
+      socket.connect(address, connectTimeout);
+    } catch (AssertionError e) {
+      if (Util.isAndroidGetsocknameError(e)) throw new IOException(e);
+      throw e;
+    } catch (SecurityException e) {
+      // Before android 4.3, socket.connect could throw a SecurityException
+      // if opening a socket resulted in an EACCES error.
+      IOException ioException = new IOException("Exception in connect");
+      ioException.initCause(e);
+      throw ioException;
+    }
+  }
+设置了SOCKS代理的情况下，仅有的特别之处在于，是通过传入proxy手动创建的Socket。route的socketAddress包含着目标HTTP服务器的域名。由此可见SOCKS协议的处理，主要是在Java标准库的 java.net.Socket 中处理的。对于外界而言，就好像是于HTTP服务器直接建立连接一样，因为连接时传入的地址都是HTTP服务器的域名。
+
+而对于明文HTTP代理的情况下，这里没有任何特殊的处理。route的socketAddress包含着代理服务器的IP地址。HTTP代理自身会根据请求及响应的实际内容，建立与HTTP服务器的TCP连接，并转发数据。猜测HTTP代理服务器是根据HTTP请求中的"Host"等header内容来确认HTTP服务器地址的。
+
+暂时先略过对建立协议过程的分析。
+
+HTTP代理的隧道连接
+buildTunneledConnection()用于建立隧道连接：
+
+  /**
+   * Does all the work to build an HTTPS connection over a proxy tunnel. The catch here is that a
+   * proxy server can issue an auth challenge and then close the connection.
+   */
+  private void buildTunneledConnection(int connectTimeout, int readTimeout, int writeTimeout,
+      ConnectionSpecSelector connectionSpecSelector) throws IOException {
+    Request tunnelRequest = createTunnelRequest();
+    HttpUrl url = tunnelRequest.url();
+    int attemptedConnections = 0;
+    int maxAttempts = 21;
+    while (true) {
+      if (++attemptedConnections > maxAttempts) {
+        throw new ProtocolException("Too many tunnel connections attempted: " + maxAttempts);
+      }
+
+      connectSocket(connectTimeout, readTimeout);
+      tunnelRequest = createTunnel(readTimeout, writeTimeout, tunnelRequest, url);
+
+      if (tunnelRequest == null) break; // Tunnel successfully created.
+
+      // The proxy decided to close the connection after an auth challenge. We need to create a new
+      // connection, but this time with the auth credentials.
+      closeQuietly(rawSocket);
+      rawSocket = null;
+      sink = null;
+      source = null;
+    }
+
+    establishProtocol(readTimeout, writeTimeout, connectionSpecSelector);
+  }
+这里主要是两个过程：
+
+建立隧道连接。
+建立Protocol。
+建立隧道连接的过程又分为几个步骤：
+
+创建隧道请求
+建立Socket连接
+发送请求建立隧道
+隧道请求是一个常规的HTTP请求，只是请求的内容有点特殊。最初创建的隧道请求如：
+
+  /**
+   * Returns a request that creates a TLS tunnel via an HTTP proxy. Everything in the tunnel request
+   * is sent unencrypted to the proxy server, so tunnels include only the minimum set of headers.
+   * This avoids sending potentially sensitive data like HTTP cookies to the proxy unencrypted.
+   */
+  private Request createTunnelRequest() {
+    return new Request.Builder()
+        .url(route.address().url())
+        .header("Host", Util.hostHeader(route.address().url(), true))
+        .header("Proxy-Connection", "Keep-Alive")
+        .header("User-Agent", Version.userAgent()) // For HTTP/1.0 proxies like Squid.
+        .build();
+  }
+一个隧道请求的例子如下：
+
+Tunnel Request
+请求的"Host" header中包含了目标HTTP服务器的域名。建立socket连接的过程这里不再赘述。
+
+创建隧道的过程是这样子的：
+
+  /**
+   * To make an HTTPS connection over an HTTP proxy, send an unencrypted CONNECT request to create
+   * the proxy connection. This may need to be retried if the proxy requires authorization.
+   */
+  private Request createTunnel(int readTimeout, int writeTimeout, Request tunnelRequest,
+      HttpUrl url) throws IOException {
+    // Make an SSL Tunnel on the first message pair of each SSL + proxy connection.
+    String requestLine = "CONNECT " + Util.hostHeader(url, true) + " HTTP/1.1";
+    while (true) {
+      Http1Codec tunnelConnection = new Http1Codec(null, null, source, sink);
+      source.timeout().timeout(readTimeout, MILLISECONDS);
+      sink.timeout().timeout(writeTimeout, MILLISECONDS);
+      tunnelConnection.writeRequest(tunnelRequest.headers(), requestLine);
+      tunnelConnection.finishRequest();
+      Response response = tunnelConnection.readResponse().request(tunnelRequest).build();
+      // The response body from a CONNECT should be empty, but if it is not then we should consume
+      // it before proceeding.
+      long contentLength = HttpHeaders.contentLength(response);
+      if (contentLength == -1L) {
+        contentLength = 0L;
+      }
+      Source body = tunnelConnection.newFixedLengthSource(contentLength);
+      Util.skipAll(body, Integer.MAX_VALUE, TimeUnit.MILLISECONDS);
+      body.close();
+
+      switch (response.code()) {
+        case HTTP_OK:
+          // Assume the server won't send a TLS ServerHello until we send a TLS ClientHello. If
+          // that happens, then we will have buffered bytes that are needed by the SSLSocket!
+          // This check is imperfect: it doesn't tell us whether a handshake will succeed, just
+          // that it will almost certainly fail because the proxy has sent unexpected data.
+          if (!source.buffer().exhausted() || !sink.buffer().exhausted()) {
+            throw new IOException("TLS tunnel buffered too many bytes!");
+          }
+          return null;
+
+        case HTTP_PROXY_AUTH:
+          tunnelRequest = route.address().proxyAuthenticator().authenticate(route, response);
+          if (tunnelRequest == null) throw new IOException("Failed to authenticate with proxy");
+
+          if ("close".equalsIgnoreCase(response.header("Connection"))) {
+            return tunnelRequest;
+          }
+          break;
+
+        default:
+          throw new IOException(
+              "Unexpected response code for CONNECT: " + response.code());
+      }
+    }
+  }
+在前面创建的TCP连接之上，完成与代理服务器的HTTP请求/响应交互。请求的内容类似下面这样：
+
+"CONNECT m.taobao.com:443 HTTP/1.1"
+这里可能会根据HTTP代理是否需要认证而有多次HTTP请求/响应交互。
+
+总结一下OkHttp3中代理相关的处理：
+
+没有设置代理的情况下，直接与HTTP服务器建立TCP连接，然后进行HTTP请求/响应的交互。
+设置了SOCKS代理的情况下，创建Socket时，为其传入proxy，连接时还是以HTTP服务器为目标地址。在标准库的Socket中完成SOCKS协议相关的处理。此时基本上感知不到代理的存在。
+设置了HTTP代理时的HTTP请求，与HTTP代理服务器建立TCP连接。HTTP代理服务器解析HTTP请求/响应的内容，并根据其中的信息来完成数据的转发。也就是说，如果HTTP请求中不包含"Host" header，则有可能在设置了HTTP代理的情况下无法与HTTP服务器建立连接。
+设置了HTTP代理时的HTTPS/HTTP2请求，与HTTP服务器建立通过HTTP代理的隧道连接。HTTP代理不再解析传输的数据，仅仅完成数据转发的功能。此时HTTP代理的功能退化为如同SOCKS代理类似。
+设置了代理时，HTTP服务器的域名解析会被交给代理服务器执行。其中设置了HTTP代理时，会对HTTP代理的域名做域名解析。
+关于HTTP代理的更多内容，可以参考HTTP 代理原理及实现（一）。
+
+OkHttp3中代理相关的处理大体如此。
+
+
+
+
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+安全性相关
+
+
 
 
 
@@ -1538,5 +2843,29 @@ X-Frame-Options: deny
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+服务器集群负载均衡原理？
+在分布式集群环境中，如何把众多并发请求分布到不同的服务器上的呢？
+
+
+什么是负载均衡
+一台服务器的处理能力，主要受限于服务器自身的可扩展硬件能力。所以，在需要处理大量用户请求的时候，通常都会引入负载均衡器，将多台普通服务器组成一个系统，来完成高并发的请求处理任务。
+
+最早的负载均衡技术是通过DNS来实现的，将多台服务器配置为相同的域名，使不同客户端在进行域名解析时，从这一组服务器中的请求随机分发到不同的服务器地址，从而达到负载均衡的目的。
+
+但在使用DNS均衡负载时，由于DNS数据刷新的延迟问题，无法确保用户请求的完全均衡。而且，一旦其中某台服务器出现故障，即使修改了DNS配置，仍然需要等到新的配置生效后，故障服务器才不会被用户访问到。目前，DNS负载均衡仍在大量使用，但多用于实现“多地就近接入”的应用场景。
+
+1996年之后，出现了新的网络负载均衡技术。通过设置虚拟服务地址（IP），将位于同一地域（Region）的多台服务器虚拟成一个高性能、高可用的应用服务池；再根据应用指定的方式，将来自客户端的网络请求分发到服务器池中。网络负载均衡会检查服务器池中后端服务器的健康状态，自动隔离异常状态的后端服务器，从而解决了单台后端服务器的单点问题，同时提高了应用的整体服务能力。
+
+网络负载均衡主要有硬件与软件两种实现方式，主流负载均衡解决方案中，硬件厂商以F5为代表，软件主要为NGINX与LVS。但是，无论硬件或软件实现，都逃不出基于四层交互技术的“报文转发”或基于七层协议的“请求代理”这两种方式。 四层的转发模式通常性能会更好，但七层的代理模式可以根据更多的信息做到更智能地分发流量。一般大规模应用中，这两种方式会同时存在。
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 
