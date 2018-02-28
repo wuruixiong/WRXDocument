@@ -95,7 +95,7 @@ adb shell am force-stop com.my.app.package 停止一个app
 删除apk
 adb uninstall apkName
 
-在手机中导出apk
+在手机中导出apk：
 查看所有的apk包名
 adb shell pm list packages
 选择一个apk包名，打印出路径

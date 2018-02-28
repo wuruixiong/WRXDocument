@@ -948,7 +948,7 @@ RealConnection中的isEligible(address, route)方法判断连接符合,
 判断代理方式必须是DIRECT（直连），判断此次连接的主机名是否与遍历中的主机名相同，验证证书
 
 路由选择起到什么样的作用？
-
+第二次在连接池中查找可用连接会加上代理参数
 
 怎么保持的keep-alive？
 tcp连接tcp释放 (socket 不调用close就是 keep-alive)
@@ -1600,7 +1600,10 @@ HTTP请求的整体处理过程大体可以理解为，
     };
 
 
-2. 中抽象出Route来描述网络数据包的传输路径，最主要还是要描述直接与其建立TCP连接的目标端点。
+2. okHttpClient可以直接设置.proxy().proxySelector().proxyAuthenticator()
+  等等代理
+
+中抽象出Route来描述网络数据包的传输路径，最主要还是要描述直接与其建立TCP连接的目标端点。
 public final class Route {
   final Address address;
   final Proxy proxy;
@@ -2563,23 +2566,49 @@ Tunnel Request
 
 总结一下OkHttp3中代理相关的处理：
 
-没有设置代理的情况下，直接与HTTP服务器建立TCP连接，然后进行HTTP请求/响应的交互。
-设置了SOCKS代理的情况下，创建Socket时，为其传入proxy，连接时还是以HTTP服务器为目标地址。在标准库的Socket中完成SOCKS协议相关的处理。此时基本上感知不到代理的存在。
-设置了HTTP代理时的HTTP请求，与HTTP代理服务器建立TCP连接。HTTP代理服务器解析HTTP请求/响应的内容，并根据其中的信息来完成数据的转发。也就是说，如果HTTP请求中不包含"Host" header，则有可能在设置了HTTP代理的情况下无法与HTTP服务器建立连接。
+1.没有设置代理的情况下，直接与HTTP服务器建立TCP连接，然后进行HTTP请求/响应的交互。
+2.设置了SOCKS代理的情况下，创建Socket时，为其传入proxy，连接时还是以HTTP服务器为目标地址。在标准库的Socket中完成SOCKS协议相关的处理。此时基本上感知不到代理的存在。
+3.设置了HTTP代理时的HTTP请求，与HTTP代理服务器建立TCP连接。HTTP代理服务器解析HTTP请求/响应的内容，并根据其中的信息来完成数据的转发。也就是说，如果HTTP请求中不包含"Host" header，则有可能在设置了HTTP代理的情况下无法与HTTP服务器建立连接。
 设置了HTTP代理时的HTTPS/HTTP2请求，与HTTP服务器建立通过HTTP代理的隧道连接。HTTP代理不再解析传输的数据，仅仅完成数据转发的功能。此时HTTP代理的功能退化为如同SOCKS代理类似。
-设置了代理时，HTTP服务器的域名解析会被交给代理服务器执行。其中设置了HTTP代理时，会对HTTP代理的域名做域名解析。
-关于HTTP代理的更多内容，可以参考HTTP 代理原理及实现（一）。
-
-OkHttp3中代理相关的处理大体如此。
+4.设置了代理时，HTTP服务器的域名解析会被交给代理服务器执行。其中设置了HTTP代理时，会对HTTP代理的域名做域名解析。
 
 
 
+1. RetryAndFollowUpInterceptor的createAddress中，Address的初始化就已经创建了代理相关的信息，
 
+2. 在StreamAllocation构造中会创建RouteSelector，此时调用resetNextProxy，
+   初始化List<Proxy> proxie,分创建OkhttpClient时有没有传入proxy两种情况, 
+   如果有传入proxy，则是把proxy作为列表proxie的唯一元素，
+   如果没有传入proxy，则使用address中的proxySelector来获取可用代理，
+   proxySelector也可以像proxy一样，在OkhttpClient创建时传入，如果没有传入，则是使用 android操作系统默认的proxySelector（ProxySelector.getDefault()）
 
+3. 在StreamAllocation中的findConnection(在死循环中调用的findConnection)方法中会调用routeSelector.next()，
+   从此next()中产生递归调用，直到找到一个可用代理proxy,
+   注意，调用routeSelector.next()是为了获取一个内部封装了proxy的route，这个route是用来获取（或者创建）一个可靠connection的
 
+4. next()中的调用顺序 next->nextProxy->resetNextInetSocketAddress
+   resetNextInetSocketAddress中对代理的处理分两种，
+   一是socks代理，直接创建InetSocketAddress，add进List<InetSocketAddress> inetSocketAddresses
+   二是无代理和http代理，先进行dns解析：address.dns()，将解析到地址的List<InetAddress> addresses列表遍历，全部创建InetSocketAddress，
+	最后add进List<InetSocketAddress> inetSocketAddresses，
+        这里的dns解析需要十分关注，即routeSelector的resetNextInetSocketAddress方法中的address.dns()
+   
+   next->nextInetSocketAddress，将列表inetSocketAddresses中的InetSocketAddress返回
 
+   也就是说，即使是无代理状态，只要连接池中没有可用连接，就会走routeSelector.next
 
+5. 在死循环StreamAllocation.findHealthyConnection方法中，RealConnection.isHealthy方法用于判断连接是否可用，如果通过findconnection拿到的连接不可用，
+   那么就查找下一条connection
+   isHealthy对socket是否可用进行了判断，连接是否关闭，输入流和输出流是否关机
+   socket.isClosed() || socket.isInputShutdown() || socket.isOutputShutdown()
+   如果是非get请求，还额外做了Timeout检查,
 
+   Socket是否连接成功的设置是在 Socket.connect() 方法中，对connected变量的修改，仔细看它的 抛出异常字符串
+   个人认为，如果tcp超时，或者断网就会是 close或者Shutdown状态)
+   java.net.PlainSocketImpl继承java.net.AbstractPlainSocketImpl，
+   PlainSocketImpl中用native实现了大量的连接方法，例如socketConnect，socketCreate，socketShutdown等等，
+   例如调用了socketConnect，如果连接报错，就会抛出异常，那么connected变量就不会被设置为true
+   还有java.net.SocksSocketImpl也值得看一看
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 
