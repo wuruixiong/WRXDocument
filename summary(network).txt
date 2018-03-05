@@ -2612,11 +2612,40 @@ Tunnel Request
 
 -----------------------------------------------------------------------------------------------------------------------------------------
 
-安全性相关
+安全性相关,有关于安全性相关的 网络协议内容，到network_protocol中看，
 
+TLS是在https中使用的，和http相比，https在传输层(tcp)到应用层(http)之间，多了个TLS或SSL安全协议
 
+1. Okhttp3中，可直接添加sslSocketFactory到 OkHttpClient对象中，
+或者使用默认的 TLS方法:
+    X509TrustManager trustManager = systemDefaultTrustManager();
+    this.sslSocketFactory = systemDefaultSslSocketFactory(trustManager);
+    this.certificateChainCleaner = CertificateChainCleaner.get(trustManager);
+systemDefaultSslSocketFactory -> sslContext（sslContext是androidSDK的框架）
 
+2. certificateChainCleaner作为参数，创建一个很重要的对象：certificatePinner
+     this.certificatePinner = builder.certificatePinner.withCertificateChainCleaner(
+        certificateChainCleaner);
+   certificatePinner就是 受信用证书集合
 
+3. Address类中判断 传入的 sslSocketFactory是否为空，如果不是空，就设置scheme为https
+.scheme(sslSocketFactory != null ? "https" : "http")
+
+4. 重点解析RealConnection的connectTls()方法，
+connectTls的很多 连接 TLS协议的参数都是从 Address中get出来的，
+   (1)这个方法中，创建了 sslSocket对象
+   (2)sslSocket.startHandshake() 开始 SSL或者TLS握手
+   (3)获取握手对象 
+      Handshake unverifiedHandshake = Handshake.get(sslSocket.getSession());
+   (4)检查 证书是否满足：证书管理器certificatePinner
+      // Check that the certificate pinner is satisfied by the certificates presented.
+      address.certificatePinner().check(address.url().host(),
+          unverifiedHandshake.peerCertificates());
+      注意，如果不满足，会抛出异常，不会往下走了
+   (5)连接成功，把当前socket 设置为sslSocket，并且创建source和sink
+      socket = sslSocket;
+      source = Okio.buffer(Okio.source(socket));
+      sink = Okio.buffer(Okio.sink(socket));
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
