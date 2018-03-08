@@ -1840,6 +1840,151 @@ view的 dispatchKeyEventPreIme 可以用来捕获键盘弹出时，按下back键
 
 ------------------------------------------------------------------------------------------------------------
 
+毫秒级别时间戳：
+15202 34303 694（13位）
+long time = System.currentTimeMillis();
+
+秒级别时间戳（10位）
+long time = System.currentTimeMillis() / 1000;
+有些机器设备是以秒位时间戳的，也就是只有10位的时间戳
+而在android的代码中，以13位时间戳为准，如果 其他设备传入的是秒级别时间戳（10位），
+需要乘以1000让它变成13位
+
+时间戳转换一 ：
+long time = System.currentTimeMillis();
+Calendar calendar = Calendar.getInstance();
+calendar.setTimeInMillis(time);
+int year = calendar.get(Calendar.YEAR);
+int month = calendar.get(Calendar.MONTH); // 注意，这里返回的是 月份下标，0-11，0是一月份
+int day = calendar.get(Calendar.DAY_OF_MONTH);
+int hour = calendar.get(Calendar.HOUR);
+int minute = calendar.get(Calendar.MINUTE);
+int second = calendar.get(Calendar.SECOND);
+int millisecond = calendar.get(Calendar.MILLISECOND);
+
+时间戳转换二 ：
+long time = System.currentTimeMillis();
+SimpleDateFormat d = new SimpleDateFormat("dd-MM-yyyy, hh:mm.ss.SSS");
+String formatString = d.format(time);
+
+时间戳转换三 （无法达到毫秒级）：
+long time = System.currentTimeMillis();
+Calendar cal = Calendar.getInstance(Locale.ENGLISH);
+cal.setTimeInMillis(time);
+String date = DateFormat.format("dd-MM-yyyy, hh:mm:ss", cal).toString();
+
+
+------------------------------------------------------------------------------------------------------------
+
+MD5 加密：
+
+    public static final String md5(final String s) {
+        final String MD5 = "MD5";
+        try {
+            // Create MD5 Hash
+            MessageDigest digest = java.security.MessageDigest
+                    .getInstance(MD5);
+            digest.update(s.getBytes());
+            byte messageDigest[] = digest.digest();
+
+            // Create Hex String
+            StringBuilder hexString = new StringBuilder();
+            for (byte aMessageDigest : messageDigest) {
+                String h = Integer.toHexString(0xFF & aMessageDigest);
+                while (h.length() < 2)
+                    h = "0" + h;
+                hexString.append(h);
+            }
+            return hexString.toString();
+
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+------------------------------------------------------------------------------------------------------------
+
+ConstraintLayout的 attributes属性
+
+app:layout_constraintBottom_toBottomOf="parent"
+app:layout_constraintBottom_toTopOf="parent"
+这两个配置效果相同，因为 constraintBottom 都是指 放置于layout的底部
+toBottomOf和toTopOf是当指向某个id才有效的配置
+
+1. 这两个view，都位于底部，view1在最底层，view2在view1的上面
+    <ImageView
+        android:id="@+id/view1"
+        android:layout_width="100dp"
+        android:layout_height="35dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
+
+    <ImageView
+        android:id="@+id/view2"
+        android:layout_width="100dp"
+        android:layout_height="35dp"
+        app:layout_constraintBottom_toTopOf="@id/view1"
+        />
+
+2. 设置margin
+    <android.support.v7.widget.CardView
+        android:id="@+id/civ_chat_main"
+        android:layout_width="156dp"
+        android:layout_height="135dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        >
+如果没有设置layout_constraintLeft_toLeftOf，layout_marginLeft不会生效
+如果没有设置layout_constraintTop_toTopOf，layout_marginTop不会生效
+
+
+------------------------------------------------------------------------------------------------------------
+
+屏蔽dialog的外部点击消失，屏蔽dialog的点击back键消失
+
+            mForceUpdateDialog.setCanceledOnTouchOutside(false);
+            mForceUpdateDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK
+                            && event.getAction() == KeyEvent.ACTION_DOWN) {
+                        if (mForceUpdateDialog != null && mForceUpdateDialog.isShowing()) {
+                            showToast(R.string.please_update);
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            });
+
+------------------------------------------------------------------------------------------------------------
+
+// 设置风格为@android:style/Theme.Holo.Light
+        <DatePicker
+            android:id="@+id/date_picker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:theme="@android:style/Theme.Holo.Light"/>
+
+        <TimePicker
+            android:id="@+id/time_picker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:theme="@android:style/Theme.Holo.Light"
+            />
+
+// 设置不显示 日历，也就是只显示picker
+mDatePicker.setCalendarViewShown(false);
+// 设置24小时制	
+mTimePicker.setIs24HourView(true);
+
+
+
+------------------------------------------------------------------------------------------------------------
+
 android的Touch（dispatchTouchEvent，onInterceptTouchEvent，onTouchEvent）
 
 	

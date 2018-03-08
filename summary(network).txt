@@ -280,7 +280,8 @@ Okhttp3 框架
 工程模式
 builder模式
 --------------------------------------------------
-并发控制，分发机制，Dispatcher
+
+异步请求并发控制，分发机制，Dispatcher
 
 当我们用OkHttpClient.newCall(request)进行execute/enqueue时，实际是将请求Call放到了Dispatcher中，okhttp使用Dispatcher进行线程分发，
 它有两种方法，一个是普通的同步单线程； 另一种是 （异步）使用了队列进行并发任务的分发(Dispatch)与回调，
@@ -299,11 +300,9 @@ builder模式
      Dispatcher 的 promoteCalls()， 其中判断了 runningAsyncCalls.size() >= maxRequests （最大负荷运转） ， readyAsyncCalls.isEmpty()(缓存区是否为空) ，接着迭代器 （Iterator）遍历缓存区readyAsyncCalls ，把 缓存区的call移除再加入到runningAsyncCalls中并执行call
 
 
-OkHttp采用Dispatcher技术，类似于Nginx，与线程池配合实现了高并发，低阻塞的运行
-Okhttp采用Deque作为缓存，按照入队的顺序先进先出
-OkHttp最出彩的地方就是在try/finally中调用了finished函数，可以主动控制等待队列的移动，而不是采用锁或者wait/notify，极大减少了编码复杂性
+------------------------
 
-
+疑问：
 0. RealCall 中有内部类 AsyncCall， AsyncCall是从Runnable继承下来的
 
 1. client.dispatcher().finished(this); 的作用
@@ -361,10 +360,49 @@ OkHttp最出彩的地方就是在try/finally中调用了finished函数，可以�
    二、有效控制线程池中的最大并发数，避免大量线程之间因为相互抢占系统资源而导致的阻塞现象.
    三、能够对线程进行简单的管理，可提供定时执行和按照指定时间间隔循环执行等功能.
 
+8. Dispatcher如何实现 任务分发，
+   (1) enqueue() 方法操作入队, 入队时，通过 最大并发请求数, 和正在执行的请求数，判定是加入预备队列还是 直接执行队列并直接执行
+   (2) 每一个正在执行的请求RealCall.AsyncCall，在execute(执行)最后，
+       主动 从直接执行队列移除 本AsyncCall，接着扫描预备执行队列，将待执行请求加入 直接执行队列并直接执行
+   
+
+
+------------------------
+并发机制，个人总结下的整体流程：
+1. 调用RealCall的enqueue方法进行入队（传入Callback接口的实例）
+2. 调用client.dispatcher().enqueue，
+   这里判断了 当前最大请求数是否小于 设定的最大请求数，并且判断了 主机最大请求数和当前的请求数
+   如果满足，AsyncCall加入runningAsyncCalls并执行；不满足，AsyncCall加入readyAsyncCalls
+3. 立即执行client.dispatcher().enqueue(new AsyncCall(responseCallback))，
+   executorService()创建一个ThreadPoolExecutor线程池，
+4. RealCall内部类AsyncCall被执行
+   AsyncCall.execute() 中, 调用getResponseWithInterceptorChain获取response
+   client.dispatcher().finished(this) -> dispatcher.promoteCalls,推进线程的执行
+5. promoteCalls,主动的把缓存队列向前走了一步:
+   遍历缓存区readyAsyncCalls ，把 缓存区的call移除再加入到runningAsyncCalls中并执行call,
+
+------------------------
+
+优点和一句话概括：
+OkHttp采用Dispatcher技术，类似于Nginx，与线程池配合实现了高并发，低阻塞的运行
+Okhttp采用Deque作为缓存，按照入队的顺序先进先出
+OkHttp最出彩的地方就是在try/finally中调用了finished函数，可以主动控制等待队列的移动，而不是采用锁或者wait/notify，极大减少了编码复杂性
+
+Dispatcher这个分发器无疑就是 异步请求，调度机制的核心(但其代码只有200余行)，
+通过Dispatcher将任务分发到合适的空闲线程，实现非阻塞，高可用，高并发连接
 
 
 
 -----------------------------------------------------------------------------------------------------------------------------------------
+
+线程池相关：
+
+线程池的优点
+OkHttp的任务队列在内部维护了一个线程池用于执行具体的网络请求。而线程池最大的好处在于通过线程复用减少非核心任务的损耗。
+线程池复用线程，节省了线程创建和销毁的时间：
+1.通过对线程进行缓存，减少了创建销毁的时间损失
+2.通过控制线程数量阀值，减少了当线程过少时带来的CPU闲置（比如说长时间卡在I/O上了）与线程过多时对JVM的内存与线程切换时系统调用的压力
+类似的还有Socket连接池、DB连接池、CommonPool(比如Jedis)等技术。
 
 
 在线程的使用过程中，要特别注意线程同步的问题，
