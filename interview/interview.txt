@@ -1,153 +1,349 @@
-MVCģʽ
-MVCȫ����Model View Controller����ģ��(model)����ͼ(view)��������(controller)����д��
-һ��������Ƶ䷶����һ��ҵ���߼������ݡ�������ʾ����ķ�����֯���룬��ҵ���߼��ۼ���һ���������棬
-�ڸĽ��͸��Ի����ƽ��漰�û�������ͬʱ������Ҫ���±�дҵ���߼���MVC�����صķ�չ��������ӳ�䴫ͳ�����롢
-���������������һ���߼���ͼ�λ��û�����Ľṹ�С�
+MVC模式
+MVC全名是Model View Controller，是模型(model)－视图(view)－控制器(controller)的缩写，
+一种软件设计典范，用一种业务逻辑、数据、界面显示分离的方法组织代码，将业务逻辑聚集到一个部件里面，
+在改进和个性化定制界面及用户交互的同时，不需要重新编写业务逻辑。MVC被独特的发展起来用于映射传统的输入、
+处理和输出功能在一个逻辑的图形化用户界面的结构中。
 
 --------------------------------------------------------------------
 
-������д��
+代码书写：
 /**
- * �����;
+ * 类的用途
  *
- * @author  ��������
+ * @author  作者名称
  * @since   JDK1.0
  */
 
 /**
- * ������;
+ * 方法用途
  * 
- * @param      ����1   ����
- * @param      ����2   ����
- * @param      ����3   ����
- * @return     ����
+ * @param      参数1   解释
+ * @param      参数2   解释
+ * @param      参数3   解释
+ * @return     解释
  *             
- * @exception  �쳣
+ * @exception  异常
  *                                             
  */
 
 
 -------------------------------------------------------------------- 
  
-���ң�
-˳����ң�Ҳ��Ϊ���β��ң������ݽṹ���α���һ�˿�ʼ��˳��ɨ�裬���ν�ɨ�赽�Ľ��ؼ��������ֵk��Ƚϣ�
-��������ʾ���ҳɹ�����ɨ�������û���ҵ��ؼ��ֵ���k�Ľ�㣬��ʾ����ʧ�ܡ�
+查找：
+顺序查找，也称为线形查找，从数据结构线形表的一端开始，顺序扫描，依次将扫描到的结点关键字与给定值k相比较，
+若相等则表示查找成功；若扫描结束仍没有找到关键字等于k的结点，表示查找失败。
 
-���ֲ���(Ҫ�������������)��Ҫ�����α��еĽ�㰴�ؼ���ֵ����������У��ø���ֵk�����м���Ĺؼ��ֱȽϣ�
-�м�������α��ֳ������ӱ������������ҳɹ���������ȣ�
-�ٸ���k����м���ؼ��ֵıȽϽ��ȷ����һ�������ĸ��ӱ���
-�����ݹ���У�ֱ�����ҵ�����ҽ������ֱ���û�������Ľ�㡣
+二分查找(要求数组是有序的)，要求线形表中的结点按关键字值升序或降序排列，用给定值k先与中间结点的关键字比较，
+中间结点把线形表分成两个子表，若相等则查找成功；若不相等，
+再根据k与该中间结点关键字的比较结果确定下一步查找哪个子表，
+这样递归进行，直到查找到或查找结束发现表中没有这样的结点。
 
-�ֿ����(Ҫ�������ǿ������)Ҳ��Ϊ�������ң������ηֳ����ɿ飬��ÿһ���е�����Ԫ�صĴ洢˳��������ģ�
-��Ҫ������֮���밴�ؼ���ֵ�Ĵ�С�������У���Ҫ����һ�����ؼ���ֵ����˳�����е���������
-�������е�һ���Ӧ���α��е�һ�飬����������������ݣ���������Ӧ������ؼ���
-������ָ�򱾿��һ������ָ�롣�ֿ���ҷ��������У���ȷ�������ҵĽ��������һ�飬Ȼ���ڿ��ڲ��ҽ�㡣
+分块查找(要求数组是块有序的)也称为索引查找，把线形分成若干块，在每一块中的数据元素的存储顺序是任意的，
+但要求块与块之间须按关键字值的大小有序排列，还要建立一个按关键字值递增顺序排列的索引表，
+索引表中的一项对应线形表中的一块，索引项包括两个内容：键域存放相应块的最大关键字
+链域存放指向本块第一个结点的指针。分块查找分两步进行，先确定待查找的结点属于哪一块，然后在块内查找结点。
 
-��ϣ��������ͨ���Լ�¼�Ĺؼ���ֵ�������㣬
-ֱ��������ĵ�ַ���ǹؼ��ֵ���ַ��ֱ��ת�����������÷����Ƚϡ�
-����f����n����㣬RiΪ����ĳ����㣨1��i��n����keyi����ؼ���ֵ����keyi��Ri�ĵ�ַ֮�佨��ĳ�ֺ�����ϵ��
-����ͨ����������ѹؼ���ֵת������Ӧ���ĵ�ַ���У�addr(Ri)=H(keyi)��addr(Ri)Ϊ��ϣ������
+哈希表查找是通过对记录的关键字值进行运算，
+直接求出结点的地址，是关键字到地址的直接转换方法，不用反复比较。
+假设f包含n个结点，Ri为其中某个结点（1≤i≤n），keyi是其关键字值，在keyi与Ri的地址之间建立某种函数关系，
+可以通过这个函数把关键字值转换成相应结点的地址，有：addr(Ri)=H(keyi)，addr(Ri)为哈希函数。
 
 -----------------------------------------------------------------------------------------------------------
 
 /**********************************************************************************************************
-java���
+java相关
 
 -----------------------------------------------------------------------------------------------------------
-���úͶ���
+引用和对象
 
-ÿ��������ĳ���ࣨclass����һ��ʵ����instance����������࡯���ǡ����͡���ͬ��ʡ�����������Java���˼�롷
+每个对象都是某个类（class）的一个实例（instance），这里，‘类’就是‘类型’的同义词。————《Java编程思想》
 
-ÿ�ֱ�����Զ����Լ������ݴ�����ʽ����Щʱ�򣬳���Ա����ע�⽫Ҫ������������ʲô���͡�
-����ֱ�Ӳ���Ԫ�أ�������ĳ�ֻ��������﷨�ļ�ӱ�ʾ������C/C++���ָ�룩����������
-������Щ�� Java �ﶼ�õ��˼򻯣�һ�ж�����Ϊ������ˣ����ǿɲ���һ��ͳһ���﷨��
-���ܽ�һ�ж������������󣬵����ݵı�ʶ��ʵ����ָ��һ������ġ����á���reference����  ����������Java���˼�롷
+每种编程语言都有自己的数据处理方式。有些时候，程序员必须注意将要处理的数据是什么类型。
+你是直接操纵元素，还是用某种基于特殊语法的间接表示（例如C/C++里的指针）来操作对象。
+所有这些在 Java 里都得到了简化，一切都被视为对象。因此，我们可采用一种统一的语法。
+尽管将一切都“看作”对象，但操纵的标识符实际是指向一个对象的“引用”（reference）。  ————《Java编程思想》
 
-���ȴ���һ������
-Person person = new Person("�����һ�");
+首先创建一个对象
+Person person = new Person("熊熊烈火");
 
-�������������� new Person("�����һ�")����Person person��һ��ָ��ô������¶���� ����(ǿ����)��
+创建对象的语句是 new Person("熊熊烈火")，而Person person是一个指向该创建的新对象的 引用(强引用)！
 
-ͬ��
-Person person;   //����һ��Person�������person
-person = new Person("�����һ�");  //������person
+同理
+Person person;   //声明一个Person类的引用person
+person = new Person("熊熊烈火");  //将引用person
 
-�����д���ʵ�ֵĹ��ܺ������һ�д�������ȫһ���ġ�
-��Java��new�������ڶ��ϴ��������õģ����person��һ������Ļ�����ô�ڶ���Ϊ�λ�Ҫͨ��new�����������أ�
-�ɴ˿ɼ���person�������������Ķ�����ʲô�������һ�λ�˵�ĺ�����������ݵı�ʶ��ʵ����ָ��һ����������á���
-Ҳ����˵person��һ�����ã���ָ��һ������ָ��Person��Ķ�������á�
+这两行代码实现的功能和上面的一行代码是完全一样的。
+在Java中new是用来在堆上创建对象用的，如果person是一个对象的话，那么第二行为何还要通过new来创建对象呢？
+由此可见，person并不是所创建的对象，是什么？上面的一段话说的很清楚，“操纵的标识符实际是指向一个对象的引用”，
+也就是说person是一个引用，是指向一个可以指向Person类的对象的引用。
 
 Person person;
-person = new Person("�����һ�");
-person = new Person("�����һ����");
-������person��ָ���ˡ������һ��������Ȼ����ָ���ˡ������һ���š��������
-Ҳ����˵��Person person����仰ֻ��������һ��Person������ã�������ָ���κ�Person���ʵ����
+person = new Person("熊熊烈火");
+person = new Person("熊熊烈火二号");
+这里让person先指向了“熊熊烈火”这个对象，然后又指向了“熊熊烈火二号”这个对象。
+也就是说，Person person，这句话只是声明了一个Person类的引用，它可以指向任何Person类的实例。
 
 int a;
 a=2;
 a=3;
-������������һ��int���͵ı���a���ȶ�a��ֵΪ2�������ָ�ֵΪ3.Ҳ����˵int���͵ı���a��
-����������ֵΪ2��Ҳ����Ϊ3��ֻҪ�ǺϷ���int���͵���ֵ���ɡ�
+这里先声明了一个int类型的变量a，先对a赋值为2，后面又赋值为3.也就是说int类型的变量a，
+可以让它的值为2，也可以为3，只要是合法的int类型的数值即可。
 
-Ҳ����˵��һ�����ÿ���ָ�������󣬶�һ��������Ա����������ָ
-���磺
-Person person1 = new Person("�����һ�");
+也就是说，一个引用可以指向多个对象，而一个对象可以被多个引用所指
+比如：
+Person person1 = new Person("熊熊烈火");
 Person person2 = person1;
-person1��person2��ָ���ˡ������һ��������
+person1和person2都指向了“熊熊烈火”这个对象。
 
 -----------------------------------------------------------------------------------------------------------
 
-��ֵ���ݺͰ����ô��ݡ�(main�����п����� ��ֵ���ݡ������ô���)
-��ֵ������ζ�ŵ���һ���������ݸ�һ������ʱ���������յ���ԭʼֵ��һ��������
-��ˣ���������޸��˸ò��������ı丱������ԭʼֵ���ֲ��䡣
+按值传递和按引用传递。(main方法中可以有 按值传递、按引用传递)
+按值传递意味着当将一个参数传递给一个函数时，函数接收的是原始值的一个副本。
+因此，如果函数修改了该参数，仅改变副本，而原始值保持不变。
 
-�����ô�����ζ�ŵ���һ���������ݸ�һ������ʱ���������յ���ԭʼֵ���ڴ��ַ��������ֵ�ĸ�����
-��ˣ���������޸��˸ò��������ô����е�ԭʼֵҲ��֮�ı䡣
+按引用传递意味着当将一个参数传递给一个函数时，函数接收的是原始值的内存地址，而不是值的副本。
+因此，如果函数修改了该参数，调用代码中的原始值也随之改变。
 
-1.�����ǰ����ô��ݵ�
-2.ԭʼ���������ǰ�ֵ���ݵ�
+1.对象是按引用传递的
+2.原始数据类型是按值传递的
 
-���������ݻ��ơ��������븳ֵ���ʱ�Ĵ��ݻ��ƵĲ�ͬ��
-Java Ӧ�ó������ҽ��е�һ�ֲ������ݻ��ƣ�����ֵ���ݣ���������������ʱ��ֻ�Ǵ��� ԭʼֵ�ĸ���
+“参数传递机制”，它是与赋值语句时的传递机制的不同。
+Java 应用程序有且仅有的一种参数传递机制，即按值传递，当传参数给方法时，只是传递 原始值的副本
 
-ע�⣺
-javaֻ��ֵ���ݲ�������һ������ʵ����Ϊһ���������ݵ�������ʱ��
-������ֵ�Ǹö�������õ�һ��������ָ��ͬһ������
-���Զ����е����ݿ��Ըı�(�������⣺���Ե��øø����ķ�����ʹ�ö����ĳЩ״̬���ı�)
-���ǣ�����������ǲ���ı��(�������⣺������Ըø����������¸�ֵ���������������û����)
-
------------------------------------------------------------------------------------------------------------
+注意：
+java只有值传递参数，当一个对象实例作为一个参数传递到方法中时，
+参数的值是该对象的引用的一个副本，指向同一个对象，
+所以对象中的内容可以改变(个人理解：可以调用该副本的方法，使得对象的某些状态被改变)
+但是，对象的引用是不会改变的(个人理解：如果，对该副本进行重新赋值，出了这个方法就没用了)
 
 
-Java��������
-JVM�Ƿ����һ������ı�׼���Ƿ������ñ������øö���(�������⣬������ǿ���û������������ã�ֻҪû�����þͻᱻGC)��
-ֻҪ�����ñ������øö����������ջ��ƾͲ����������
-ֻҪû�б������øö��󣬾ͻᱻGC��
-
-Java����Щ���ɴ�Ķ���ͻ�������������֮������ÿ��Գ�������νṹ��ͨ��������GC Roots����Ϊ��㣬����Щ�������������������߹�������Ϊ��������
-��һ������GC Rootsû���κ�����������ʱ����֤���������Ϊ�ɻ��յĶ���
-
-
------------------------------------------------------------------------------------------------------------
-
-������������������ԣ���װ���̳С���̬
-
-��װ����������ڲ�ʵ�ֻ��ƣ������ڲ�Ӱ��ʹ�õ�����¸ı�����ڲ��ṹ��ͬʱҲ���������ݡ�
-�������������ڲ�ϸ�������صģ���¶������ֻ�����ķ��ʷ�����
-
-�̳���Ϊ�����ø�����롣������������IS-A�Ĺ�ϵ�Ϳ���ʹ�ü̳С�
-
-��̬��������Ҫ�������̳С���д������ת�͡�
-�̳У��ڶ�̬�б�������м̳й�ϵ������͸��ࡣ
-��д������Ը�����ĳЩ�����������¶��壬�ڵ�����Щ����ʱ�ͻ��������ķ�����
-����ת�ͣ��ڶ�̬����Ҫ����������ø����������ֻ�����������ò��ܹ��߱����ܵ��ø���ķ���������ķ�����
-(����ת�� ��������һ����������ã�newһ�����࣬��ʹ���������ָ������Ķ���
-���磬A����B��ĸ��࣬TestA a = new TestB();)
 
 
 -----------------------------------------------------------------------------------------------------------
 
 
+Java垃圾回收
+JVM是否回收一个对象的标准：是否还有引用变量引用该对象(个人理解，不管是强引用还是软、弱引用，只要没有引用就会被GC)，
+只要有引用变量引用该对象，垃圾回收机制就不会回收它。
+只要没有变量引用该对象，就会被GC。
+
+Java中那些不可达的对象就会变成垃圾。对象之间的引用可以抽象成树形结构，通过树根（GC Roots）作为起点，从这些树根往下搜索，搜索走过的链称为引用链。
+当一个对象到GC Roots没有任何引用链相连时，则证明这个对象为可回收的对象。
+
+
+-----------------------------------------------------------------------------------------------------------
+
+ 强引用、软引用、弱引用、虚引用的概念
+
+1. 强引用：
+Object object = new Object();
+只要某个对象有强引用与之关联，JVM必定不会回收这个对象，即使在内存不足的情况下，JVM宁愿抛出OutOfMemory（OOM）错误也不会回收这种对象
+
+
+2. 软应用：
+SoftReference<String> sr = new SoftReference<String>(new String("hello"));
+
+SoftReference sr = new SoftReference(mButton);
+
+Counter prime = new Counter();
+SoftReference<Counter> soft = new SoftReference<Counter>(prime);
+
+软引用是用来描述一些有用但并不是必需的对象，在Java中用java.lang.ref.SoftReference类来表示。对于软引用关联着的对象，只有在内存不足的时候JVM才会回收该对象。
+
+这个特性很适合用来实现缓存：比如网页缓存、图片缓存等。软引用可用来实现内存敏感的高速缓存。   
+
+软引用可以和一个引用队列（ReferenceQueue）联合使用，如果软引用所引用的对象被垃圾回收器回收，Java虚拟机就会把这个软引用加入到与之关联的引用队列中。
+
+
+
+3. 弱引用
+WeakReference<String> sr = new WeakReference<String>(new String("hello"));
+
+Counter counter = new Counter(); // strong reference - line 1 WeakReference<Counter> weakCounter = new WeakReference<Counter>(counter);
+
+弱引用也是用来描述非必需对象的，当JVM进行垃圾回收时，无论内存是否充足，都会回收被弱引用关联的对象。
+弱引用与软引用的区别在于：只具有弱引用的对象拥有更短暂的生命周期。在垃圾回收器线程扫描它所管辖的内存区域的过程中，一旦发现了只具有弱引用的对象，不管当前内存空间足够与否，都会回收它的内存。
+
+如果这个对象是偶尔的使用，并且希望在使用时随时就能获取到，但又不想影响此对象的垃圾收集，那么你应该用 Weak Reference 来记住此对象。   
+
+弱引用可以和一个引用队列（ReferenceQueue）联合使用，如果弱引用所引用的对象被垃圾回收，Java虚拟机就会把这个弱引用加入到与之关联的引用队列中。
+
+
+4. 虚引用
+虚引用和软引用、弱引用不同，它并不影响对象的生命周期。在java中用java.lang.ref.PhantomReference类表示。如果一个对象与虚引用关联，则跟没有引用与之关联一样，在任何时候都可能被垃圾回收器回收。
+
+虚引用主要用来跟踪对象被垃圾回收器回收的活动。虚引用与软引用和弱引用的一个区别在于：虚引用必须和引用队列 （ReferenceQueue）联合使用。
+
+*当垃圾回收器准备回收一个对象时，如果发现它还有虚引用，就会在回收对象的内存
+之前，把这个虚引用加入到与之 关联的引用队列中。
+
+ReferenceQueue queue = new ReferenceQueue ();  
+PhantomReference pr = new PhantomReference (object, queue);  
+
+程序可以通过判断引用队列中是否已经加入了虚引用，来了解被引用的对象是否将要被垃圾回收。如果程序发现某个虚引用已经被加入到引用队列，那么就可以在所引用的对象的内存被回收
+之前采取必要的行动。
+
+-----------------------------------------------------------------------------------------------------------
+
+java GC 机制：
+---------------------------------
+一、判断对象是否是垃圾的算法:
+1、引用计数算法
+堆中每个对象（不是引用）都有一个引用计数器。当一个对象被创建并初始化赋值后，该变量计数设置为1。每当有一个地方引用它时，计数器值就加1（a = b， b被引用，则b引用的对象计数+1）。当引用失效时（一个对象的某个引用超过了生命周期（出作用域后）或者被设置为一个新值时），计数器值就减1。任何引用计数为0的对象可以被当作垃圾收集。当一个对象被垃圾收集时，它引用的任何对象计数减1。
+	优点：引用计数收集器执行简单，判定效率高；
+	缺点： 难以检测出对象之间的循环引用
+
+早期的JVM使用引用计数，现在大多数JVM采用对象引用遍历（根搜索算法）
+
+2、根搜索算法，
+这种算法的基本思路：
+（1）通过一系列名为“GC Roots”的对象作为起始点，寻找对应的引用节点。
+（2）找到这些引用节点后，从这些节点开始向下继续寻找它们的引用节点。
+（3）重复（2）。
+（4）搜索所走过的路径称为引用链，当一个对象到GC Roots没有任何引用链相连时，就证明此对象是不可用的。
+ Java和C#中都是采用根搜索算法来判定对象是否存活的。
+
+
+标记可达对象：
+  JVM中用到的所有现代GC算法在回收前都会先找出所有仍存活的对象。（根搜索算法是从离散数学中的图论引入的）
+
+首先，垃圾回收器将某些特殊的对象定义为GC根对象。所谓的GC根对象包括：
+（1）虚拟机栈中引用的对象（栈帧中的本地变量表）
+（2）方法区中的常量引用的对象；
+（3）方法区中的类静态属性引用的对象；
+（4）本地方法栈中JNI（Native方法）的引用对象。
+（5）活跃线程。
+
+  接下来，垃圾回收器会对内存中的整个对象图进行遍历，它先从GC根对象开始，然后是根对象引用的其它对象，比如实例变量。回收器将访问到的所有对象都标记为存活。
+     关于标记阶段有几个关键点是值得注意的：
+    （1）开始进行标记前，需要先暂停应用线程，否则如果对象图一直在变化的话是无法真正去遍历它的。暂停应用线程以便JVM可以尽情地收拾家务的这种情况又被称之为安全点（Safe Point），这会触发一次Stop The World(STW)暂停。
+    （2）暂停时间的长短并不取决于堆内对象的多少也不是堆的大小，而是存活对象的多少。
+     (3）在根搜索算法中，要真正宣告一个对象死亡，至少要经历两次标记过程：
+           1.如果对象在进行根搜索后发现没有与GC Roots相连接的引用链，那它会被第一次标记并且进行一次筛选。筛 
+           选的条件是此对象是否有必要执行 finalize（）方法（可看作析构函数，类似于OC中的dealloc，Swift中
+           的deinit）。
+           2.如果该对象被判定为有必要执行finalize（）方法，那么这个对象将会被放置在一个名为F-Queue队列
+           中，并在稍后由一条由虚拟机自动建立的、低优先级的Finalizer线程去执行finalize（）方法。
+    （4）实际上GC判断对象是否可达看的是强引用。
+  当标记阶段完成后，GC开始进入下一阶段，删除不可达对象。
+
+---------------------------------
+二、回收垃圾对象内存的算法
+  *在 根搜索算法 的基础上，现代虚拟机的实现当中，垃圾搜集的算法主要有三种，
+分别是标记-清除算法、复制算法、标记-整理算法。
+
+1、Tracing算法（Tracing Collector）即 标记—清除算法
+2、Compacting算法（Compacting Collector）即 标记—整理算法 （老年代的GC）
+3、Copying算法（Copying Collector）复制算法（新生代的GC）
+
+4、分代收集算法：（新生代的GC+老年代的GC），把不同的收集算法集合使用
+  根据对象的存活周期的不同将内存划分为几块儿。一般是把Java堆分为新生代和老年代：短命对象归为新生代，长命对象归为老年代。
+  (1)少量对象存活，适合复制算法：在新生代中，每次GC时都发现有大批对象死去，只有少量存活，
+  那就选用复制算法，只需要付出少量存活对象的复制成本就可以完成GC。
+  (2)大量对象存活，适合用标记-清理/标记-整理：在老年代中，因为对象存活率高、没有额外空间对他进行分配担保，
+  就必须使用“标记-清理”/“标记-整理”算法进行GC。
+
+
+
+
+
+---------------------------------
+Java的堆内存（Java Heap Memory）
+
+Java的堆内存基于Generation算法（Generational Collector）划分为新生代、年老代和持久代。
+所有通过new创建的对象的内存都在堆中分配。
+
+ 分代收集，是基于这样一个事实：不同的对象的生命周期是不一样的。因此，可以将不同生命周期的对象分代，不同的代采取不同的回收算法进行垃圾回收（GC），以便提高回收效率。
+
+堆内存分配区域：
+1.年轻代（Young Generation）
+      几乎所有新生成的对象首先都是放在年轻代的。新生代内存按照8:1:1的比例分为一个Eden区和两个
+      Survivor(Survivor0,Survivor1)区。
+
+2.年老代（Old Generation）
+      在年轻代中经历了N次垃圾回收后仍然存活的对象，就会被放到年老代中。
+
+3.持久代（Permanent Generation）
+      用于存放静态文件（class类、方法）和常量等。永久代空间在Java SE8特性中已经被移除。
+      取而代之的是元空间（MetaSpace）
+
+堆内存分配策略明确以下三点：
+（1）对象优先在Eden分配。
+（2）大对象直接进入老年代。
+（3）长期存活的对象将进入老年代。
+
+
+对垃圾回收机制说明以下三点：
+1. 新生代GC（Minor GC/Scavenge GC）：发生在新生代的垃圾收集动作。因为Java对象大多都具有朝生夕灭的特性，因此Minor GC非常频繁(不一定等Eden区满了才触发)，一般回收速度也比较快。
+在新生代中，每次垃圾收集时都会发现有大量对象死去，只有少量存活，
+
+因此可选用 copying算法来完成收集。
+
+2. 老年代GC（Major GC/Full GC）：发生在老年代的垃圾回收动作。Major GC，经常会伴随至少一次Minor GC。由于老年代中的对象生命周期比较长，因此Major GC并不频繁，一般都是等待老年代满了后才进行Full GC，而且其速度一般会比Minor GC慢10倍以上。另外，如果分配了Direct Memory，在老年代中进行Full GC时，会顺便清理掉Direct Memory中的废弃对象。
+
+老年代中因为对象存活率高、没有额外空间对它进行分配担保，就必须使用标记—清除算法或标记—整理算法来进行回收。
+
+垃圾回收器(GC)
+
+6.1 按执行机制划分Java有四种类型的垃圾回收器：
+（1）串行垃圾回收器（Serial Garbage Collector）
+（2）并行垃圾回收器（Parallel Garbage Collector）
+（3）并发标记扫描垃圾回收器（CMS Garbage Collector）
+（4）G1垃圾回收器（G1 Garbage Collector）
+
+---------------------------------
+
+Java的内存空间除了堆内存还有其他部分：
+1)栈
+    每个线程执行每个方法的时候都会在栈中申请一个栈帧，每个栈帧包括局部变量区和操作数栈，用于存放此次方法调用过程中的临时变量、参数和中间结果。
+
+2)本地方法栈
+    用于支持native方法的执行，存储了每个native方法调用的状态。
+
+3)堆
+    所有通过new创建的对象的内存都在堆中分配，其大小可以通过-Xmx和-Xms来控制。堆被划分为新生代和旧生代，
+
+4)方法区
+    存放了要加载的类信息、静态变量、final类型的常量、属性和方法信息。JVM用持久代(PermanetGeneration)来存放方法区，可通过-XX:PermSize和-XX:MaxPermSize来指定最小值和最大值。
+
+
+
+
+---------------------------------
+
+
+JVM内存空间管理
+根据JVM规范，JVM把内存划分了如下几个区域：
+
+1. 方法区
+2. 堆区
+3. 本地方法栈
+4. 虚拟机栈
+5. 程序计数器 
+
+其中，方法区和堆是所有线程共享的。
+
+
+
+
+-----------------------------------------------------------------------------------------------------------
+
+面向对象编程有三大特性：封装、继承、多态
+
+封装隐藏了类的内部实现机制，可以在不影响使用的情况下改变类的内部结构，同时也保护了数据。
+对外界而已它的内部细节是隐藏的，暴露给外界的只是它的访问方法。
+
+继承是为了重用父类代码。两个类若存在IS-A的关系就可以使用继承。
+
+多态有三个必要条件：继承、重写、向上转型。
+继承：在多态中必须存在有继承关系的子类和父类。
+重写：子类对父类中某些方法进行重新定义，在调用这些方法时就会调用子类的方法。
+向上转型：在多态中需要将子类的引用赋给父类对象，只有这样该引用才能够具备技能调用父类的方法和子类的方法。
+(向上转型 就是声明一个父类的引用，new一个子类，再使父类的引用指向子类的对象
+例如，A类是B类的父类，TestA a = new TestB();)
+
+
+-----------------------------------------------------------------------------------------------------------
 
 
 
@@ -157,14 +353,16 @@ Java����Щ���ɴ�Ķ���ͻ�������������֮������ÿ��Գ�������νṹ��ͨ��������
 
 
 
-**********************************************************************************************************/
+
+
+**********************************************************************************************************
 
 
 
-�������գ�
-1.��Ҫ�ڱؾ�·���������µ�ģ�顢���ܣ���������ò���ʧ
-2.���AIP�汾���ֻ���Ҫ��������
-3.���õĴ���ע��ϰ��
+升级风险：
+1.不要在必经路径上增加新的模块、功能，引起崩溃得不偿失
+2.多个AIP版本的手机都要经过测试
+3.良好的代码注释习惯
 
 --------------------------------------------------------------------
 
@@ -186,178 +384,182 @@ Java����Щ���ɴ�Ķ���ͻ�������������֮������ÿ��Գ�������νṹ��ͨ��������
 
 
 -----------------------------------------------------------------------------------------------------------
-��Ŀ���飺
+项目经验：
 Emoji-Camera
-�������ݽṹ��MoveBitmapInfo(��������㣬��ž��������λ�ƣ��Ƕȣ����ţ�emoji bitmap����Ϣ)
+基础数据结构，MoveBitmapInfo(中心坐标点，存放矩阵变量，位移，角度，缩放，emoji bitmap等信息)
 
-����
-1.��onDraw�����У��Ȼ��Ʊ��������Ž����е� emoji��text���Ƴ���
-2.canvas�����˺ܶ����bitmap�ķ�����drawBitmap�����Խ�һ���������(Matrix)���ø�������������𴫵�λ�ƣ���ת�����ŵ���Ϣ
-3.��onTouch�У��ᴫ�ݸ����¼���ACTION_DOWN��ACTION_POINTER_DOWN��ACTION_MOVE��ACTION_POINTER_UP��ACTION_UP��
-ͨ�����»����ƶ������������ᣬ���ı�����λ�ƣ���ת��������Ϣ��event.getPointerCount>1�ж��Ƿ����ָ������
+绘制
+1.在onDraw方法中，先绘制背景，接着将所有的 emoji和text绘制出来
+2.canvas重载了很多绘制bitmap的方法，drawBitmap，可以将一个矩阵对象(Matrix)设置给这个方法，负责传递位移，旋转，缩放等信息
+3.在onTouch中，会传递各种事件，ACTION_DOWN，ACTION_POINTER_DOWN，ACTION_MOVE，ACTION_POINTER_UP，ACTION_UP，
+通过按下或者移动产生的坐标轴，来改变矩阵的位移，旋转，缩放信息，event.getPointerCount>1判断是否多手指操作，
 
 
-1.λ�ƣ�ֻ�ܵ�ָλ�ƣ���move�¼��У��Ὣ��ǰ��ָ�����xy���괫�룬��������������Ϊ�������������Ϳ�����
+1.位移，只能单指位移，在move事件中，会将当前手指触点的xy坐标传入，将触点坐标设置为表情的中心坐标就可以了
 
-2.ͨ��emoji��ɫ����ͼ�꣬�ı���ת�Ƕȣ����š�
-���ţ���������㲻�䣬��ָ�ƶ���ı䣬��������ֱ�ӵľ��룬�ڳ���ԭ���ľ��룬�õ����ű���
-��ת����������㲻�䣬��ָ�ƶ���ı䣬�������һֱ�ߣ�ֱ����б�ʣ�ͨ����б�ʺ;�б�ʵļӼ�������õ��Ƕ�
-�����ѵ������ĸ����ޣ�������������ϰ�����°��ᣬ
-�����ص�xy���겻����emoji����Ϊ��㣬������view�����Ͻǵ�Ϊ���
-����ÿһ�ζ�Ҫ��emoji����Ϊ��㣬�ְ�������жϡ�ͨ�����Ǻ�����ʽ������Ƕ�
+2.通过emoji红色功能图标，改变旋转角度，缩放。
+缩放：中心坐标点不变，手指移动点改变，计算两点直接的距离，在除以原来的距离，得到缩放比例
+旋转：中心坐标点不变，手指移动点改变，两点产生一直线，直线有斜率，通过新斜率和旧斜率的加减法运算得到角度
+最困难的是有四个象限，两条坐标轴的上半轴和下半轴，
+而返回的xy坐标不是以emoji中心为零点，而是以view的左上角点为零点
+所以每一次都要以emoji中心为零点，分八种情况判断。通过三角函数公式来计算角度
 
-3.��ָ�������ı���ת�Ƕȣ����š�
-���ţ��ȼ���ԭ������룬��ָ�ƶ�����ı䣬����������ֱ�ӵľ��룬�ٴγ���ԭ���ľ��룬�õ����ű���
-��ת���ȼ���ԭ����ֱ��б�ʣ���ָ�ƶ���ı䣬����������ֱ�ӵ�б�ʣ�ͨ����б�ʺ;�б�ʵļӼ�������õ��Ƕ�
-�нǹ�ʽ��tan��=(k2- k1)/(1+ k1k2)����ԭ����ֱ��б�ʺ�������ֱ�ӵ�б�ʵõ���ת�ǶȦ�  (��atanȡֵ)
+3.多指操作，改变旋转角度，缩放。
+缩放：先计算原两点距离，手指移动两点改变，计算新两点直接的距离，再次除以原来的距离，得到缩放比例
+旋转：先计算原两点直线斜率，手指移动点改变，计算新两点直接的斜率，通过新斜率和旧斜率的加减法运算得到角度
+夹角公式：tanθ=(k2- k1)/(1+ k1k2)，用原两点直线斜率和新两点直接的斜率得到旋转角度θ  (用atan取值)
 
-4.��ѧ���֪ʶ���������ƶ����γɾ�����������㣬������ֱ�ߣ���ֱ���ཻ������2�ּнǣ�ͨ��˳ʱ�뻹����ʱ�뷽���ж�����һ�ּн�
-����ж�˳ʱ�뻹����ʱ�룬ͨ���ɵ���µ������Ƚ����жϡ�
-��x��ƽ�е�ֱ��б��Ϊ0
+4.数学相关知识，两个点移动，形成旧两点和新两点，构成两直线，两直线相交，会有2种夹角，通过顺时针还是逆时针方向，判断是哪一种夹角
+如何判断顺时针还是逆时针，通过旧点和新点的坐标比较来判断。
+和x轴平行的直线斜率为0
 
 --------------------------------------------------------------------
 
 
 
-android��أ�
+android相关：
 
-Android������ڴ�й©�ľ���ԭ��
-�ñ�GC���Ķ���û�б�GC��
-1.��ȡ���ݿ��Cursor��Map����list����close
-2.IO��û�йر�(InputStream,OutputStream)
-3.Activity��context����̬����У����类����ģʽ�Ķ������
-  �����Activity�Ƚ�ռ�ڴ������º�����
-4.Bitmap��������recycle
-5.�㲥������ע����֮�� registerReceiver������ȡ��ע�����unregisterReceiver
-  ���кܶ��������Ҫ��add֮��cancel
-6.handleй©��
-	  (1).��һ��AndroidӦ��������ʱ�򣬻��Զ�����һ����Ӧ�����߳�ʹ�õ�Looperʵ����
-	Looper����Ҫ��������һ��һ��������Ϣ�����е���Ϣ����
-	��Android�У�����Android��ܵ��¼�������Activity���������ڷ������úͰ�ť����ȣ����Ƿ��뵽��Ϣ�У�
-	Ȼ����뵽LooperҪ��������Ϣ�����У���Looper����һ��һ���ؽ��д�����
-	���߳��е�Looper�������ں͵�ǰӦ��һ������
-	  (2).��һ��Handler�����߳̽����˳�ʼ��֮��
-	���Ƿ���һ��targetΪ���Handler����Ϣ��Looper��������Ϣ����ʱ��
-	ʵ�����Ѿ����͵���Ϣ�Ѿ�������һ��Handlerʵ�������ã�
-	ֻ������Looper�ڴ�����������Ϣʱ�ſ��Ե���Handler#handleMessage(Message)�����Ϣ����ȷ������
-	  (3).��Java�У��Ǿ�̬���ڲ���������ڲ��඼����ʽ�س������ⲿ������á���̬���ڲ��಻������ⲿ������á�
-	  (4).��������徲̬��Handler�����������õ�Activity��
-	  
+Android中造成内存泄漏的具体原因：
+该被GC掉的东西没有被GC掉
+1.读取数据库的Cursor，Map表，list忘记close
+2.IO流没有关闭(InputStream,OutputStream)
+3.Activity的context被静态类持有，例如被单例模式的对象持有
+  当这个Activity比较占内存的情况下很致命
+4.Bitmap对象，忘记recycle
+5.广播接收者注册了之后 registerReceiver，忘记取消注册调用unregisterReceiver
+  还有很多监听者需要在add之后cancel
+6.handle泄漏：
+	  (1).当一个Android应用启动的时候，会自动创建一个供应用主线程使用的Looper实例。
+	Looper的主要工作就是一个一个处理消息队列中的消息对象。
+	在Android中，所有Android框架的事件（比如Activity的生命周期方法调用和按钮点击等）都是放入到消息中，
+	然后加入到Looper要处理的消息队列中，由Looper负责一条一条地进行处理。
+	主线程中的Looper生命周期和当前应用一样长。
+	  (2).当一个Handler在主线程进行了初始化之后，
+	我们发送一个target为这个Handler的消息到Looper处理的消息队列时，
+	实际上已经发送的消息已经包含了一个Handler实例的引用，
+	只有这样Looper在处理到这条消息时才可以调用Handler#handleMessage(Message)完成消息的正确处理。
+	  (3).在Java中，非静态的内部类和匿名内部类都会隐式地持有其外部类的引用。静态的内部类不会持有外部类的引用。
+	  (4).解决，定义静态的Handler，持有软引用的Activity。
+
+------------------------
+（1）静态集合类像HashMap、Vector等的使用最容易出现内存泄露，
+（2）各种连接，数据库连接，网络连接，IO连接等没有显示调用close关闭，不被GC回收导致内存泄露。
+（3）监听器的使用，在释放对象的同时没有相应删除监听器的时候也可能导致内存泄露。
 	  
 --------------------------------------------------------------------
-UI�̣߳�������ȾView���ַ��¼����� Ӧ��������ִ�У��Խ��������ѯ�ļ�����
-ֵ��ע����ǣ���ͨView��UI�̺߳����
-SurfaceView�����ɺ�̨�߳������ƣ��ʺϿ��ٸ���UI�����UI��ͼ��Ҫ�ϳ�ʱ��
+UI线程，负责渲染View，分发事件到响 应监听器并执行，对界面进行轮询的监听。
+值得注意的是，普通View由UI线程后绘制
+SurfaceView可以由后台线程来绘制，适合快速更新UI画面或UI画图需要较长时间
 
 
 
-UI�߳�����:
-������UI�߳���ִ�к�ʱ������������UI�̣߳�����ANR�쳣��
-
-
-
-
-
-���ʣ�������ճ��һ����Emojiʱ��Ϊ�λ��������UI�̣߳�ԭ��
+UI线程阻塞:
+不能在UI线程中执行耗时操作，会阻塞UI线程，导致ANR异常。
 
 
 
 
-���˾��飺
-��view�ı���С���������У����ƴ�BitmapͬʱҪ��Bitmap�������֣���ʱ����UI�߳̿���
+
+疑问：当复制粘贴一大批Emoji时，为何会造成阻塞UI线程？原因？
+
+
+
+
+个人经验：
+在view的变大变小动画过程中，绘制大Bitmap同时要对Bitmap进行遮罩，此时导致UI线程卡顿
 
 
 	  
 --------------------------------------------------------------------
   
-Task (Activity�����ջ)(A task is a stack of activities.) 
-task��һ������ջ�ṹ�����������Է��ö��Activityʵ��
-Ĭ������£�һ��Ӧ���ڵ�����Activity��������ͬ��affinity��
-���Ǵ�Application�̳ж�������ApplicationĬ�ϵ�affinity��<manifest>�еİ�����
-���ǿ���Ϊ<application>����taskAffinity����ֵ����������Ӧ�õ�<application>�µ�����<activity>��
-Ҳ���Ե���Ϊĳ��Activity����taskAffinity��
-FLAG_ACTIVITY_NEW_TASK����Intent�������������ʱ��ϵͳ��Ѱ�һ򴴽�һ���µ�task������Ŀ��Activity��
-Ѱ��ʱ����Ŀ��Activity��taskAffinity���Խ���ƥ�䣬����ҵ�һ��task��taskAffinity��֮��ͬ��
-�ͽ�Ŀ��Activityѹ���task�У���������޹����򴴽�һ���µ�task��
+Task (Activity任务堆栈)(A task is a stack of activities.) 
+task是一个具有栈结构的容器，可以放置多个Activity实例
+默认情况下，一个应用内的所有Activity都具有相同的affinity，
+都是从Application继承而来，而Application默认的affinity是<manifest>中的包名，
+我们可以为<application>设置taskAffinity属性值，这样可以应用到<application>下的所有<activity>，
+也可以单独为某个Activity设置taskAffinity。
+FLAG_ACTIVITY_NEW_TASK：当Intent对象包含这个标记时，系统会寻找或创建一个新的task来放置目标Activity，
+寻找时依据目标Activity的taskAffinity属性进行匹配，如果找到一个task的taskAffinity与之相同，
+就将目标Activity压入此task中，如果查找无果，则创建一个新的task。
 
-����һ��Ӧ�ã�ϵͳ�ͻ�Ϊ֮����һ��task�������ø�Activity��Ĭ������£�
-һ��Activity������һ��Activityʱ������Activity�Ƿ�����ͬһ��task�еģ����߱�ѹ��ǰ�����ڵ�taskջ��
-���û����º��˼������ߴ�task��������ǰ������ʾ��Ļǰ���ر�����������Ӧ���е�Activityʱ������Activity���û���˵�ͺ���������ͬһ��Ӧ�ã�
-ϵͳtask��task֮���ǻ�������ģ�����������һ��Ӧ��ʱ������Home���ص�������������һ��Ӧ�ã���������У�֮ǰ��task��ת�Ƶ���̨��
-�µ�task��ת�Ƶ�ǰ̨�����ActivityҲ����ʾ��Ļǰ������һ��֮���ڴ˰���Home���ص���������ѡ��֮ǰ��Ӧ�ã�
-֮ǰ��task�ᱻת�Ƶ�ǰ̨��ϵͳ��Ȼ������task�ڵ�����Activityʵ�������Ǹ��µ�task�ᱻת�Ƶ���̨�������ʱ�û��������˵ȶ�����
-������Ը�task�ڲ����в����ˡ�
+启动一个应用，系统就会为之创建一个task，来放置根Activity；默认情况下，
+一个Activity启动另一个Activity时，两个Activity是放置在同一个task中的，后者被压入前者所在的task栈，
+当用户按下后退键，后者从task被弹出，前者又显示在幕前，特别是启动其他应用中的Activity时，两个Activity对用户来说就好像是属于同一个应用；
+系统task和task之间是互相独立的，当我们运行一个应用时，按下Home键回到主屏，启动另一个应用，这个过程中，之前的task被转移到后台，
+新的task被转移到前台，其根Activity也会显示到幕前，过了一会之后，在此按下Home键回到主屏，再选择之前的应用，
+之前的task会被转移到前台，系统仍然保留着task内的所有Activity实例，而那个新的task会被转移到后台，如果这时用户再做后退等动作，
+就是针对该task内部进行操作了。
 
 
 --------------------------------------------------------------------
 
-Activity��Fragment
-Fragment�� getActivity()������Activity�� getFragmentManager()������
+Activity和Fragment
+Fragment有 getActivity()方法，Activity有 getFragmentManager()方法。
 
-Fragment������Activity�ֿ�ʹ�ã�Fragment������Activity��ʹ��
-����Fragment�����Լ����������ڣ����ǣ���Activity����ʱ����Activity�ϣ����е�FragmentҲ�Ტ����
+Fragment不能与Activity分开使用，Fragment必须在Activity中使用
+尽管Fragment有着自己的生命周期，但是，当Activity销毁时，在Activity上，所有的Fragment也会并销毁
 
-Fragment���������ʵ��һ���޲����Ĺ��췽����û�л����
-��Ϊframework(ϵͳ)�ڻظ�״̬�ڼ���Զ�����constructor(���췽��/������)��instantiate(ʵ����) 
+Fragment的子类必须实现一个无参数的构造方法，没有会崩溃
+因为framework(系统)在回复状态期间会自动调用constructor(构造方法/构造器)来instantiate(实例化) 
 
-Fragment��������
-onAttach(Activity) ��һ��Fragment associated(������)��һ��activityʱ
-onCreate(Bundle) ��ʼ��
-onCreateView(LayoutInflater, ViewGroup, Bundle) ��ʼ�������غ�Fragment��ص�view��hierarchy(���)
-onActivityCreated(Bundle) ��֪Fragment��activity�Ѿ�onCreate()���
-onViewStateRestored(Bundle)��֪Fragment���������еı���״̬��view���ָ�
-onStart() ʹFragment�ɼ��������ڰ���Fragment�� Activity�Ѿ�onstart
-onResume() ʹFragment�ܺ��û�interact(����)��ͬ��������Activity��onResume
-onPause() �������û���������Ϊ��ʱActivity����onPause������Activity�����޸���
-onStop()  ���ɼ�����Ϊ��ʱActivity����onStop������Activity�����޸���
-onDestroyView() ����Fragment�������associated (������)view
-onDestroy() ����
-onDetach() ������Activity����
-
-
-Activity �е� onSaveInstanceState,����Activity��Fragment����ͻָ�����
-onSaveInstanceState() ֻ����ϵͳ����Ҫ�Զ���������Activity��Fragmentǰ�Ż����, ���� 
-1, ����������Ӧ �ֻ���������Ϊ����, 
-2, �ֻ����Home���ͳ���Home��
-3, �����Դ������ʱ
-4, �ӵ�ǰActivity������һ��Activity
-5, Ӧ���ڴ治�㼴���Զ�����ʱ�����
+Fragment生命周期
+onAttach(Activity) 当一个Fragment associated(被关联)到一个activity时
+onCreate(Bundle) 初始化
+onCreateView(LayoutInflater, ViewGroup, Bundle) 初始化并返回和Fragment相关的view的hierarchy(层次)
+onActivityCreated(Bundle) 告知Fragment，activity已经onCreate()完毕
+onViewStateRestored(Bundle)告知Fragment，他的所有的保存状态的view被恢复
+onStart() 使Fragment可见，依赖于包容Fragment的 Activity已经onstart
+onResume() 使Fragment能和用户interact(互动)，同样依赖于Activity的onResume
+onPause() 不再与用户互动，因为此时Activity处于onPause，或者Activity正在修改它
+onStop()  不可见，因为此时Activity处于onStop，或者Activity正在修改它
+onDestroyView() 允许Fragment清除和他associated (关联的)view
+onDestroy() 销毁
+onDetach() 不再与Activity关联
 
 
-Fragment (back Stack)����ջ
-�÷��ǣ���ǰFragment���㱻�滻������Fragmentʱ�����Fragmentѹ�����ջ( ����addToBackStack() )
-������ذ���ʱ����Fragment�����³��֣�Ҳ����ͨ�� popBackStack()��ģ���û������ķ��������Ƭ�δӷ���ջ�е���
-���磺
+Activity 中的 onSaveInstanceState,用于Activity和Fragment保存和恢复数据
+onSaveInstanceState() 只有在系统即将要自动清理销毁Activity或Fragment前才会调用, 比如 
+1, 由于重力感应 手机从竖屏变为横屏, 
+2, 手机点击Home键和长按Home键
+3, 点击电源键锁屏时
+4, 从当前Activity跳到另一个Activity
+5, 应用内存不足即将自动销毁时等情况
+
+
+Fragment (back Stack)回退栈
+用法是，当前Fragment打算被替换成其他Fragment时，你把Fragment压入回退栈( 调用addToBackStack() )
+点击返回按键时，旧Fragment会重新出现，也可以通过 popBackStack()（模拟用户发出的返回命令）将片段从返回栈中弹出
+例如：
 fragmentTransaction.replace(R.id.simple_fragment, newFragment);
 fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-fragmentTransaction.addToBackStack(null); //�ѱ��滻�ľ�Fragmentѹ���ջ��null��ʾ��Fragment������
-fragmentTransaction.commit();//�ǵ�commit
+fragmentTransaction.addToBackStack(null); //把被替换的旧Fragment压入堆栈，null表示旧Fragment无名字
+fragmentTransaction.commit();//记得commit
 
 
 
-ϵͳΪ�㱣��Fragment��Activity����ʱ���ȴ���Fragment��ϵͳ�ְѱ����Fragment����Activity��
-��ˣ����´���2��Fragment,
-Fragment.setRetainInstance(ture) ��onDetach����Activity,��Activity������ʱ�򷵻ظ���Activity
+系统为你保存Fragment，Activity启动时，先创建Fragment，系统又把保存的Fragment给了Activity，
+如此，导致存在2个Fragment,
+Fragment.setRetainInstance(ture) 在onDetach脱离Activity,新Activity创建的时候返回给新Activity
 
-Activity.onSaveInstanceState(),Activity.onRestoreInstanceState()��������ظ����ݣ�
-��ʱ�ԣ����˱��泤�����ݣ�ӦΪonSaveInstanceState()��onRestoreInstanceState()�ĵ���ʱ��������
-ͨ���� ����home�����������л�ʱ����
+Activity.onSaveInstanceState(),Activity.onRestoreInstanceState()用来保存回复数据，
+临时性，不宜保存长久数据，应为onSaveInstanceState()和onRestoreInstanceState()的调用时机不定，
+通常在 按下home键，横竖屏切换时调用
 
 --------------------------------------------------------------------
 
-�����������
+其他三大组件
 
-Service����
-1.�����ں�ִ̨�г�ʱ�����в��������ṩ�û������Ӧ�������
-�����������Ӧ��������������Ҽ�ʹ�û��л�������Ӧ�ã������Խ��ں�̨�������С�
-���⣬������԰󶨵���������֮���н�����������ִ�н��̼�ͨ�� (IPC)
-���磬������Դ����������񡢲������֣�ִ���ļ� I/O ���������ṩ���򽻻�����������һ�о����ں�̨���С�
+Service服务
+1.可以在后台执行长时间运行操作而不提供用户界面的应用组件。
+服务可由其他应用组件启动，而且即使用户切换到其他应用，服务仍将在后台继续运行。
+此外，组件可以绑定到服务，以与之进行交互，甚至是执行进程间通信 (IPC)
+例如，服务可以处理网络事务、播放音乐，执行文件 I/O 或与内容提供程序交互，而所有这一切均可在后台进行。
 
-2.���ַ�ʽ����
-���� startService()
-�� bindService() 
+2.两种方式启动
+启动 startService()
+绑定 bindService() 
 
-������������
+两种生命周期
 onCreate()
 onStartCommand()
 onDestroy()
@@ -369,14 +571,14 @@ onDestroy()
 
 3.
 onStartCommand()
-����һ��������� Activity��ͨ������ startService() ������������ʱ��ϵͳ�����ô˷�����
-һ��ִ�д˷��������񼴻����������ں�̨���������С����ڷ�������ɺ���Ҫ���� stopSelf() �� stopService() ��ֹͣ����
+当另一个组件（如 Activity）通过调用 startService() 请求启动服务时，系统将调用此方法。
+一旦执行此方法，服务即会启动并可在后台无限期运行。则在服务工作完成后，需要调用 stopSelf() 或 stopService() 来停止服务。
 onBind()
-����һ�������ͨ������ bindService() �����󶨣�����ִ�� RPC��ʱ��ϵͳ�����ô˷�����
-�ڴ˷�����ʵ���У�������ͨ������ IBinder �ṩһ���ӿڣ����ͻ���������������ͨ�š�
-���ʵ�ִ˷��������������ϣ�������󶨣���Ӧ���� null��
+当另一个组件想通过调用 bindService() 与服务绑定（例如执行 RPC）时，系统将调用此方法。
+在此方法的实现中，您必须通过返回 IBinder 提供一个接口，供客户端用来与服务进行通信。
+务必实现此方法，但如果并不希望允许绑定，则应返回 null。
 
-4.ע�ᣬ�� Manifest��
+4.注册，在 Manifest中
 <manifest ... >
   ...
   <application ... >
@@ -385,76 +587,91 @@ onBind()
   </application>
 </manifest>
 
-5.˳��
-Activity�д��� �ڲ��ಢʵ�ֽӿ�ServiceConnection��ServiceConnection��onServiceConnected������ ����IBinder service����
-Activity����bindService (Intent service, ServiceConnection conn, int flags)
-Service�д���IBinder service������onBind�����з���
-��ˣ�Activity��Service����IBinder�������Ϳ���ͨ����
+5.顺序
+Activity中创建 内部类并实现接口ServiceConnection，ServiceConnection的onServiceConnected方法将 参数IBinder service传入
+Activity调用bindService (Intent service, ServiceConnection conn, int flags)
+Service中创建IBinder service，并在onBind方法中返回
+如此，Activity和Service都有IBinder，这样就可以通信了
 
 
 
-ContentProvider�����ṩ��
-1.���Ӧ�ó���֮�乲�����ݣ�ʹ��ContentProvider
-ContentProviderΪ�洢�ͻ�ȡ�����ṩ��ͳһ�Ľӿڡ�ContentProvide�����ݽ��з�װ�����ù������ݴ洢��ϸ�ڡ�ʹ�ñ�����ʽ����֯���ݡ�
-AndroidΪ������һЩ�����ṩ��Ĭ�ϵ�ContentProvider��������Ƶ����Ƶ��ͼƬ��ͨѶ¼�ȣ��� 
+ContentProvider内容提供者
+1.多个应用程序之间共享数据，使用ContentProvider
+ContentProvider为存储和获取数据提供了统一的接口。ContentProvide对数据进行封装，不用关心数据存储的细节。使用表的形式来组织数据。
+Android为常见的一些数据提供了默认的ContentProvider（包括音频、视频、图片和通讯录等）。 
 
-2.ContentProvider��ʵ��query��insert��delete��update�ȷ��������ݿ���� ��ɾ�Ĳ� SQLiteDatabase��
+2.ContentProvider中实现query，insert，delete，update等方法对数据库进行 增删改查 SQLiteDatabase类
 
 3.ContentResolver
-���ⲿӦ����Ҫ��ContentProvider�е����ݽ������ӡ�ɾ�����޸ĺͲ�ѯ����ʱ��
-����ʹ��ContentResolver������ɣ�Ҫ��ȡContentResolver���󣬿���ʹ��Context�ṩ��getContentResolver()������
-ContentResolver�ṩ�ķ�����ContentProvider�ṩ�ķ�����Ӧ�������¼���������
+当外部应用需要对ContentProvider中的数据进行添加、删除、修改和查询操作时，
+可以使用ContentResolver类来完成，要获取ContentResolver对象，可以使用Context提供的getContentResolver()方法。
+ContentResolver提供的方法和ContentProvider提供的方法对应的有以下几个方法。
 public Uri insert(Uri uri, ContentValues values) 
 public int delete(Uri uri, String selection, String[] selectionArgs)
 public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs)
 public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder)
 
 4.Uri
-Uriָ���˽�Ҫ������ContentProvider����ʵ���԰�һ��Uri������һ����ַ�����ǰ�Uri��Ϊ�����֡�
-��һ������"content://"�����Կ�������ַ�е�"http://"��
-�ڶ���������������authority������Ψһ��ʶ���ContentProvider���ⲿӦ����Ҫ���������ʶ���ҵ��������Կ�������ַ�е�������������"blog.csdn.NET"��
-����������·������������ʾ��Ҫ���������ݡ����Կ�����ַ��ϸ�ֵ�����·����
+Uri指定了将要操作的ContentProvider，其实可以把一个Uri看作是一个网址，我们把Uri分为三部分。
+第一部分是"content://"。可以看作是网址中的"http://"。
+第二部分是主机名或authority，用于唯一标识这个ContentProvider，外部应用需要根据这个标识来找到它。可以看作是网址中的主机名，比如"blog.csdn.NET"。
+第三部分是路径名，用来表示将要操作的数据。可以看作网址中细分的内容路径。
 
-5.ע�ᣬ�� Manifest��
-<provider android:authorities="list"  //uri����
-          android:name="string"  //����
+5.注册，在 Manifest中
+<provider android:authorities="list"  //uri列名
+          android:name="string"  //类名
     . . .
 </provider>
 
 
 
 
-BroadcastReceiver�㲥
-1.��AndroidManifest�ļ�������registerReceiver(��unregisterReceiverȡ��ע��)��ע��㲥��
+BroadcastReceiver广播
+1.在AndroidManifest文件、代码registerReceiver(用unregisterReceiver取消注册)中注册广播，
 
-2.���Խ���ϵͳ�㲥��Ҳ����app�Լ����͹㲥��app�Լ����ܹ㲥��
-ϵͳ�㲥��CALL_ACTION(����绰),PACKAGE_ADDED_ACTION(�°�װһ��Ӧ�ó����),PACKAGE_REMOVED_ACTION(ɾ��һ��Ӧ�ó����)
+2.可以接受系统广播，也可以app自己发送广播，app自己介绍广播，
+系统广播：CALL_ACTION(拨打电话),PACKAGE_ADDED_ACTION(新安装一个应用程序包),PACKAGE_REMOVED_ACTION(删除一个应用程序包)
 
-3.Normal broadcasts����ͨ�㲥����Normal broadcasts����ȫ�첽�Ŀ���ͬһʱ�䱻���еĽ����߽��յ���
-Ordered broadcasts������㲥����Ordered broadcasts�Ľ����߰���һ�������ȼ�������Ϣ�Ľ��ա�
-�磺A,B,C�����ȼ����ν��ͣ���ô��Ϣ�ȴ��ݸ�A���ڴ��ݸ�B����󴫵ݸ�C��
+3.Normal broadcasts（普通广播）：Normal broadcasts是完全异步的可以同一时间被所有的接收者接收到。
+Ordered broadcasts（有序广播）：Ordered broadcasts的接收者按照一定的优先级进行消息的接收。
+如：A,B,C的优先级依次降低，那么消息先传递给A，在传递给B，最后传递给C。
 
-4.���͹㲥�ķ�����
+4.发送广播的方法：
 sendBroadcast(intent)
 sendOrderedBroadcast(intent2, null)
 
-5.��������
+5.生命周期
 onReceive
-BroadcastReceiver���������ڣ��Ӷ����������ʼ����onReceive����ִ�����֮�������
-���⣬ÿ�ι㲥�����պ�����´���BroadcastReceiver���󣬲���onReceive������ִ��������٣�
-���BroadcastReceiver��onReceiver�����в�����10����ִ����ɣ�Android�����ANR�쳣��
-���Բ�Ҫ��BroadcastReceiver��onReceiver������ִ�к�ʱ�Ĳ�����
+BroadcastReceiver的生命周期，从对象调用它开始，到onReceive方法执行完成之后结束。
+另外，每次广播被接收后会重新创建BroadcastReceiver对象，并在onReceive方法中执行完就销毁，
+如果BroadcastReceiver的onReceiver方法中不能在10秒内执行完成，Android会出现ANR异常。
+所以不要在BroadcastReceiver的onReceiver方法中执行耗时的操作。
 
-�����Ҫ��BroadcastReceiver��ִ�к�ʱ�Ĳ���������ͨ��Intent����Service����ɡ������ܰ�Service��
+如果需要在BroadcastReceiver中执行耗时的操作，可以通过Intent启动Service来完成。但不能绑定Service。
 
-�ر��ǣ��������޷���һ��BroadcastReceiver����ʾһ���Ի��򣬻�󶨵�����
-����ǰ�ߣ���Ӧ��ʹ��NotificationManager��API��
-���ں��ߣ������ʹ��Context.startService()������һ��Service��
-
-
+特别是，您可能无法从一个BroadcastReceiver中显示一个对话框，或绑定到服务。
+对于前者，则应该使用NotificationManager的API。
+对于后者，你可以使用Context.startService()来启动一个Service。
 
 
+**********************************************************************************************************
 
+
+内存优化：
+（歪壳的 自由模式和模板模式的图片）
+大图片和图片数量比较多，会占用内存，导致界面卡顿，通过 不同图片适配 不同view的大小，来解决这个问题
+
+（歪壳的 图片元素列表，不过读取是从网络读取）
+假如有一个应用需要读取大量的本地图片，如果每次读取图片都从硬盘读取，则会严重影响性能，但是如果全部加载到内存当中，又有可能造成内存溢出，此时使用软引用可以解决这个问题。
+
+（歪壳的 模板背景分为 缩略图和高清图，预览时加载缩略图，使用时，再从网络读取高清图）
+解决了高清图在预览时占用大量内存，导致卡顿的现象
+
+
+-------------------------------------
+
+内存泄漏排查时间段，
+例行排查，项目开发到一定阶段，都要排查一下
 
 
 

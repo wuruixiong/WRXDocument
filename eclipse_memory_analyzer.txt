@@ -3,11 +3,104 @@ Overview
 
 -------------------------------------------
 
+从android studio 3导出 HPROF file
 
-leak suspect
-在overview最下方，点开reports，打开leak suspect界面，该界面会初步分析内存泄漏的情况，
-一般只有当内存泄漏很明显时才有作用
+1、在底部工具栏打开 Android Profiler(需要机器运行程序才会出现)
+单击memory，此时 Android Profiler窗口的左上方，
+有 MEMORY的下拉列表，Force garbage collection，Dump java heap 三个按钮
+（MEMORY的下拉列表可以切换 CUP，NETWORK的使用情况，Force garbage collection 点了之后会对内存GC）
 
+2、点击Dump java heap，会出现新的窗口，在新窗口的左上角，有个Export capture to file，
+点击 Export capture to file，将堆转储导出到一个 HPROF 文件中。
+在显示的对话框中，注意：确保使用 .hprof 后缀保存文件。
+通过将此文件拖到一个空的编辑器窗口（或将其拖到文件标签栏中），可以在 Android Studio 中重新打开该文件。
+
+3、其他 HPROF 分析器（如 jhat， MAT），需要将 HPROF 文件从 Android 格式转换为 Java SE HPROF 格式。 
+可以使用 android_sdk/platform-tools/ 目录中提供的 hprof-conv 工具执行此操作。 运行包括以下两个参数的 hprof-conv 命令：原始 HPROF 文件和转换后 HPROF 文件的写入位置。 例如：
+
+hprof-conv heap-original.hprof heap-converted.hprof
+
+（经过 3步骤 转换出来的.hprof文件才可以被 eclipse MAT的插件打开）
+
+
+-------------------------------------------
+
+在用android studio导出.hprof文件之前，
+1.需要先把全部界面 back键退出，保证activity执行 destroy 方法，此时，如果没有开启 service，那么内存应该是
+只剩下少量占用，application 不一定会销毁，
+2.再用 android studio中的工具 对手机GC， 确保该销毁的对象被销毁，application 不一定会销毁
+3.接着（可以不操作此步骤），dumpsys 打印当前 某个app对内存的占用情况，
+  adb shell dumpsys meminfo PackageName
+  会展示view和activity的占用情况，如果app完全退出，那么是一个activity和view都不会存在的，全部销毁了
+  如果有，那就是内存泄漏了
+
+
+-------------------------------------------
+
+MAT 内存泄漏分析
+
+1. leak suspect  生成 内存泄漏分析报告，通过MA自动分析泄漏的原因。（扇形图，内存消耗的整体状况）
+在overview最下方，点开reports，打开leak suspect界面，
+该界面会初步分析内存泄漏的情况，一般只有当内存泄漏很明显时才有作用
+
+扇形图展示了 哪些类的实例占据了 内存占用比例最大的那几种实例，
+如果 内存占用比例较大的那几种实例, 并且其中有 android中的那些类的实例，例如activity，泄漏的几率很大
+
+2. Histogram 
+它按类名将所有的实例对象列出来，点击表头（Class Name）可以排序，第一行输入正则表达式可以过滤筛选 ；
+
+Shallow Heap ：一个对象内存的消耗大小，不包含对其他对象的引用；
+Retained Heap ：是shallow Heap的总和，也就是该对象被GC之后所能回收的内存大小；
+
+在某一项上右键打开菜单选择 list objects ：
+with incoming references 将列出哪些类引入该类（引用到该对象的对象）(使用这个跟踪引用的泄漏源)
+with outgoing references 列出该类引用了哪些类（被该对象引用的对象）
+
+快速找出某个实例没被释放的原因，
+可以右健 Path to GC Roots --> exclue all phantom/weak/soft etc. reference :
+这个方法可以快速找到某个对象的 GC Root,一个存在 GC Root的对象是不会被 GC回收掉的.
+
+Histogram 对比
+为查找内存泄漏，通常需要两个 Dump结果作对比，打开 Navigator History面板，将两个表的 Histogram结果都添加到 Compare Basket中去 。
+
+
+3. Dominator Tree可以列出那个线程，以及线程下面的那些对象占用的空间。
+可以列出内存中存活的大对象列表，优点是有Percentage字段，可以看各种情况的百分比。
+(下一章)
+
+4. Top consumers通过图形列出最大的object。
+多种维度（包括 类大小、类加载器、包名）展示占用内存比较多的对象的分布，从而定位内存资源主要耗费在哪些地方！
+
+
+5. OQL(Object Query Language)
+类似SQL查询语言
+Classes：Table
+Objects：Rows
+Fileds： Cols
+
+select * from com.example.mat.Listener
+
+查找size＝0并且未使用过的ArrayList
+select * from java.util.ArrayList where size=0 and modCount=0
+
+
+5. 进一步进行泄漏分析
+ 5.1由于内存泄漏一般发生在Activity中，因此只需要查找Activity即可，如果有泄漏，肯定会有Activity 残留
+OQL 查找所有的Activity
+select * from instanceof android.app.Activity
+注意：instanceof（instance of 实例） 指的是查找实例，
+如果命令去掉 instanceof 是找不到，android.app.Activity，只能找到具体包下的activity
+例如 select * from com.wrx.mytest.MainActivity 才能找到
+
+ 5.2 对着找到的activity右击，选择：
+   Path to GC Roots-->exclude all phantom/weak/soft etc. references
+   这里是意思 排除所有的 虚引用/弱引用/软引用 （剩下强引用），再把剩下的引用展示出来
+   从这里开始，一步步跟踪下去，最终可以看到 源引用，就是源引用不释放导致的内存泄漏
+
+ 5.3 (一般用不到) Merge Shortest path to GC root
+   显示GC根节点到选中对象的引用路径
+   找到从GC根节点到一个对象或一组对象的共同路径
+   
 
 -------------------------------------------
 
@@ -35,6 +128,150 @@ retained heap:指的是一个对象的retained set所包含对象所占内存的
 
 
 -------------------------------------------
+
+java GC 机制：
+
+一、判断对象是否是垃圾的算法:
+1、引用计数算法
+堆中每个对象（不是引用）都有一个引用计数器。当一个对象被创建并初始化赋值后，该变量计数设置为1。每当有一个地方引用它时，计数器值就加1（a = b， b被引用，则b引用的对象计数+1）。当引用失效时（一个对象的某个引用超过了生命周期（出作用域后）或者被设置为一个新值时），计数器值就减1。任何引用计数为0的对象可以被当作垃圾收集。当一个对象被垃圾收集时，它引用的任何对象计数减1。
+	优点：引用计数收集器执行简单，判定效率高；
+	缺点： 难以检测出对象之间的循环引用
+
+早期的JVM使用引用计数，现在大多数JVM采用对象引用遍历（根搜索算法）
+
+2、根搜索算法，
+这种算法的基本思路：
+（1）通过一系列名为“GC Roots”的对象作为起始点，寻找对应的引用节点。
+（2）找到这些引用节点后，从这些节点开始向下继续寻找它们的引用节点。
+（3）重复（2）。
+（4）搜索所走过的路径称为引用链，当一个对象到GC Roots没有任何引用链相连时，就证明此对象是不可用的。
+ Java和C#中都是采用根搜索算法来判定对象是否存活的。
+
+3、根（GC Roots）：
+说到GC roots（GC根），在JAVA语言中，可以当做GC roots的对象有以下几种：
+1、栈（栈帧中的本地变量表）中引用的对象。
+2、方法区中的静态成员。
+3、方法区中的常量引用的对象（全局变量）
+4、本地方法栈中JNI（一般说的Native方法）引用的对象。
+注：第一和第四种都是指的方法的本地变量表，第二种表达的意思比较清晰，第三种主要指的是声明为final的常量值。
+
+
+二、回收垃圾对象内存的算法
+  *在 根搜索算法 的基础上，现代虚拟机的实现当中，垃圾搜集的算法主要有三种，
+分别是标记-清除算法、复制算法、标记-整理算法。
+
+1、Tracing算法（Tracing Collector）即 标记—清除算法
+2、Compacting算法（Compacting Collector）即 标记—整理算法 （老年代的GC）
+3、Copying算法（Copying Collector）复制算法（新生代的GC）
+
+4、分代收集算法：（新生代的GC+老年代的GC），把不同的收集算法集合使用
+  根据对象的存活周期的不同将内存划分为几块儿。一般是把Java堆分为新生代和老年代：
+  短命对象归为新生代，长命对象归为老年代。
+  (1)少量对象存活，适合复制算法：在新生代中，每次GC时都发现有大批对象死去，只有少量存活，
+  那就选用复制算法，只需要付出少量存活对象的复制成本就可以完成GC。
+  (2)大量对象存活，适合用标记-清理/标记-整理：在老年代中，因为对象存活率高、没有额外空间对他进行分配担保，
+  就必须使用“标记-清理”/“标记-整理”算法进行GC。
+
+  4.1、新生代的GC：
+新生代通常存活时间较短，因此基于Copying算法来进行回收，所谓Copying算法就是扫描出存活的对象，并复制到一块新的完全未使用的空间中，对应于新生代，就是在Eden和FromSpace或ToSpace之间copy。
+执行机制上JVM提供了串行GC(SerialGC)、并行回收GC(ParallelScavenge)和并行GC(ParNew)
+
+  4.2、旧生代的GC：对象存活的时间比较长，比较稳定，因此采用标记(Mark)算法来进行回收，所谓标记就是扫描出存活的对象，然后再进行回收未被标记的对象，回收后对用空出的空间要么进行合并，要么标记出来便于下次进行分配，总之就是要减少内存碎片带来的效率损耗。
+在执行机制上JVM提供了串行GC(SerialMSC)、并行GC(parallelMSC)和并发GC(CMS)，
+
+—-----------------------
+
+JVM内存结构由堆、栈、本地方法栈、方法区等部分组成，另外JVM分别对新生代和旧生代采用不同的垃圾回收机制。
+1)堆
+所有通过new创建的对象的内存都在堆中分配，其大小可以通过-Xmx和-Xms来控制。堆被划分为新生代和旧生代，新生代又被进一步划分为Eden和Survivor区，最后Survivor由FromSpace和ToSpace组成，
+新建的对象都是用新生代分配内存，Eden空间不足的时候，会把存活的对象转移到Survivor中，新生代大小可以由-Xmn来控制，也可以用-XX:SurvivorRatio来控制Eden和Survivor的比例旧生代。用于存放新生代中经过多次垃圾回收仍然存活的对象
+
+2)栈
+每个线程执行每个方法的时候都会在栈中申请一个栈帧，每个栈帧包括局部变量区和操作数栈，用于存放此次方法调用过程中的临时变量、参数和中间结果
+
+3)本地方法栈
+    用于支持native方法的执行，存储了每个native方法调用的状态。
+
+4)方法区
+    存放了要加载的类信息、静态变量、final类型的常量、属性和方法信息。JVM用持久代(PermanetGeneration)来存放方法区，可通过-XX:PermSize和-XX:MaxPermSize来指定最小值和最大值。
+
+
+
+-----------------------------------------------------------------------------------------------------------
+
+
+强引用、软引用、弱引用、虚引用的概念
+
+1. 强引用：
+Object object = new Object();
+只要某个对象有强引用与之关联，JVM必定不会回收这个对象，即使在内存不足的情况下，JVM宁愿抛出OutOfMemory（OOM）错误也不会回收这种对象
+
+
+2. 软应用：
+SoftReference<String> sr = new SoftReference<String>(new String("hello"));
+
+SoftReference sr = new SoftReference(mButton);
+
+Counter prime = new Counter();
+SoftReference<Counter> soft = new SoftReference<Counter>(prime);
+
+软引用是用来描述一些有用但并不是必需的对象，在Java中用java.lang.ref.SoftReference类来表示。对于软引用关联着的对象，只有在内存不足的时候JVM才会回收该对象。
+
+这个特性很适合用来实现缓存：比如网页缓存、图片缓存等。软引用可用来实现内存敏感的高速缓存。   
+
+软引用可以和一个引用队列（ReferenceQueue）联合使用，如果软引用所引用的对象被垃圾回收器回收，Java虚拟机就会把这个软引用加入到与之关联的引用队列中。
+
+
+
+3. 弱引用
+WeakReference<String> sr = new WeakReference<String>(new String("hello"));
+
+Counter counter = new Counter(); // strong reference - line 1 WeakReference<Counter> weakCounter = new WeakReference<Counter>(counter);
+
+弱引用也是用来描述非必需对象的，当JVM进行垃圾回收时，无论内存是否充足，都会回收被弱引用关联的对象。
+弱引用与软引用的区别在于：只具有弱引用的对象拥有更短暂的生命周期。在垃圾回收器线程扫描它所管辖的内存区域的过程中，一旦发现了只具有弱引用的对象，不管当前内存空间足够与否，都会回收它的内存。
+
+如果这个对象是偶尔的使用，并且希望在使用时随时就能获取到，但又不想影响此对象的垃圾收集，那么你应该用 Weak Reference 来记住此对象。   
+
+弱引用可以和一个引用队列（ReferenceQueue）联合使用，如果弱引用所引用的对象被垃圾回收，Java虚拟机就会把这个弱引用加入到与之关联的引用队列中。
+
+
+4. 虚引用
+虚引用和软引用、弱引用不同，它并不影响对象的生命周期。在java中用java.lang.ref.PhantomReference类表示。如果一个对象与虚引用关联，则跟没有引用与之关联一样，在任何时候都可能被垃圾回收器回收。
+
+虚引用主要用来跟踪对象被垃圾回收器回收的活动。虚引用与软引用和弱引用的一个区别在于：虚引用必须和引用队列 （ReferenceQueue）联合使用。
+
+*当垃圾回收器准备回收一个对象时，如果发现它还有虚引用，就会在回收对象的内存
+之前，把这个虚引用加入到与之 关联的引用队列中。
+
+ReferenceQueue queue = new ReferenceQueue ();  
+PhantomReference pr = new PhantomReference (object, queue);  
+
+程序可以通过判断引用队列中是否已经加入了虚引用，来了解被引用的对象是否将要被垃圾回收。如果程序发现某个虚引用已经被加入到引用队列，那么就可以在所引用的对象的内存被回收
+之前采取必要的行动。
+
+
+5. Android 实战
+mWRFBitmap = new WeakReference<Bitmap>(BitmapFactory.decodeResource(getResources(), R.mipmap.horizontal_bg));
+
+5.1 可以这么使用 mImageView.setImageBitmap(mWRFBitmap.get());
+这么设置之后 bitmap对象又会多一条引用
+
+5.2 如果不对 弱引用mWRFBitmap做get操作，那么进行GC操作之后，mWRFBitmap get到的bitmap会是空的，
+但mWRFBitmap还不是空
+
+
+-----------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
 
 
 
