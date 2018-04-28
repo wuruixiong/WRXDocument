@@ -1,14 +1,14 @@
-�̳еĸ����������Խ�protected�����޸�Ϊpublic����
+继承的父类的子类可以将protected方法修改为public方法
 
-�̳еĸ�������������дpublic��protected������������ֻ��public��protected���η��ķ�����
-�����������static��final�����η����ɱ���д
+继承的父类的子类可以重写public，protected方法，必须是只有public，protected修饰符的方法，
+如果方法加了static，final等修饰符不可被重写
 
-�෽�������������static���εķ����ͱ���
-ʵ��������ʵ����������static���εķ����ͱ���
+类方法，类变量：有static修饰的方法和变量
+实例方法，实例变量：无static修饰的方法和变量
 
 ---------------------------------------------------------------------------------
 
-//һ��for����ӡ�žų˷���
+//一个for，打印九九乘法表
 for(int i = 1, j = 1; i <= 9;) {
 	System.out.println(i * j + "");
 	if (j < 9){
@@ -22,16 +22,16 @@ for(int i = 1, j = 1; i <= 9;) {
 
 ---------------------------------------------------------------------------------
 
-�����������н���ǣ���
+下面程序的运行结果是（）
 String str1 = "hello";
 String str2 = "he" + new String("llo");
 System.err.println(str1 == str2);
 
-�����false���ַ���(���������)�Ƚϲ�����==�ţ�Ӧ��str1.equals(str2)
+结果：false，字符串(对象的引用)比较不能用==号，应该str1.equals(str2)
 
 ---------------------------------------------------------------------------------
 
-�����������н��
+下面程序的运行结果
     public static void main(String args[]) {
 
         Thread t = new Thread() {
@@ -52,93 +52,93 @@ System.err.println(str1 == str2);
 
     }
 
-A pingpong        B pongping       C pingpong��pongping���п���       D �������
+A pingpong        B pongping       C pingpong和pongping都有可能       D 都不输出
 
-�𰸣�B
-���������￼����Thread����start()��run()�����������ˡ�
-start()��������һ���̣߳�������start������ϵͳ�ŻῪ��һ���µ��̣߳�
-��������run()������ִ�����񣬶������ĵ���run()�͸�������ͨ������һ���ģ�
-�Ѿ�ʧȥ�̵߳������ˡ����������һ���̵߳�ʱ��һ��Ҫʹ��start()������run()��
-
----------------------------------------------------------------------------------
-
-GC�߳��Ƿ�Ϊ�ػ��̣߳�
-
-�𰸣���
-
-�������̷߳�Ϊ�ػ��̺߳ͷ��ػ��̣߳����û��̣߳���
-
-ֻҪ��ǰJVMʵ�����д����κ�һ�����ػ��߳�û�н������ػ��߳̾�ȫ��������ֻ�е����һ�����ػ��߳̽���ʱ���ػ��߳�����JVMһͬ����������
-�ػ��߳�����͵�Ӧ�þ��� GC (����������)
+答案：B
+解析：这里考的是Thread类中start()和run()方法的区别了。
+start()用来启动一个线程，当调用start方法后，系统才会开启一个新的线程，
+进而调用run()方法来执行任务，而单独的调用run()就跟调用普通方法是一样的，
+已经失去线程的特性了。因此在启动一个线程的时候一定要使用start()而不是run()。
 
 ---------------------------------------------------------------------------------
 
-volatile�ؼ����Ƿ��ܱ�֤�̰߳�ȫ��
+GC线程是否为守护线程？
 
-�𰸣�����
+答案：是
 
-������volatile�ؼ������ڶ��߳�ͬ���У��ɱ�֤��ȡ�Ŀɼ��ԣ�JVMֻ�Ǳ�֤�����ڴ���ص��̹߳����ڴ��ֵ�����µĶ�ȡֵ������cache�С�
-������̶߳�volatile��д�������޷���֤�̰߳�ȫ��
-��������߳�1���߳�2 �ڽ���read,load �����У��������ڴ���count��ֵ����5����ô�������������µ�ֵ��
-���߳�1��count�����޸�֮�󣬻�write�����ڴ��У����ڴ��е�count�����ͻ��Ϊ6���߳�2�����Ѿ�����read,load������
-�ڽ�������֮��Ҳ��������ڴ�count�ı���ֵΪ6�����������̼߳�ʱ��volatile�ؼ����޸�֮�󣬻��ǻ���ڲ����������
+解析：线程分为守护线程和非守护线程（即用户线程）。
 
----------------------------------------------------------------------------------
-
-����ʹi + 1 < i������
-
-�𰸣�����
-
-���������iΪint�ͣ���ô��iΪint�ܱ�ʾ���������ʱ��i+1�������ɸ����ˣ���ʱ����<i����
-
-��չ������ʹi > j || i <= j�����������𣨣�
-
-�𰸣�����
-
-����������Double.NaN��Float.NaN����л@BuilderQiu����ָ����
+只要当前JVM实例中尚存在任何一个非守护线程没有结束，守护线程就全部工作；只有当最后一个非守护线程结束时，守护线程随着JVM一同结束工作。
+守护线程最典型的应用就是 GC (垃圾回收器)
 
 ---------------------------------------------------------------------------------
 
-0.6332�����������ǣ���
+volatile关键字是否能保证线程安全？
+
+答案：不能
+
+解析：volatile关键字用在多线程同步中，可保证读取的可见性，JVM只是保证从主内存加载到线程工作内存的值是最新的读取值，而非cache中。
+但多个线程对volatile的写操作，无法保证线程安全。
+例如假如线程1，线程2 在进行read,load 操作中，发现主内存中count的值都是5，那么都会加载这个最新的值，
+在线程1堆count进行修改之后，会write到主内存中，主内存中的count变量就会变为6；线程2由于已经进行read,load操作，
+在进行运算之后，也会更新主内存count的变量值为6；导致两个线程及时用volatile关键字修改之后，还是会存在并发的情况。
+
+---------------------------------------------------------------------------------
+
+存在使i + 1 < i的数吗
+
+答案：存在
+
+解析：如果i为int型，那么当i为int能表示的最大整数时，i+1就溢出变成负数了，此时不就<i了吗。
+
+扩展：存在使i > j || i <= j不成立的数吗（）
+
+答案：存在
+
+解析：比如Double.NaN或Float.NaN，感谢@BuilderQiu网友指出。
+
+---------------------------------------------------------------------------------
+
+0.6332的数据类型是（）
 A float     B double     C Float      D Double
-�𰸣�B
-������Ĭ��Ϊdouble�ͣ����Ϊfloat����Ҫ����f��ʾ˵������0.6332f
+答案：B
+解析：默认为double型，如果为float型需要加上f显示说明，即0.6332f
 
 ---------------------------------------------------------------------------------
 
-�����ĸ��������������ַ���������(  )
+下面哪个流类属于面向字符的输入流(  )
 
 A  BufferedWriter           B  FileInputStream          C  ObjectInputStream          D  InputStreamReader
 
- �𰸣�D
+ 答案：D
 
- ������Java��IO�������������ֽ�(Byte)�������ַ�(Character)���ַ�ʽ��
-�����ֽڵĲ���Ϊ��8λΪ��λ�Զ����Ƶ����ݽ��в����������ݲ�����ת������Щ�඼��InputStream��OutputStream�����ࡣ
-�����ַ��Ĳ���Ϊ���ַ�Ϊ��λ�����ݽ��в������ڶ���ʱ�򽫶���������תΪ�ַ�����д��ʱ���ַ�תΪ���������ݣ���Щ�඼��Reader��Writer�����ࡣ
+ 解析：Java的IO操作中有面向字节(Byte)和面向字符(Character)两种方式。
+面向字节的操作为以8位为单位对二进制的数据进行操作，对数据不进行转换，这些类都是InputStream和OutputStream的子类。
+面向字符的操作为以字符为单位对数据进行操作，在读的时候将二进制数据转为字符，在写的时候将字符转为二进制数据，这些类都是Reader和Writer的子类。
 
-�ܽ᣺��InputStream�����룩/OutputStream�������Ϊ��׺�����ֽ�����
-      ��Reader�����룩/Writer�������Ϊ��׺�����ַ�����
-
----------------------------------------------------------------------------------
-
-��ͨ�����캯��Ҳ�ܴ��������𣨣�
-
-A ��     B ��
-
-�𰸣�A
-
-������Java��������ļ��ַ�ʽ����Ҫ����
-
-(1) ��new��䴴��������������Ĵ�������ķ�����
-(2) ���÷����ֶ�,����java.lang.Class����java.lang.reflect.Constructor���newInstance()ʵ��������
-(3) ���ö����clone()������
-(4) ���÷����л��ֶΣ�����java.io.ObjectInputStream����� readObject()������
-
-(1)��(2)������ȷ����ʽ�ĵ��ù��캯�� ��(3)�����ڴ��϶����ж����Ӱӡ�����Բ�����ù��캯�� ��(4)�Ǵ��ļ��л�ԭ��Ķ���Ҳ������ù��캯����
+总结：以InputStream（输入）/OutputStream（输出）为后缀的是字节流；
+      以Reader（输入）/Writer（输出）为后缀的是字符流。
 
 ---------------------------------------------------------------------------------
 
-������������������𣨣�
+不通过构造函数也能创建对象吗（）
+
+A 是     B 否
+
+答案：A
+
+解析：Java创建对象的几种方式（重要）：
+
+(1) 用new语句创建对象，这是最常见的创建对象的方法。
+(2) 运用反射手段,调用java.lang.Class或者java.lang.reflect.Constructor类的newInstance()实例方法。
+(3) 调用对象的clone()方法。
+(4) 运用反序列化手段，调用java.io.ObjectInputStream对象的 readObject()方法。
+
+(1)和(2)都会明确的显式的调用构造函数 ；(3)是在内存上对已有对象的影印，所以不会调用构造函数 ；(4)是从文件中还原类的对象，也不会调用构造函数。
+
+---------------------------------------------------------------------------------
+
+下面程序能正常运行吗（）
 
 public class NULL {
 
@@ -150,14 +150,14 @@ public class NULL {
     }
 
 }
-�𰸣�����������
-���������Ϊhaha����Ϊnullֵ����ǿ��ת��Ϊ�κ�java������,(String)nullҲ�ǺϷ��ġ�
-��nullǿ��ת��������Ч�����䷵��ֵ����Ϊnull����static�����ĵ����Ǻ������󶨵ģ�
-������������з�����������ȷ�������������û��static���ξ�ֻ���ö�����з��ʣ�
-ʹ��null���ö���϶��ᱨ��ָ����ˡ������C++�����ơ�
+答案：能正常运行
+解析：输出为haha，因为null值可以强制转换为任何java类类型,(String)null也是合法的。
+但null强制转换后是无效对象，其返回值还是为null，而static方法的调用是和类名绑定的，
+不借助对象进行访问所以能正确输出。反过来，没有static修饰就只能用对象进行访问，
+使用null调用对象肯定会报空指针错了。这里和C++很类似。
 
 ---------------------------------------------------------------------------------
-�����������н����ʲô����
+下面程序的运行结果是什么（）
 
 class HelloA {
 
@@ -181,36 +181,36 @@ public class HelloB extends HelloA {
     static { System.out.println("static B"); }
     
     public static void main(String[] args) { 
-�������� new HelloB(); 
-���� }
+　　　　 new HelloB(); 
+　　 }
 
 }
 
 
-�𰸣�
+答案：
 static A
 static B
 I'm A class
 HelloA
 I'm B class
 HelloB
-������˵ʵ���Ҿ�������ܺã����龲̬���顢�������飨����ֻ�д����ŵ��ǿ飩�Լ����캯����ִ��˳��
+解析：说实话我觉得这题很好，考查静态语句块、构造语句块（就是只有大括号的那块）以及构造函数的执行顺序。
 
-����ĳ�ʼ��˳��
-��1�������֮�󣬰����ϵ��£��Ӹ��ൽ���ִࣩ�б�static���ε���䣻
-��2����static���ִ����֮��,��ִ��main������
-��3����������new�������Ķ��󣬽����ϵ���ִ�й������顢�����������߿���˵����һ�𣩡�
+对象的初始化顺序：
+（1）类加载之后，按从上到下（从父类到子类）执行被static修饰的语句；
+（2）当static语句执行完之后,再执行main方法；
+（3）如果有语句new了自身的对象，将从上到下执行构造代码块、构造器（两者可以说绑定在一起）。
 
 
-ÿ���඼���Դ�һ���޲����Ĺ��췽��
-���һ���ഴ��һ���������Ĺ��췽������ô�������������д����Ĵ��������췽������ô�����ڸù��췽���ĵ�һ�е��øù��췽����super
+每个类都会自带一个无参数的构造方法
+如果一个类创建一个带参数的构造方法，那么他的子类如果重写该类的带参数构造方法，那么必须在该构造方法的第一行调用该构造方法的super
 
-����̳и��࣬һ������ø���Ĺ��췽�������û���ڴ�����д��super���ã���ô����ø�����޲����Ĺ��췽��
-�����superָ������������������Ĺ��췽������ô��������޲����Ĺ��췽��
+子类继承父类，一定会调用父类的构造方法，如果没有在代码中写出super调用，那么会调用父类的无参数的构造方法
+如果用super指定了其他父类带参数的构造方法，那么不会调用无参数的构造方法
 
 ---------------------------------------------------------------------------------
 
-getCustomerInfo()�������£�try�п��Բ����������͵��쳣������ڸ÷��������в�����һ��IOException���������ʲô���
+getCustomerInfo()方法如下，try中可以捕获三种类型的异常，如果在该方法运行中产生了一个IOException，将会输出什么结果
     public void getCustomerInfo() {
 
         try {
@@ -238,12 +238,12 @@ BIOException!Exception!
 CFileNotFoundException!IOException!
 DFileNotFoundException!IOException!Exception!
 
-�𰸣�A
+答案：A
 
-������������catch�����ִ��˳�򡣵��ö��catch���ʱ��catch�����ڴ��������Ⱥ�֮�֡�
-����ǰ���catch���������Ⱥ�����쳣����ƥ�䣬����������쳣�����쳣��֮ǰ����ô����ƥ��Ľ��Ǹ��쳣�࣬
-���쳣�ཫ������ƥ��Ļ��ᣬҲ�����쳣�������ڵ�catch���齫�ǲ��ɵ������䡣
-���ԣ�һ�㽫�����쳣�༴Exception�ϴ����catch��������һ����
+解析：考察多个catch语句块的执行顺序。当用多个catch语句时，catch语句块在次序上有先后之分。
+从最前面的catch语句块依次先后进行异常类型匹配，这样如果父异常在子异常类之前，那么首先匹配的将是父异常类，
+子异常类将不会获得匹配的机会，也即子异常类型所在的catch语句块将是不可到达的语句。
+所以，一般将父类异常类即Exception老大放在catch语句块的最后一个。
 
 ---------------------------------------------------------------------------------
 
@@ -258,17 +258,17 @@ public class foo{
     }
 
 }
-A ����õ����룬�������s=��
-B ����õ����룬�������s=null��
-C ����String sû�г�ʼ�������벻�ܱ���ͨ��
-D ����õ����룬������ NullPointException�쳣
-�𰸣�C
+A 代码得到编译，并输出“s=”
+B 代码得到编译，并输出“s=null”
+C 由于String s没有初始化，代码不能编译通过
+D 代码得到编译，但捕获到 NullPointException异常
+答案：C
 
-���еı���(��ͻ�������)�������ʼ�������ܱ��룬�����Ǹ�ֵΪ��
+所有的变量(类和基本类型)都必须初始化，才能编译，哪怕是赋值为空
 
 ---------------------------------------------------------------------------------
 
-������Ϊ2��ʱ�򷵻�ֵ�Ƕ���?����
+当输入为2的时候返回值是多少?（）
 
     public static int getValue(int i) {
         int result = 0;
@@ -285,14 +285,14 @@ D ����õ����룬������ NullPointException�쳣
 
 A0                    B2                    C4                     D10
 
-�𰸣�D
-������ע������case����û�м�break�����Դ�case 2��ʼһֱ�������С�
+答案：D
+解析：注意这里case后面没有加break，所以从case 2开始一直往下运行。
 
 ---------------------------------------------------------------------------------
 
-ѡ������һ�д�������滻��Ŀ��//add code here��������������󣿣���
+选项中哪一行代码可以替换题目中//add code here而不产生编译错误？（）
 
-���ƴ���
+复制代码
 public abstract class MyClass {
 
      public int constInt = 5;
@@ -300,7 +300,7 @@ public abstract class MyClass {
      public void method() {
      }
 }
-���ƴ���
+复制代码
 Apublic abstract void method(int a);
 
 B constInt = constInt + 5;
@@ -309,45 +309,45 @@ C public int method();
 
 D public abstract void anotherMethod() {}
 
-�𰸣�A
+答案：A
 
-����������������ʹ�á�
+解析：考察抽象类的使用。
 
-��������ѭ��ԭ��
+抽象类遵循的原则：
 
-��1��abstract�ؼ���ֻ��������ͷ��������������ֶΡ�
-��2�������಻�ܱ�ʵ�������޷�ʹ��new�ؼ��ִ�������ʵ������ֻ�ܱ��̳С�
-��3����������԰������ԣ����������췽������ʼ���飬�ڲ��࣬ö���࣬����ͨ��һ������ͨ����һ��Ҫʵ�֣��������Գ�ʼ���򲻳�ʼ�������ܳ�ʼ�����ڳ����������¸�ֵ������ñ�����ֻ���������иı�ñ�������
-��4���������еĳ��󷽷�������abstract�ؼ��ֵķ���������ʵ�֡�
-��5�����г��󷽷�������붨��ɳ����ࡣ
+（1）abstract关键字只能修饰类和方法，不能修饰字段。
+（2）抽象类不能被实例化（无法使用new关键字创建对象实例），只能被继承。
+（3）抽象类可以包含属性，方法，构造方法，初始化块，内部类，枚举类，和普通类一样，普通方法一定要实现，变量可以初始化或不初始化但不能初始化后在抽象类中重新赋值或操作该变量（只能在子类中改变该变量）。
+（4）抽象类中的抽象方法（加了abstract关键字的方法）不能实现。
+（5）含有抽象方法的类必须定义成抽象类。
  
-��չ��������ͽӿڵ����������ܽ�ɣ�
-��1���ӿ��ǹ����ģ����治����˽�еķ�����������������ñ���ʹ�õģ����������ǿ�����˽�з�����˽�б����ġ�
+扩展：抽象类和接口的区别，做个总结吧：
+（1）接口是公开的，里面不能有私有的方法或变量，是用于让别人使用的，而抽象类是可以有私有方法或私有变量的。
 
-��2��abstract class �� Java �����б�ʾ����һ�ּ̳й�ϵ��һ����ֻ��ʹ��һ�μ̳й�ϵ�����ǣ�һ����ȴ����ʵ�ֶ��interface��ʵ�ֶ��ؼ̳С��ӿڻ��б�ʶ������û���κη�������Remote�ӿڣ������ݹ���������ı���ȫ�ǳ����������á�
+（2）abstract class 在 Java 语言中表示的是一种继承关系，一个类只能使用一次继承关系。但是，一个类却可以实现多个interface，实现多重继承。接口还有标识（里面没有任何方法，如Remote接口）和数据共享（里面的变量全是常量）的作用。
 
-��3����abstract class �п������Լ������ݳ�Ա��Ҳ�����з�abstarct�ĳ�Ա����������interface�У�ֻ�ܹ��о�̬�Ĳ��ܱ��޸ĵ����ݳ�Ա��Ҳ���Ǳ����� static final�ģ������� interface��һ�㲻�������ݳ�Ա�������еĳ�Ա����Ĭ�϶��� public abstract ���͵ġ�
+（3）在abstract class 中可以有自己的数据成员，也可以有非abstarct的成员方法，而在interface中，只能够有静态的不能被修改的数据成员（也就是必须是 static final的，不过在 interface中一般不定义数据成员），所有的成员方法默认都是 public abstract 类型的。
 
-��4��abstract class��interface����ӳ����������ͬ����ʵabstract class��ʾ����"is-a"��ϵ��interface��ʾ����"has-a"��ϵ��
+（4）abstract class和interface所反映出的设计理念不同。其实abstract class表示的是"is-a"关系，interface表示的是"has-a"关系。
 
-��5��ʵ�ֽӿڵ�һ��Ҫʵ�ֽӿ��ﶨ������з�������ʵ�ֳ����������ѡ�����д��Ҫ�õ��ķ�����һ���Ӧ���������ǽӿڣ�Ȼ���ǳ�����ʵ�ֽӿڣ����ŵ�������ʵ�֡��������п����зǳ��󷽷����ӿ���������ʵ�ַ�����
+（5）实现接口的一定要实现接口里定义的所有方法，而实现抽象类可以有选择地重写需要用到的方法，一般的应用里，最顶级的是接口，然后是抽象类实现接口，最后才到具体类实现。抽象类中可以有非抽象方法。接口中则不能有实现方法。
 
-��6���ӿ��ж���ı���Ĭ����public static final �ͣ��ұ�������ֵ������ʵ�����в������¶��壬Ҳ���ܸı���ֵ���������еı���Ĭ���� friendly �ͣ���ֵ���������������¶��壬Ҳ���������������¸�ֵ��
+（6）接口中定义的变量默认是public static final 型，且必须给其初值，所以实现类中不能重新定义，也不能改变其值。抽象类中的变量默认是 friendly 型，其值可以在子类中重新定义，也可以在子类中重新赋值。
 
 ---------------------------------------------------------------------------------
 
-������쳣������(Error vs Exception) 
+错误和异常的区别(Error vs Exception) 
 
-1) java.lang.Error: Throwable�����࣬���ڱ�����ش��󡣺�����Ӧ�ó���Ӧ��ȥtry/catch���ִ��󡣾�������Ĵ����Ƿ������ģ��͸������ó��ֵġ�
-java.lang.Exception: Throwable�����࣬����ָʾһ�ֺ����ĳ�����ȥcatch������������������һ�ֳ��������������������ش��󣬲��ҹ����û�����ȥcatch����
+1) java.lang.Error: Throwable的子类，用于标记严重错误。合理的应用程序不应该去try/catch这种错误。绝大多数的错误都是非正常的，就根本不该出现的。
+java.lang.Exception: Throwable的子类，用于指示一种合理的程序想去catch的条件。即它仅仅是一种程序运行条件，而非严重错误，并且鼓励用户程序去catch它。
 
-2)  Error��RuntimeException �������඼��δ�����쳣��unchecked exceptions����������������Exception�඼�Ǽ���˵��쳣��checked exceptions��.
-checked exceptions: ͨ���Ǵ�һ�����Իָ��ĳ������׳����ģ���������ܹ��������쳣��ʹ�ó���ָ�������FileNotFoundException, ParseException�ȡ�����˵��쳣�����ڱ���׶Σ�����Ҫʹ��try��catch������throws��������벻ͨ����
-unchecked exceptions: ͨ�������һ�������Ļ������÷������쳣�����ǵ�ȷ�����ˡ������������ڣ����в�ȷ���ԣ���Ҫ�����ڳ�����߼�����������ġ�����ArrayIndexOutOfBoundException, ClassCastException�ȡ������Ա����ĽǶȽ������򲻸�ȥcatch�����쳣����Ȼ�ܹ�������RuntimeException�������쳣��catch���ָ������ǲ��������ն˳���Ա��ô������Ϊ��ȫûҪ��Ҫ����Ϊ�������������bug��Ӧ�ñ��޸������ִ������ʱ�����Ӧ������ִֹͣ�С� ��ˣ����Errors��unchecked exceptionsӦ���ó����Զ���ִֹ�У�����Ա����������try/catch���������飬����Ӧ�ò���ԭ���޸Ĵ����߼���
+2)  Error和RuntimeException 及其子类都是未检查的异常（unchecked exceptions），而所有其他的Exception类都是检查了的异常（checked exceptions）.
+checked exceptions: 通常是从一个可以恢复的程序中抛出来的，并且最好能够从这种异常中使用程序恢复。比如FileNotFoundException, ParseException等。检查了的异常发生在编译阶段，必须要使用try…catch（或者throws）否则编译不通过。
+unchecked exceptions: 通常是如果一切正常的话本不该发生的异常，但是的确发生了。发生在运行期，具有不确定性，主要是由于程序的逻辑问题所引起的。比如ArrayIndexOutOfBoundException, ClassCastException等。从语言本身的角度讲，程序不该去catch这类异常，虽然能够从诸如RuntimeException这样的异常中catch并恢复，但是并不鼓励终端程序员这么做，因为完全没要必要。因为这类错误本身就是bug，应该被修复，出现此类错误时程序就应该立即停止执行。 因此，面对Errors和unchecked exceptions应该让程序自动终止执行，程序员不该做诸如try/catch这样的事情，而是应该查明原因，修改代码逻辑。
 
-RuntimeException��RuntimeException��ϵ�������������ת��������Խ����ʺ���ͼ���ʿ�ָ��ȵȡ�
+RuntimeException：RuntimeException体系包括错误的类型转换、数组越界访问和试图访问空指针等等。
 
-����RuntimeException��ԭ���ǣ�������� RuntimeException����ôһ���ǳ���Ա�Ĵ������磬����ͨ����������±������߽�����������Խ������쳣��������IOException�ȵȣ�checked�쳣һ�����ⲿ����������ͼ���ļ�β���ȡ���ݵȣ��Ⲣ���ǳ������Ĵ��󣬶�����Ӧ�û����г��ֵ��ⲿ���� 
+处理RuntimeException的原则是：如果出现 RuntimeException，那么一定是程序员的错误。例如，可以通过检查数组下标和数组边界来避免数组越界访问异常。其他（IOException等等）checked异常一般是外部错误，例如试图从文件尾后读取数据等，这并不是程序本身的错误，而是在应用环境中出现的外部错误。 
 
  
 

@@ -113,6 +113,20 @@ User-Agent:Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like 
 若方法字段是POST,则通常来说此处放置的就是要提交的数据
 比如要使用POST方法提交一个表单，其中有user字段中数据为“admin”, password字段为123456，那么这里的请求数据就是 user=admin&password=123456，使用&来连接各个字段。
 
+注意：请求体有很多种，例如可以是：
+key-value：键值对类型
+String：字符串类型
+Form：类似于Html的表单数据提交
+Stream：流类型
+File：文件类型
+
+此外，post请求体还需要设置 请求头Content-Type，每种类型的Content-Type都不同:
+Form: application/x-www-form-urlencoded
+Json: application/json
+Stream: application/octet-stream  二进制流，不知道下载文件类型
+文件是图片时: image/jpeg
+String: text/plain 或者 text/html
+
 ***************
 
 （HTTP响应也是由以下组成，分别是：状态行、消息报头、响应正文）
@@ -139,6 +153,19 @@ Transfer-Encoding:chunked
 响应体就是响应的消息体，如果是纯数据就是返回纯数据，如果请求的是HTML页面，那么返回的就是HTML代码，如果是JS就是JS代码，如此之类。
 
 
+***************
+
+关于请求体的格式， 
+Http 请求头和响应头都有一个 头字段：Content-Type，表示的是 post请求的请求体格式 或者 服务器返回的响应体的格式
+Content-Type通常有这几种格式
+’application/json’ 
+’application/x-www-form-urlencoded’
+’multipart/form-data’
+
+不同的类型，服务端接收方式是不同的，前端发送方式也是有区别的
+application/json：将json数据序列化之后再发送，个人理解是转成字符串发送
+application/x-www-form-urlencoded：表单提交，个人理解是转成键值对发送
+multipart/form-data: 参数会被分割成多块，每一个参数块都有自己独立的content-type，这种方式可以用于提交普通表单和文件上传
 
 ***************
 

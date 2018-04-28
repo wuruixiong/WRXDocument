@@ -19,10 +19,15 @@ ANRs (“Application Not Responding”)
 修改代码时，若想要获取之前view的配置，例如图片、颜色、字号等，可以调试，获取之前view的信息，通过view查找配置
 
 ------------------------------------------------------------------------------------------------------------
+
 listview继承自AbsListView，AbsListView中封装了对view的回收处理，使用setRecyclerListener对view被回收时做出处理
+
 ------------------------------------------------------------------------------------------------------------
+
 在使用listview，recycleview等进行嵌套时，系统本身不会对里面的listview进行宽高计算，所以要手动计算宽高，并设置里面的listview
+
 ------------------------------------------------------------------------------------------------------------
+
 自定义view中重写onTouchEvent，返回false，则该控件不响应点击，
 例如在RelativeLayout, FrameLayout中摆放一些控件，再在最顶层摆放一个覆盖布局的控件，
 此时如果在onTouchEvent中返回flase则该控件不处理touch，并且底层控件可以处理touch事件
@@ -103,6 +108,10 @@ android:launchMode 由以下几个：
 而通过onNewIntent与之进行数据状态交互
 
 
+(4) singleTask会对home机制有影响，如果在不是主页的页面按下home键，接着点击 启动按钮，这时候会进入HomeActivity而不是上一次home键退出app的的页面。
+
+
+
 -----------------------
 
 Task的概念
@@ -124,8 +133,57 @@ FLAG_ACTIVITY_NEW_TASK：当Intent对象包含这个标记时，系统会寻找�
 之前的task会被转移到前台，系统仍然保留着task内的所有Activity实例，而那个新的task会被转移到后台，如果这时用户再做后退等动作，
 就是针对该task内部进行操作了。
 
+------------------------------------------------------------------------------------------------------------
+
+android 可以使用Thread.currentThread().getId()或者
+Thread.currentThread().getName()来确定当前线程，
+
+如果是主线程的话，getName()拿到的是 "main"
+如果是子线程，例如 new HandlerThread("backgroundThread”)
+或者 Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+            }
+        }, "backgroundThread");
+那么getName() 拿到的就是 "backgroundThread"
 
 ------------------------------------------------------------------------------------------------------------
+
+handler looper HandlerThread解析
+
+1. 一个Thread线程绑定一个looper，一个looper绑定一个MessageQueue（消息队列）
+   普通的线程的looper如果没有创建: Looper.prepare(), 一般都是空值
+   
+2. UI主线程有looper，是这么创建的：
+   在Activity中，维护一个ActivityThread，其静态方法main，
+   调用Looper.prepareMainLooper()，再创建Handler（sMainThreadHandler），再调用Looper.loop()
+   
+3. Handler 必须要和 Looper 中结合使用，尤其在子线程中创建 Handler，也需要三个步骤：
+   Looper.prepare() -> new Handler() -> Looper.loop()
+   3.1 Looper.prepare()创建looper, looper的构造 再创建MessageQueue，
+   3.2 Handler的构造方法取looper，如果拿到的looper为空会报错, 取到looper会再取消息队列MessageQueue
+   3.3 Looper.loop()是个死循环，不断在MessageQueue取出任务并 分发msg.target.dispatchMessage(msg)，（这里的target是handler对象）
+
+4. 当Handler.sendEmptyMessage调用时，消息队列MessageQueue 将消息对象 入队queue.enqueueMessage(msg, uptimeMillis)
+   结合 3.3，入队的消息会被 handler.dispatchMessage 执行, 而dispatchMessage调用的正是 handleMessage方法
+
+5. UI线程也是如此，如果在UI线程中创建了Handler，那么这个Handler使用的就是属于主线程的 looper和消息队列
+
+6. HandlerThread继承自Thread，其中已经实现了
+   looper的创建 -> 调用onLooperPrepared -> 执行loop消息死循环
+   如果想要控制一个消息队列，那么就需要在HandlerThread中创建 Handle，
+   可以重写onLooperPrepared() 并在其中 new Handler(getLooper(), new Callback({handleMessage(Message msg)}) );
+   注意，此时的 handleMessage()是属于 子线程的
+
+小结：
+一条线程只有 一个Looper和一个MessageQueue，主线程创建的handle持有主线程的消息队列。
+子线程里也可以实现消息队列，需要自己创建looper和handle。HandlerThread就是一个已经实现了looper的线程
+
+
+
+
+------------------------------------------------------------------------------------------------------------
+
 主线程中创建handler，主要用来修改UI界面
 Handler handler;
 onCreate
@@ -161,7 +219,6 @@ mHandler.sendEmptyMessage(0);
 
 在android使用handler.post(runnable)，并不会开启新的线程，而是将消息压到main线程使用的消息池中，
 所以handler.post还是在主线程中，
-可以使用Thread.currentThread().getId()或者Thread.currentThread().getName()来确定当前线程，
 
 而使用  Thread thread = new Thread(runnable);thread.start(); 才是开启一个新的线程，
  
@@ -206,6 +263,211 @@ mHandler.sendEmptyMessage(0);
 			
 综上，加载数据使用Thread开启一个线程，加载完成之后，在线程当中send或者post，handle消息，
 通知主线程修改界面。
+
+------------------------------------------------------------------------------------------------------------
+
+android进程通讯，IPC
+
+一、AIDL(Android Interface Definition Language)
+android基于linux内核，所以进程管理也是linux那一套，进程之间是相互独立的互不干扰的，数据是独享的，所以要进行进程间的通信也是通过Binder机制去搞，而android的AIDL底层也是基于Binder机制的，只不过封装的比较好，android开发不需要知道Binder机制也能使用AIDL跨进程开发，只需要遵循一定的流程，一一步步创建就好；由于android的每个app对应一个独立进程，要想跨应用访问共享数据，那就得掌握进程间的通信。 Android中的跨进程服务其实是采用C/S的架构，因而AIDL的目的就是实现通信接口。
+AIDL是一种语言, 后缀 .aidl
+-----------------------------
+AIDL 支持的数据类型
+共 4 种：
+1. Java 的基本数据类型
+2. List 和 Map, 元素必须是 AIDL 支持的数据类型, Server 端具体的类里则必须是 ArrayList 或者 HashMap
+3. 其他 AIDL 生成的接口
+4. 实现 Parcelable 的实体
+
+-----------------------------
+AIDL 如何编写
+AIDL 的编写主要为以下三部分：
+1. 创建 AIDL 
+（1）创建要操作的实体类，实现 Parcelable 接口，以便序列化/反序列化
+（2）新建 aidl 文件夹，在其中创建接口 aidl 文件以及实体类的映射 aidl 文件
+（3）Make project ，生成 Binder 的 Java 文件
+
+2. 服务端 
+（1）创建 Service，在其中创建上面生成的 Binder 对象实例，实现接口定义的方法
+（2）在 onBind() 中返回
+
+3.客户端 
+（1）实现 ServiceConnection 接口，在其中拿到 AIDL 类
+（2）bindService()
+（3）调用 AIDL 类中定义好的操作请求
+
+-----------------------------
+
+Parcel类，Parcel翻译过来是打包的意思,其实就是包装了我们需要传输的数据,然后在Binder中传输,也就是用于跨进程传输数据
+简单来说，Parcel提供了一套机制，可以将序列化之后的数据写入到一个共享内存中，其他进程通过Parcel可以从这块共享内存中读出字节流，并反序列化成对象,下图是这个过程的模型。
+Parcel可以包含原始数据类型（用各种对应的方法写入，比如writeInt(),writeFloat()等），可以包含Parcelable对象，它还包含了一个活动的IBinder对象的引用，这个引用导致另一端接收到一个指向这个IBinder的代理IBinder。
+
+Parcelable接口：
+实现Parcelable接口可以对Parcel进行写入和恢复，实现Parcelable接口的类还必须有一个名为CREATOR的非null静态字段，该字段实现Parcelable.Creator接口。
+
+序列化：将对象转换为可以传输的二进制流(二进制序列)的过程,这样我们就可以通过序列化,转化为可以在网络传输或者保存到本地的流(序列),从而进行传输数据 ,那反序列化就是从二进制流(序列)转化为对象的过程.Parcelable是Android为我们提供的序列化的接口,Parcelable相对于Serializable的使用相对复杂一些,但Parcelable的效率相对Serializable也高很多,这一直是Google工程师引以为傲的,有时间的可以看一下Parcelable和Serializable的效率对比 Parcelable vs Serializable 号称快10倍的效率
+
+-----------------------------
+
+AIDL 非常简单实例：
+这个实例有两个app组成，一个服务端，一个客户端，
+注意：android studio的调试是基于进程的，即使代码下了断点如果所在进程不同，是不会走到断点的，所以应该尽量使用log输出测试代码
+
+服务端实例：
+1. 创建包名为wrx.aidlserver的应用。
+2. 在app/src/main/下，与java目录同级 创建一个aidl文件夹，在aidl/下创建包 wrx.aidlserver ，在其中创建IRemoteService.aidl文件。
+3. IRemoteService.aidl中创方法：int getPid()，执行android studio的build，
+   可以看到生成的文件：app/build/generated/source/aidl/debug/wrx/aidlserver/IRemoteService.java
+4. java/wrx.aidlserver下创建 RemoteService.java，mBinder=IRemoteService.Stub()并在onBind中返回
+   IRemoteService.Stub的getPid()返回当前进程ID：return android.os.Process.myPid();
+5. manifest中添加RemoteService，为RemoteService设置一个action："wrx.aidlserver.service"
+
+客户端实例：
+1. 创包名为 wrx.aidlclient的应用。
+2. 在app/src/main/下，与java目录同级 创建一个aidl文件夹，在aidl/下创建包：wrx.aidlserver(这里的包名用的是服务端的)。
+3. 把在服务端的 IRemoteService.aidl文件复制到 wrx.aidlserver下，并执行android studio的build。
+4. 在MainActivity中创建ServiceConnection和IRemoteService，
+   在ServiceConnection的 onServiceConnected中赋值：mIRemoteService = IRemoteService.Stub.asInterface(service)。
+5. 在在MainActivity的onCreate中创建Intent并加上action：intent.setAction("wrx.aidlserver.service");
+   最后连接：bindService(intent, mConnection, BIND_AUTO_CREATE);
+6. 第5步骤：调用bindService之后，会触发ServiceConnection的回调：onServiceConnected
+   此时就会对第4步骤的IRemoteService mIRemoteServic赋值
+7. 赋值之后就可以调用mIRemoteService.getPid()这个方法了，此时可以拿到 服务端应用的进程ID
+
+进阶：
+（1）服务端：
+1. 如果需要传输数据，那么需要在服务端实现一个 DataItem.java类，DataItem要实现Parcelable接口。
+2. 在aidl目录中也实现一个DataItem.aidl并加上parcelable DataItem;
+3. IRemoteService.aidl中加上对DataItem的使用，记得导入这个文件：import wrx.aidlserver.DataItem;
+    ...
+    void addDataItem(in DataItem data);
+    List<DataItem> getDateItemList();
+    ...
+4. 在RemoteService.java中new IRemoteService.Stub()下的getDateItemList()方法再返回一个创建好的List<DataItem>
+
+（2）客户端：
+1. 在java/下创建包：wrx.aidlserver，再把服务端的DataItem.java复制到这个包下。
+2. 在aidl目录的wrx.aidlserver下，把服务端的DataItem.aidl复制到这个包下。
+3. 在MainActivity中就可使用了，直接调用 mIRemoteService.getDateItemList()方法拿到数据。
+
+
+------------------------------------------------------------------------------------------------------------
+其他进程通讯方式
+
+二、Broadcast 广播
+通过发送端发送一个广播，接收端接收这个广播就可以实现跨进程通信，也是利用了 Intent 可以携带额外数据。
+
+三、Content Provider 内容提供者
+获取一个联系人的详情。联系人的详情时存在系统里面的，app一定不会和系统程序在一个进程，Content Provider 很明显就是一个跨进程通信的方法。
+
+
+
+------------------------------------------------------------------------------------------------------------
+
+android:process=":remote"
+Manifest.xml中有时候会对相关的 Service 设置一个android:process, 
+一般情况下一个Service没有自己独立的进程，它一般是作为一个线程运行于它所在的应用的进程中。
+Android声明文件中的android:process属性却可以为任意组件包括应用指定进程，换句话说，通过在声明文件中设置android:process属性,我们可以让组件（例如Activity, Service等）和应用(Application)创建并运行于我们指定的进程中。
+
+如果对Service加上android:process属性，那么这个Service是运行在新创建的remote进程下的
+**注意，这会对调试带来影响，android studio的调试是基于进程的，不能在两条不同的进程上调试代码，这时，只能使用log输出测试代码
+
+
+------------------------------------------------------------------------------------------------------------
+
+Android中的ABI
+ABI是Application Binary Interface的缩写。
+ABI常表示两个程序模块之间的接口，且其中一个模块常为机器码级别的library或操作系统。
+ABI定义了函数库的调用、应用的二进制文件（尤其是.so）如何运行在相应的系统平台上等细节。
+Android目前支持以下七种ABI：armeabi、armeabi-v7a、arm64-v8a、x86、x86_64、mips、mips64。
+
+Android中的CPU
+不同的Android设备使用支持不同指令集的CPU。
+Android目前有以下七种cpu架构：ARMv5、ARMv7、ARMv8、x86、x86_64、MIPS和MIPS64。
+
+Android中的ABI与CPU
+每种CPU架构都有其自己支持的ABIs。可通过Build.SUPPORTED_ABIS得到根据偏好排序的设备支持的ABI列表。
+例如：ARMv5支持armeabi一种，ARMv8支持armeabi、armeabi-v7a、arm64-v8a三种。
+每种CPU架构都有自己对应的最优ABI。例如ARMv8是arm64-v8a。
+
+---------------------
+
+不同的Android手机使用不同的CPU，而这些CPU又支持不同的指令集。 CPU和指令集的每个组合都有其自己的应用程序二进制接口（即ABI）。
+ABI非常精确地定义了应用程序的机器代码应该如何在运行时与系统交互。
+
+每个ABI支持一个或多个指令集。可在官方网站查看：https://developer.android.com/ndk/guides/abis.html
+armeabi，该ABI适用于至少支持ARMv5TE指令集的基于ARM的CPU。
+armeabi-v7a，这个ABI扩展了armeabi以包含多个CPU指令集扩展，包括：Thumb-2指令集扩展，VFP硬件-FPU指令
+arm64-v8a，此ABI适用于支持AArch64的基于ARMv8的CPU。 它还包括NEON和VFPv4指令集。
+x86，该ABI用于支持通常称为“x86”或“IA-32”的指令集的CPU。
+x86_64，此ABI适用于支持通常称为“x86-64”的指令集的CPU。
+
+---------------------
+
+Android中的so库
+so库的名称和文件名，so库的名称可任意，如daking。
+*so库的文件名必须以lib开头。如libdaking.so，其中lib是必要前缀，daking才是这个库的名称。
+
+so库的代码加载
+System.loadLibrary("so库的名称");如System.loadLibrary("daking");会加载该应用下的libdaking.so文件。
+
+so库的使用建议
+理论上应该为每个ABI目录提供对应的so库。但是Android支持7种ABI，若全部支持，必然导致APK包过大。
+一般只保留armeabi、armeabi-v7a这两个ABI的so库。
+
+---------------------
+
+主流cpu的架构
+现在手机处理器架构都是ARM架构，采用简单指令集，而电脑的X86架构则是复杂指令集，但功耗稍大。
+
+高通晓龙801，基于顶级Krait400核心架构，Krait是美国高通公司基于ARMv7-A指令集、自主设计的采用28纳米工艺的全新处理器微架构。
+高通骁龙835，Kryo280架构，基于ARMv8指令集，支持64位运算。Kryo是Qualcomm Technologies推出的首款定制设计的64位CPU，Krait的延续。
+
+高通公司的Krait与ARM公司的Cortex-A53（俗称 公版ARM架构）
+A53是ARM公司最新开发的基于ARMv8指令集的A50系列架构之一，是目前ARM公司能效比最好的处理器架构。
+Cortex-A7 处理器是一种由ARM公司推出的基于ARMv7-A架构的高能效处理器。
+高通推出的八核处理器骁龙810即采用A57架构。
+骁龙820高通首款64位自主微架构“Kryo”，之前的架构都是ARM公版架构和在ARM架构基础上优化的Krait（800，801,805）
+
+华为的麒麟960
+麒麟960（kirin 960）是海思公司推出的移动设备芯片，麒麟960首次配备ARM Cortex-A73 CPU核心，小核心为A53，
+麒麟970 四核A73+四核A53（ARMv8）。
+组成四大四小的big.LITTLE组合，GPU为Mali G71 MP8。
+Cortex-A73处理器全面支持ARMv8-A架构。
+
+三星Exynos
+Exynos是三星电子基于ARM构架设计研发的处理器品牌
+Exynos 4210，CPU：双核Cortex-A9（也就是 ARMv7 ），GPU：ARM Mali-400 MP4 266MHz
+Exynos 9810，CPU：Exynos M3
+三星从Exynos 8890开始就学习苹果展开了自研CPU的旅程，基于ARMv8指令集推出了名为猫鼬（Mongoose）的架构核心
+
+联发科
+Helio X30 (ARMv8-A指令集): 采用三丛十核：包括两个Cortex-A73、四个Cortex-A53、四个Cortex-A35。GPU：Imagination PowerVR 7XTP
+
+
+苹果：
+Apple A9处理器（来自维基百科）：内含了基于苹果自主微架构（区别于ARM发布的公版微架构）的中央处理器核心，
+拥有64比特ARMv8-A指令集架构。被搭载于iPhone 6S和iPhone 6S Plus智能手机中。
+A11 Bionic：基于ARM64位指令架构，被搭载于iPhone 8、iPhone 8 Plus及iPhone X
+
+---------------------
+
+处理器架构的具体解释：
+CPU架构是CPU厂商给属于同一系列的CPU产品定的一个规范，主要目的是为了区分不同类型CPU的重要标示。
+目前市面上的CPU指令集分类主要分有两大阵营，一个是intel、AMD为首的复杂指令集CPU，
+另一个是以IBM、ARM为首的精简指令集CPU。
+两个不同品牌的CPU，其产品的架构也不相同，例如，Intel、AMD的CPU是X86架构的，而IBM公司的CPU是PowerPC架构，ARM公司是ARM架构。
+
+---------------------
+
+CPU与GPU
+图形处理器（英语：Graphics Processing Unit，缩写：GPU）
+对于移动终端手机来说，通常情况下 移动处理器里面就有 CPU和GPU，例如晓龙系列的处理器
+
+Adreno GPU同样是高通公司的产品，搭载在晓龙处理器上。
+例如，骁龙835处理器，搭载Adreno540GPU，支持OpenGLES3.2、完整的OpenCL2.0、Vulkan和DX12
+
+
 ------------------------------------------------------------------------------------------------------------
 
 改变背景颜色：
@@ -667,6 +929,7 @@ mPopupWindow.dismiss();隐藏
 
 LinearLayout设置控件居中，要在LinearLayout中设置：
 android:gravity="center"
+
 ------------------------------------------------------------------------------------------------------------
 
 //点击外部PopupWindow消失
@@ -1469,14 +1732,6 @@ Uri selectedImageUri = data.getData();
 
 
 
-------------------------------------------------------------------------------------------------------------
-
-BitmapFactory.Options options = new BitmapFactory.Options();
-options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-// BitmapFactory 缩小bitmap，缩小2倍，options.inSampleSize设置为 1 是加载原图
-// 经过测试，只有设置为2的指数幂有效，即：2，4（缩小4倍），8（缩小8倍）等等
-options.inSampleSize = 2;
-Bitmap fileBitmapScale = BitmapFactory.decodeFile(imagePath, options);
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -1539,10 +1794,22 @@ Bitmap.Config.RGB_565;
 
 ------------------------------------------------------------------------------------------------------------
 
+
+BitmapFactory.Options options = new BitmapFactory.Options();
+options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+// BitmapFactory 缩小bitmap，缩小2倍，options.inSampleSize设置为 1 是加载原图
+// 经过测试，只有设置为2的指数幂有效，即：2，4（缩小4倍），8（缩小8倍）等等
+options.inSampleSize = 2;
+Bitmap fileBitmapScale = BitmapFactory.decodeFile(imagePath, options);
+
+
 得到一张1MB以下的磁盘存储的图
 public static Bitmap get1MbOpts (String path) {
         Bitmap bitmapArgb = getCompressionOpts(path, 1.024 * 1024D);
         return bitmapArgb;
+    }
+public static Bitmap get100KbOpts (String path) {
+        return getCompressionOpts(path, 0.1 * 1024D);
     }
 private static Bitmap getCompressionOpts (String path, double needSize) {
         if (path == null || path.isEmpty()) {
@@ -1569,6 +1836,38 @@ private static Bitmap getCompressionOpts (String path, double needSize) {
             return null;
         }
         Bitmap originBitmap = BitmapFactory.decodeFile(path, opts);
+        return originBitmap;
+    }
+
+---------------------------------------------
+ 改进 写法，增加对byte数组压缩
+    public static Bitmap get50KBOpts (byte[] bytes) {
+        Bitmap bitmapArgb = getCompressionOpts(bytes, 1.024D * 50D);
+        return bitmapArgb;
+    }
+    private static Bitmap getCompressionOpts (byte[] bytes, double needSize) {
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+            double fileSize = bytes.length/1024D; // image file size (KB)
+            if (fileSize > needSize) {
+
+                double size = fileSize / needSize;
+                double logSize = Math.log(size)/Math.log(2);
+                if (logSize - (int)logSize > 0) {
+                    logSize = logSize + 1;
+                }
+                int intSize = (int)Math.pow(logSize, 2);
+
+                if (size == 0) {
+                    opts.inSampleSize = 1;
+                } else {
+                    opts.inSampleSize = intSize;
+                }
+
+            } else {
+                opts.inSampleSize = 1;
+            }
+        Bitmap originBitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opts);
         return originBitmap;
     }
 
@@ -1867,11 +2166,24 @@ long time = System.currentTimeMillis();
 SimpleDateFormat d = new SimpleDateFormat("dd-MM-yyyy, hh:mm.ss.SSS");
 String formatString = d.format(time);
 
+HH:mm 24小时制
+Hh:mm 12小时制
+
 时间戳转换三 （无法达到毫秒级）：
 long time = System.currentTimeMillis();
 Calendar cal = Calendar.getInstance(Locale.ENGLISH);
 cal.setTimeInMillis(time);
 String date = DateFormat.format("dd-MM-yyyy, hh:mm:ss", cal).toString();
+
+
+拿到星期
+String weekDay;
+SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", Locale.US);
+Calendar calendar = Calendar.getInstance();
+weekDay = dayFormat.format(calendar.getTime());
+
+"EEEE" 拿全称
+"E" 拿缩写
 
 
 ------------------------------------------------------------------------------------------------------------
@@ -1941,6 +2253,44 @@ toBottomOf和toTopOf是当指向某个id才有效的配置
 如果没有设置layout_constraintTop_toTopOf，layout_marginTop不会生效
 
 
+3. 水平居中
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+
+
+4. 3个控件 以外的间距纵向等分，即用3个控件把高度等分成4部分，
+   修改 view1 的layout_constraintVertical_chainStyle属性为packed或者spread_inside会有不同的等分效果 （修改view2和view3没有效果）
+   
+    <Button
+        android:id="@+id/view1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/view2"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="spread" />
+    <Button
+        android:id="@+id/view2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/view3"
+        app:layout_constraintTop_toBottomOf="@+id/view1"
+        app:layout_constraintVertical_chainStyle="packed" />
+    <Button
+        android:id="@+id/view3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view2"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+5. 权重分配高度，三个控件均分高度，代码：
+   在4的基础上，每个控件加上 纵向权重属性，并设置高度0dp：
+   android:layout_height="0dp"
+   app:layout_constraintVertical_weight="1"
+   
+
+
+
 ------------------------------------------------------------------------------------------------------------
 
 屏蔽dialog的外部点击消失，屏蔽dialog的点击back键消失
@@ -1959,6 +2309,9 @@ toBottomOf和toTopOf是当指向某个id才有效的配置
                     return false;
                 }
             });
+------------------------------------------------------------------------------------------------------------
+
+
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -1981,15 +2334,106 @@ mDatePicker.setCalendarViewShown(false);
 // 设置24小时制	
 mTimePicker.setIs24HourView(true);
 
+------------------------------------------------------------------------------------------------------------
 
+抽屉布局，content_main是主内容，content_drawer是抽屉内容：左边缘向右滑动可以拉出抽屉内容
+
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    >
+
+    <FrameLayout
+        android:id="@+id/content_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/holo_blue_light"
+        />
+
+    <FrameLayout
+        android:id="@+id/content_drawer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/holo_green_dark"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        />
+
+</android.support.v4.widget.DrawerLayout>
+
+
+------------------------------------------------------------------------------------------------------------
+
+Theme.AppCompat的风格效果
+colorPrimary 顶部actionbar的颜色
+colorPrimaryDark 状态栏的颜色
+colorAccent EditText光标，CheckBox选中颜色等等view的效果
+textColorPrimary
+navigationBarColor  // 底下导航栏的颜色
+windowBackground  // 主背景颜色
+
+
+------------------------------------------------------------------------------------------------------------
+
+复制到剪切板
+ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+ClipData clip = ClipData.newPlainText(“phone number”, “15012345678”);
+clipboard.setPrimaryClip(clip);
 
 ------------------------------------------------------------------------------------------------------------
 
 android的Touch（dispatchTouchEvent，onInterceptTouchEvent，onTouchEvent）
 
+在普通的view中，有dispatchTouchEvent、onTouchEvent两个方法。
+在一个layout中，有dispatchTouchEvent，onInterceptTouchEvent，onTouchEvent三个方法。
+
+View中，执行顺序是 dispatchTouchEvent -> onTouchEvent
+在Layout中，执行顺序是 dispatchTouchEvent -> onInterceptTouchEvent -> onTouchEvent
 	
-	
-	
+如果view在layout中，此时点击view，调用顺序是 Layout.dispatchTouchEvent -> Layout.onInterceptTouchEvent -> View.dispatchTouchEvent 
+-> View.onTouchEvent -> Layout.onTouchEvent
+
+
+1. 在layout的 onInterceptTouchEvent返回true，拦截了这个事件之后就不会把touch事件传给这个layout以下的所有view，也就是说，子view不会触发ontouch。
+
+2. 子view的onTouchEvent返回true，表示这个touch事件由当前view处理，就不会再触发layout的onTouchEvent，同时其他同级的view也不会触发onTouchEvent。
+
+3. dispatchTouchEvent则是总体touch事件的分发方法，即负责对onTouchEvent和onInterceptTouchEvent的调用。
+   layout的分发流程在ViewGroup.calss中的dispatchTouchEvent方法：在onInterceptTouchEvent返回false，表示没有拦截，那么取出每一个view并在
+   dispatchTransformedTouchEvent()方法中调用view的dispatchTouchEvent方法。
+   
+4. 承接第3点，view的dispatchTouchEvent()比较简单，就是调用onTouchEvent()并返回布尔值。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	
 	
 	

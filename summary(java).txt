@@ -11,11 +11,17 @@ native
 strictfp
 
 
+int	4个字节 
+char	2个字节
+byte	1个字节,字节英文就是byte,1B=8位/8比特/8bit
+short	2个字节
+long	8个字节
+float	4个字节
+double	8个字节
+关于boolean占几个字节，众说纷纭，虽然boolean表现出非0即1的“位”特性，但是存储空间的基本计量单位是字节，不是位。所以boolean至少占一个字节。 
+JVM规范中，boolean变量作为int处理，也就是4字节；boolean数组当做byte数组处理。
 
-Integer.MAX_VALUE
-整型最大值
 
-long是长整型，也就是说拿两个long去做除法，拿到的不会是浮点型
 
 
 内存分配基础
@@ -44,20 +50,59 @@ Java把内存分成两种，一种叫做栈内存，一种叫做堆内存
 访问控制符(access specifier):public private protected
 
 
-// 创建一个父类（没有继承其他类）
 
-
-new A() 是为匿名对象
+------------------------------------------------------------
 
 InputStream指的是在数据流中的数据读入到指定object是为Input，通常使用InputStream.read
 OutputStream指的是将数据输出到OutputStream中，是为Output，通常使用OutputStream.write
+------------------------------------------------------------
 
 float浮点类型，只有在数值后面加f就是浮点数值，例如0.5f
+
+Integer.MAX_VALUE
+整型最大值
+
+long是长整型，也就是说拿两个long去做除法，拿到的不会是浮点型
+------------------------------------------------------------
 
 java三目运算：
 a ? b:c
 a为真返回b，为假返回c
+------------------------------------------------------------
 
+new A() 是为匿名对象
+
+一个方法在 方法体内调用自身 是为 递归调用
+
+------------------------------------------------------------
+
+相等判断
+
+Java中判断两个变量是否相等有两种方式：
+1. ==
+2. equals
+
+如果变量是基本类型，那么使用==和使用equals会得到相同的结果，都是判断变量的值是否相对。
+
+如果变量是引用类型，==运算符判断变量是否指向同一引用对象，equals判断变量"值"是否相等。
+
+对象也可以利用==运算符进行值判断，只有当Java值类型对应的包装类（Boolean、Byte、Short、Integer、Long、Float、Double、Charcater）
+
+------------------------------------------------------------
+
+Java的注解和反射原理 以及 JNI
+
+------------------------------------------------------------
+
+1，**重点内容**sqrt是开方： 
+比如math.sqrt(9)结果为3 意思是求9的开方根，数学上称为根号2下的9 
+2.**重点内容**pow（a,b） 
+Math.pow(27, 3)意思是求27的三次方 就是27*27*27的意思 
+重点内容假如你想求开三次方，或者四次方 可以借助pow方法 
+例如：Math.pow(27, 1/3) 
+结果为3 就是对27的1/3次方 就是根号3下的27
+
+------------------------------------------------------------
 
 三角函数公式使用，Math.PI为圆周率，1度为π/180弧度
 Math.sin((30) * Math.PI / 180) = 0.49999999 //sin30度，约等于0.5
@@ -398,6 +443,139 @@ private static String bytesToHex(byte[] bytes, char[] hexChars) {
 	}
 	return new String(hexChars);
 }
+
+
+------------------------------------------------------------------------------
+
+
+Java 正则表达式
+正则表达式定义了字符串的模式。
+正则表达式可以用来搜索、编辑或处理文本。
+正则表达式并不仅限于某一种语言，但是在每种语言中有细微的差别。
+
+正则表达式的两个类：
+Pattern 类：
+pattern 对象是一个正则表达式的编译表示。Pattern 类没有公共构造方法。
+要创建一个 Pattern 对象，你必须首先调用其公共静态编译方法，它返回一个 Pattern 对象。该方法接受一个正则表达式作为它的第一个参数。
+Matcher 类：
+Matcher 对象是对输入字符串进行解释和匹配操作的引擎。与Pattern 类一样，Matcher 也没有公共构造方法。
+你需要调用 Pattern 对象的 matcher 方法来获得一个 Matcher 对象。
+
+-----------------
+规则：
+.  	表示所有的字符，所有的单个字符
+?	前面的零 (0) 或一 (1) 个字符或数字，X? X没有出现或者只出现一次
+*	前面的零 (0) 或更多个字符或数字，X* X出现0次或更多
++	前面的一 (1) 或更多个字符或数字，X+ X出现1次或更多
+
+^xxx  在开头匹配正则xxx，一般写在开头，没什么用，有写没写效果一致
+xxx$  在结尾匹配正则xxx，一般写在末尾，没什么用，有写没写效果一致
+^还表示反义，必须在括号内使用
+[a-z]字符范围。匹配指定范围内的任何字符。例如，"[a-z]"匹配"a"到"z"范围内的任何小写字母。
+x|y 匹配 x 或 y。例如，'z|food' 匹配"z"或"food"。'(z|f)ood' 匹配"zood"或"food"
+
+圆括号()是组，主要应用在限制多选结构的范围/分组/捕获文本/环视/特殊模式处理
+1、(abc|bcd|cde)，表示这一段是abc、bcd、cde三者之一均可，顺序也必须一致
+2、(abc)?，表示这一组要么一起出现，要么不出现，出现则按此组内的顺序出现
+3、(?:abc)表示找到这样abc这样一组，但不记录，不保存到$变量中，否则可以通过$x取第几个括号所匹配到的项，比如：(aaa)(bbb)(ccc)(?:ddd)(eee)，可以用$1获取(aaa)匹配到的内容，而$3则获取到了(ccc)匹配到的内容，而$4则获取的是由(eee)匹配到的内容，因为前一对括号没有保存变量
+4、a(?=bbb) 顺序环视 表示a后面必须紧跟3个连续的b
+5、(?i:xxxx) 不区分大小写 (?s:.*) 跨行匹配.可以匹配回车符
+
+方括号是单个匹配，字符集/排除字符集/命名字符集
+1、[0-3]，表示找到这一个位置上的字符只能是0到3这四个数字，与(abc|bcd|cde)的作用比较类似，但圆括号可以匹配多个连续的字符，而一对方括号只能匹配单个字符
+2、[^0-3]，表示找到这一个位置上的字符只能是除了0到3之外的所有字符
+3、[:digit:] 0-9 [:alnum:] A-Za-z0-9
+
+-----------------
+
+规则2：
+
+.*表示 任意长度的所有字符，看实例1/2
+
+\d  任意数字，等同于[0-9],表达式要写 \\d。实例3
+Matcher.find()方法是搜索(部分匹配)，是查找输入串中与模式匹配的子串，如果该匹配的串有组还可以使用group()函数。实例3
+Matcher.matches()是全部匹配，是将整个输入串与模式匹配，如果要验证一个输入的数据是否为数字类型或其他类型，一般要用matches()。实例3
+
+
+
+
+-----------------
+
+实例：
+
+实例1：
+ Pattern pattern = Pattern.compile("Java.*");
+ Matcher matcher = pattern.matcher("Java不是人");
+ boolean b= matcher.matches(); // 这里返回true
+
+
+实例2.1：
+Pattern p = Pattern.compile(".*runoob.*");
+Matcher m = p.matcher("I am noob from runoob.com.");
+boolean isMatch = m.matches();  // 这里返回true
+实例2.2：
+Pattern p = Pattern.compile(".*runoob.*");
+Matcher m = p.matcher("I am noob from runoob.com.");
+m.group(); // 这里返回"I am noob from runoob.com." 
+           // 因为匹配规则是 runoob之前与之后的所有字符，只有原来的输入字符串符合查找规则
+       
+
+实例3.1：
+String str="The population of 2984444215 is growing";
+Pattern p=Pattern.compile("\\d+"); // 查找所有的数字
+Matcher m=p.matcher(str);
+m.find() //返回true，因为查找到了字符
+String result=m.group(); // 这里的返回值是 2984444215
+
+实例3.2.1：
+String str="The population of 2984444215 is growing";
+Pattern p=Pattern.compile("\\d+"); // 匹配所有的数字
+Matcher m=p.matcher(str);
+m.matches() //返回false，str这个字符串的整体 不符合匹配规则
+实例3.2.2：
+String str="2984444215“;
+Pattern p=Pattern.compile("\\d+"); // 匹配所有的数字
+Matcher m=p.matcher(str);
+m.matches() //返回true，str这个字符串全是数字 符合匹配规则
+
+
+实例4.1，提取字符串：
+        String pattern = "【美团网】(.*?)（登录验证码，请完成验证），如非本人操作，请忽略本短信。";
+        String content = "【美团网】345208（登录验证码，请完成验证），如非本人操作，请忽略本短信。";
+        Pattern p = Pattern.compile(pattern);
+        Matcher m = p.matcher(content);
+        m.groupCount(); // 只找到一个，返回1
+        boolean isMatch = m.find();  // 这里返回true
+        System.out.print(m.group(1));  // 返回验证码345208
+
+
+
+实例4.2，提取字符串：
+void main {
+        String str = "abc3443abcfgjhgabcgfjabc";
+        String rgex = "abc(.*?)abc";
+
+        List<String> list = new ArrayList<String>();
+        Pattern pattern = Pattern.compile(rgex);// 匹配的模式
+        Matcher m = pattern.matcher(soap);
+        while (m.find()) {  // 找到2个
+            int i = 1;
+            list.add(m.group(i));
+            i++;
+        }
+
+        System.out.println(list); // 输出两个元素的列表：[3443, gfj]
+}
+
+
+
+
+
+
+
+
+
+
 
 
 

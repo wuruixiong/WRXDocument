@@ -1,4 +1,19 @@
 
+Gson
+
+//把ArrayList<String>转成 json字符串
+String arrayString = new Gson().toJson(imagePathList);
+
+//把之前的json字符串，转成ArrayList<String>
+Type listTimeType = new TypeToken<ArrayList<String>>(){}.getType();
+List<String> arrayList = new Gson().fromJson(arrayString, listTimeType);
+
+
+
+
+
+-------------------------------------------------------------------------------------
+
 Glide官网：
 https://github.com/bumptech/glide
 
@@ -71,11 +86,6 @@ theBitmap = (Bitmap) drawableTypeRequest.asBitmap().into(500, 500).get();
 加载时，最好加上占位符
 
 
-
-
-
-----------------------------------
-Glide 源代码解析
 
 
 
@@ -307,6 +317,250 @@ call.cancel();
 FileOutputStream fos = new FileOutputStream("d:/tmp.txt");
             fos.write(response.body().bytes());
             fos.close();
+
+
+
+
+-------------------------------------------------------------------------------------
+
+
+Retrofit
+是一个网络请求库，基于okhttp（网络请求由okhttp完成），IO操作由okio处理，
+如果使用gradle导入Retrofit，会发现自动同时会导入其他库，例如okhttp和okio
+
+App应用程序通过 Retrofit 请求网络，实际上是使用 Retrofit 接口层封装请求参数、Header、Url 等信息，之后由 OkHttp 完成后续的请求操作
+在服务端返回数据之后，OkHttp 将原始的结果交给 Retrofit，Retrofit根据用户的需求对结果进行解析
+
+符合REST设计标准的API，即RESTful API。REST架构设计，遵循的各项标准和准则，就是HTTP协议的表现，
+换句话说，HTTP协议就是属于REST架构的设计模式。比如，无状态，请求-响应。。。
+
+
+简单获取json实例：
+1. 创建用gson format 创建json解析类：JsonItem
+2. 创建接口
+public interface GetCallInterface {
+    @GET("MyWebTest/ReturnServlet")
+    Call<JsonItem> getCall();
+}
+3. 创建 Retrofit 、 GetCallInterface 、Call<JsonItem>，
+   并入队进行请求，最后获取结果
+        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://10.0.160.223:8080/") // 定义访问的主机地址
+                .addConverterFactory(GsonConverterFactory.create())  //解析方法
+                .build();
+
+        GetCallInterface request = retrofit.create(GetCallInterface.class);
+
+        Call<JsonItem> call = request.getCall();
+
+        call.enqueue(new Callback<JsonItem>() {
+            @Override
+            public void onResponse(Call<JsonItem> call, Response<JsonItem> response) {
+                JsonItem item = response.body();
+                mTextView.setText(item.toString());
+                Log.e("", "");
+            }
+            @Override
+            public void onFailure(Call<JsonItem> call, Throwable throwable) {
+                System.out.println("请求失败");
+                System.out.println(throwable.getMessage());
+            }
+        });
+ 
+4. 值得注意的是 url是分两段拼接的： http://10.0.160.223:8080/MyWebTest/ReturnServlet
+
+5. call.cancel() 终止正在进行的请求
+
+
+--------------------
+
+各种注解的使用
+
+1. @PATH 动态获取URL地址，user参数传入
+    @GET("users/{user}/repos")
+    Call<JsonItem> listRepos(@Path("user") String user);
+
+
+2. @Query 动态指定 条件 获取信息, 
+   @QueryMap 动态指定 条件组 获取信息:
+
+@GET("group/{id}/users")
+Call<List<User>> groupList(@Path("id") int groupId, @Query("sort") String sort);
+在@Query(“sort”)中，short就好比是URL请求地址中的键，而它说对应的String sort中的sort则是它的值。
+
+@GET("group/{id}/users")
+Call<List<User>> groupList(@Path("id") int groupId, @QueryMap Map<String, String> options);
+使用@QueryMap注解可以分别地从Map集合中获取到元素，然后进行逐个的拼接在一起。
+
+
+3. @POST + @Body，直接把一个对象当成Post请求体发出去，非表单提交
+接口方法创建
+@POST("users/new")
+Call<User> createUser(@Body User user);
+接口使用
+Call<List<User>> repos = service.createUser(new User(1, “UserName”, "28", "http://write.blog.csdn.net/postlist"));
+
+
+4. @POST + @Field/@FieldMap携带数据类型为表单键值对
+@FormUrlEncoded
+@POST("user/edit")
+Call<User> updateUser(@Field("first_name") String first, @Field("last_name") String last);
+
+@FormUrlEncoded注解来标明这是一个表单请求
+@Field注解来标示所对应的String类型数据的键
+
+@FormUrlEncoded
+@POST("/things")
+Call<ResponseBody> things(@FieldMap Map<String, String> fields);
+
+
+5. @Part 文件上传
+@Multipart
+@PUT("user/photo")
+Call<User> updateUser(@Part("photo") RequestBody photo, @Part("description") RequestBody description);
+@Multipart注解注明，它表示允许多个@Part
+@Part则对应的一个RequestBody 对象，RequestBody 则是一个多类型的，当然也是包括文件的。
+
+File file = new File(Environment.getExternalStorageDirectory(), "ic_launcher.png");
+RequestBody photoRequestBody = RequestBody.create(MediaType.parse("image/png"), file);
+RequestBody descriptionRequestBody = RequestBody.create(null, "this is photo.");
+Call<User> call = service.updateUser(photoRequestBody, descriptionRequestBody);
+创建了两个RequestBody 对象，然后调用我们定义的updateUser方法，并把RequestBody传递进入，这样就实现了文件的上传。
+
+
+6. @PartMap 多文件上传
+@Multipart
+@PUT("user/photo")
+Call<User> updateUser(@PartMap Map<String, RequestBody> photos, @Part("description") RequestBody description);
+使用一个集合类型的Map封装了文件，并用@PartMap注解来标示起来
+
+
+7. @Headers / @HeaderMap
+
+@Headers("Cache-Control: max-age=640000")
+@GET("widget/list")
+Call<List<Widget>> widgetList();
+
+@Headers({
+    "Accept: application/vnd.github.v3.full+json",
+    "User-Agent: Retrofit-Sample-App"
+})
+
+@GET("users/{username}")
+Call<User> getUser(@Path("username") String username);
+@GET("user")
+Call<User> getUser(@Header("Authorization") String authorization)
+
+
+@GET("/search")
+void list(@HeaderMap Map<String, String> headers);
+//map
+Map<String,String> headers = new HashMap()<>;
+headers.put("Accept","text/plain");
+headers.put("Accept-Charset", "utf-8");
+
+
+
+----------------------------
+
+问题：
+1. @QueryMap和@Body的区别：
+@QueryMap注解会把参数拼接到url后面，所以它适用于GET请求；@Body会把参数放到请求体中，所以适用于POST请求。
+
+2. @FieldMap和@Body的区别：
+@Body将Java对象作为请求主体发送，@Field以表单形式发送数据 
+
+
+-------------------------------------------------------------------------------------
+
+
+RxJava
+导入到android项目需要两个库,
+RxAndroid 和 RxJava (在gradle中只需依赖RxAndroid库即可，会自动导入RxJava库)
+
+
+用途 
+一个在 Java VM 上使用可观测的序列来组成异步的、基于事件的程序的库
+代替 AsyncTask，代码更加简洁
+
+
+------------------------------
+RxJava观察者模式：
+        //创建一个观察者
+        Observer<String> observer = new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+            }
+            @Override
+            public void onNext(String s) {
+            }
+            @Override
+            public void onError(Throwable e) {
+            }
+            @Override
+            public void onComplete() {
+            }
+        };
+        //使用Observable.create()创建被观察者
+        Observable observable = Observable.create(new ObservableOnSubscribe() {
+            @Override
+            public void subscribe(ObservableEmitter emitter) throws Exception {
+                emitter.onNext("Hello");
+                emitter.onNext("Wrold");
+                emitter.onComplete();
+            }
+        });
+        //订阅
+        observable.subscribe(observer);
+
+------------------------------
+主线程监听
+    private void startMainLooperObservable() {
+        Observable.just("one", "two", "three", "four", "five")
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new DisposableObserver<String>() {
+                    @Override public void onComplete() {
+                        Log.d(TAG, "onComplete()");
+                    }
+                    @Override public void onError(Throwable e) {
+                        Log.e(TAG, "onError()", e);
+                    }
+                    @Override public void onNext(String string) {
+                        Log.d(TAG, "onNext(" + string + ")");
+                    }
+                });
+    }
+------------------------------
+
+子线程监听
+private void startBackLooperObservable() {
+        HandlerThread handlerThread = new HandlerThread("backgroundThread");
+        if (!handlerThread.isAlive())
+            handlerThread.start();
+        Looper backgroundLooper = handlerThread.getLooper();
+        Observable.just("one", "two", "three", "four", "five")
+                .observeOn(AndroidSchedulers.from(backgroundLooper))
+                .subscribe(new DisposableObserver<String>() {
+                    @Override public void onComplete() {
+                        Log.d(TAG, "onComplete()");
+                    }
+                    @Override public void onError(Throwable e) {
+                        Log.e(TAG, "onError()", e);
+                    }
+                    @Override public void onNext(String string) {
+                        Log.d(TAG, "onNext(" + string + ")");
+                    }
+                });
+    }
+
+
+
+
+
+
+
+
+
 
 
 

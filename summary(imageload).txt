@@ -1,33 +1,393 @@
 
 
+Glide 和 Picasso
+
+Glide 和 Picasso 在使用方法上有很多相似的地方，例如支持站位图，加载失败图，设置缩放方式centerCrop，支持过场动画，并且 语句几乎相同
+
+代码：
+Picasso
+Picasso.with(context)
+    .load("http://inthecheesefactory.com/uploads/source/glidepicasso/cover.jpg")
+    .into(ivImg);
+
+Glide
+Glide.with(context)
+    .load("http://inthecheesefactory.com/uploads/source/glidepicasso/cover.jpg")
+    .into(ivImg);
+
+
+Glide 技术优势：
+图像加载将与Activity/Fragment的生命周期集成，在 with() 方法中，可以把Activity、Fragment放进去
+自动调整 加载图片的大小
+比Picasso更灵活的磁盘缓存（Picasso磁盘缓存全尺寸），缓存加载的那张图片大小的缓存（也可设置缓存全尺寸），还提供设置的接口，
+更快的缓存加载速度
+支持GIF播放
+缩略图thumbnail
+
+
+
+Picasso 技术优势：
+方法数少，代码量少，加载流程更简洁清晰
+功能较少，使用简单
+
+
+
+------------------------------------------------------------------------------------------------
+
 Picasso
 
+特性优势
+1.能够根据不同网络情况，修改线程池ExecutorService的线程个数，4g、3g、wifi情况下表现不同
+2.创建默认的监控器，统计下载时长、缓存命中率等
+3.通过BitmapHunter这个核心类中的run方法来下载图片，并将图片解码成Bitmap，然后做一些转换操作，剪裁啊，旋转啊等
+4.显示图片加载来源，设置不同的tag
+5.轻量级、易扩展
+
+框架概览
+1.请求分发模块。负责封装请求,对请求进行优先级排序,并按照类型进行分发。
+2.缓存模块。通常包括一个二级的缓存，内存缓存、磁盘缓存。并预置多种缓存策略。
+3.下载模块。负责下载网络图片。
+4.监控模块。负责监控缓存命中率、内存占用、加载图片平均耗时等。
+5.图片处理模块。负责对图片进行压缩、变换等处理。
+6.本地资源加载模块。负责加载本地资源，如assert、drawable、sdcard等。
+7.显示模块。负责将图片输出显示。
+
+
+整体框架流程：
+个人总结：
+类似于okhttp的架构，整体采用外观模式，
+1. picasso类是 门面，负责对外接口的参数传输，with()方法获取picasso实例，load()方法创建RequestCreator，into()方法真正操作请求并展示的方法,
+2. Dispatcher.performSubmit() 中调用 ：
+   forRequest，遍历requestHandlers (请求处理者集群)，生成一个BitmapHunter，
+   线程池执行 BitmapHunter.run()：service.submit(hunter)
+   获得请求处理者集群，进行 请求并发 调度操作
+  （可以说 requestHandlers (请求处理者集群)，负责处理请求，无论是网络的还是缓存的请求，都由这个集群负责处理）
+
+3.BitmapHunter获取结果后，分发器分发结果,通过Hander处理后，执行performComplete方法, 最后把 bitmap 回调到主线程。
+  接着 batch -> performBatchComplete -> Picasso.HANDLER (HUNTER_BATCH_COMPLETE) -> hunter.picasso.complete
+  -> 最后 ImageViewAction.complete -> PicassoDrawable.setBitmap(target, ...)
+
+4.下载时会缓存，等待下一次缓存命中，提高效率picasso.quickMemoryCacheCheck()
+
+
+注意：由于为了使用便捷，框架很多功能没有对外开放接口，如果有特殊定制要求，下载源码自己实现
+
+
+-------------------------------------
+
+
+Picasso的核心类主要包括:Picasso,RequestCreator,Action,Dispatcher,Request,RequestHandler,BitmapHunter等等.
+
+一张图片加载可以分为以下几步:
+创建->入队->执行->解码->变换->批处理->完成->分发->显示(可选)
+
+
+创建Picasso时 builde方法：downloader = Utils.createDefaultDownloader(context);
+Class.forName("com.squareup.okhttp.OkHttpClient");
+Class.forName(xxx.xx.xx)返回的是一个类。
+Class.forName(xxx.xx.xx)的作用是要求JVM查找并加载指定的类，也就是说JVM会执行该类的静态代码段。
+
+-------------------------------------
+
+
+建造者模式是指:将一个复杂对象的构建与它的表示分离，使得同样的构建过程可以创建不同的表示。
+建造者模式应该是我们都比较熟悉的一种模式,在创建AlertDialog的时候通过配置不同的参数就可以展示不同的AlertDialog,这也正是建造者模式的用途,通过不同的参数配置或者不同的执行顺序来构建不同的对象,
+在Picasso里当构建RequestCreator的时候正是使用了这种设计模式,我们通过可选的配置比如centerInside(),placeholder()等等来分别达到不同的使用方式,在这种使用场景下使用建造者模式是非常合适的.
+
+写法，例如 一个ObjectA类中，创建builder内部类，builder中的各个方法返回的都是ObjectA对象，
+好处是可以随意的 增加配置，通过不同的配置得到一个个功能各不相同的对象，
+跟 重载 相比起来，不需要写很多重载构造方法，也不会出现一个构造方法传入大一堆参数的情况，代码更简洁
+
+
+------------------------------------—
+
+单例模式获取Picasso对象，实现并发加载一张图片的功能
+
+
+加载流程：
+1. Picasso.with(this)，创建Picasso实例
+Picasso是个单例模式，创建时使用 建造者模式（Builder模式)创建了一个Picasso的实例
+（建造者模式：将一个复杂的对象的构建与它的表示分离，使得同样的构建过程可以创建不同的表示）
+
+Picasso.Builder.build()方法创建了线程池
+service = new PicassoExecutorService();
+
+Picasso.Builder.build()方法调用了 Picasso的私有构造方法
+Picasso(Context context, Dispatcher dispatcher, Cache cache, Listener listener,
+      RequestTransformer requestTransformer, List<RequestHandler> extraRequestHandlers, Stats stats,
+      Bitmap.Config defaultBitmapConfig, boolean indicatorsEnabled, boolean loggingEnabled)
+
+这个方法创建了 请求处理集群List<RequestHandler> requestHandlers;
+以下除了 add如 开发者创建的extraRequestHandlers之外，还add入了：
+NetworkRequestHandler:网络请求处理器，如果图片需要从网络下载，则用这个处理器处理。
+FileRequestHandler:文件请求处理器，如果请求的是一张存在文件中的图片，则用这个处理器处理。
+AssetRequestHandler: Asset 资源图片处理器，如果是加载asset目录下的图片，则用这个处理器处理。
+ResourceRequestHandler:Resource资源图片处理器，如果是加载res下的图片，则用这个处理器处理。
+ContentStreamRequestHandler: ContentProvider 处理器，如果是ContentProvider提供的图片，则用这个处理器处理
+MediaStoreRequestHandler: MediaStore 请求处理器，如果图片是存在MediaStore上的则用这个处理器处理。
+ContactsPhotoRequestHandler:ContactsPhoto 请求处理器，如果加载com.android.contacts/ 下的tu图片用这个处理器处理。
+源码：
+    allRequestHandlers.add(new ResourceRequestHandler(context));
+    if (extraRequestHandlers != null) {
+      allRequestHandlers.addAll(extraRequestHandlers);
+    }
+    allRequestHandlers.add(new ContactsPhotoRequestHandler(context));
+    allRequestHandlers.add(new MediaStoreRequestHandler(context));
+    allRequestHandlers.add(new ContentStreamRequestHandler(context));
+    allRequestHandlers.add(new AssetRequestHandler(context));
+    allRequestHandlers.add(new FileRequestHandler(context));
+    allRequestHandlers.add(new NetworkRequestHandler(dispatcher.downloader, stats));
+    requestHandlers = Collections.unmodifiableList(allRequestHandlers);
+
+值得注意的是：
+BitmapHunter:这是Picasso的一个核心的类，开启线程执行下载，获取结果后解码成Bitmap,然后做一些转换操作如图片旋转、裁剪等，
+如果请求设置了转换器Transformation,也会在BitmapHunter里执行这些转换操作。
+
+
+2. load()方法，创建 RequestCreator
+RequestCreator的构造：
+RequestCreator(Picasso picasso, Uri uri, int resourceId) {
+  if (picasso.shutdown) {
+    throw new IllegalStateException(
+        "Picasso instance already shut down. Cannot submit new requests.");
+  }
+  this.picasso = picasso;
+  this.data = new Request.Builder(uri, resourceId, picasso.defaultBitmapConfig);
+}
+
+首先是持有一个Picasso的对象,然后构建一个Request的Builder对象,将我们需要加载的图片的信息都保存在data里,在我们通过.centerCrop()或者.transform()等等方法的时候实际上也就是改变data内的对应的变量标识,再到处理的阶段根据这些参数来进行对应的操作,所以在我们调用into()方法之前,所有的操作都是在设定我们需要处理的参数,真正的操作都是有into()方法引起的。
 
 
 
+3. into()
+RequestCreator.into()
+  3.1, into方法里面干了3件事情：
+  3.1.1, 判断是否设置了fit 属性，如果设置了，再看是否能够获取ImageView 的宽高，如果获取不到，生成一个DeferredRequestCreator（延迟的请求管理器），然后直接return,在DeferredRequestCreator中当监听到可以获取ImageView 的宽高的时候，再执行into方法。
 
-Picasso.with(this)
-Picasso单例模式，使用Builder模式创建了一个Picasso的实例
+  3.1.2, 判断是否从内存缓存获取图片，如果没有设置NO_CACHE,则从内存获取，命中直接回调CallBack 并且显示图片。
 
-
-
-
-
-
-
+  3.1.3, 如果缓存未命中，则生成一个Action，并提交Action。
 
 
+  3.2 提交、分发、执行请求。
+会经过下面这一系列的操作，最重将Action 交给BitmapHunter 执行。
+enqueueAndSubmit －> submit －> dispatchSubmit －> performSubmit：
+
+  3.3 指定对应的处理器（RequestHandler）
+在上面执行的请求的performSubmit 方法里，调用了forRequest 方法为对应的Action 生成一个BitmapHunter,
+里面有一个重要的步骤，指定请求处理器, 在上面介绍的Picasso有7种请求处理器
+
+从Picasso里获取一个 请求处理者集群列表，然后循环列表，看是否有能处理该请求的处理器，如果有，则生成BitmapHunter,
+
+  3.4 重点：BitmapHunter (图片捕获器)
+重要类介绍的时候介绍过BitmapHunter，BitmapHunter继承Runnable，其实就是开启一个线程执行最终的下载。
+当将一个bitmapHunter submit 给一个线程池执行的时候，就会执行run() 方法，run里面调用的是hunt方法来获取结果
 
 
+  3.5 Downloader 下载器下载图片
+上面的hunt方法获取结果的时候，最终调用的是配置的处理器的load方法
+
+加载网络图片用的是NetworkRequestHandler，匹配处理器，有个canHandleRequest 方法
+NetworkRequestHandler最终是调用的downloader 的load方法下载图片。内置了2个Downloader，OkhttpDownloader和UrlConnectionDownloader 。
+
+小结：梳理一下调用链, BitmapHunter －> NetworkRequestHandler －> UrlConnectionDownloader(也有可能是OkHttpDownloader),经过这一系列的调用，
+最后在BitmapHunter 的run 方法中就可以获取到我们最终要的Bitmap。
 
 
+4. 返回结果并显示在Target上
+在BitmapHunter获取结果后，分发器分发结果,通过Hander处理后，执行performComplete方法：
+ // 这里将结果缓存到内存
+    if (shouldWriteToMemoryCache(hunter.getMemoryPolicy())) {
+      cache.set(hunter.getKey(), hunter.getResult());
+    }
+
+通过上面一系列的方法调用， performComplete －> batch —> performBatchComplete －> handleMessage －> complete 把BitmapHunter中获取到的结果回调到主线程，并且显示在Target上。 
 
 
+5. 缓存说明：
+内存缓存: LRUCache，大小为 手机内存的15% ,
+LRUCache在 Picasso中创建，内部维护一个 LinkedHashMap，缓存bitmap，key是url
+Dispatcher.performComplete() 调用set()缓存bitmap，
+Picasso.into() 中获取图片
+如果LinkedHashMap的内存大于最大值，则根据时间移除最先传入的缓存
+
+这里重点说一下Disk Cahce。Picasso内存了2个默认的下载器，UrlConnectionDownloader和OkHttpDownloader,它们的磁盘缓存实现还是有一些差异的
+
+在OkHttpDownloader 的构造方法里设置了磁盘缓存，使用的okHttp 的 DiskLruCache 实现的。
 
 
+UrlConnectionDownloader 的磁盘缓存是用HttpResponseCache实现的**
+
+尽管2种磁盘缓存实现的方式不一样，但是它们的最后结果都是一样的：
+
+磁盘缓存的地址： 磁盘缓存的地址在：data/data/your package name/cache/picasso-cache /
+磁盘缓存的大小：磁盘缓存的大小为 手机磁盘大小的2% ，不超过50M不小于5M。
+缓存的控制方式一样：都是在请求的header设置Cache-Control的值来控制是否缓存。
 
 
 
 ----------------------------------------------------------------------------------------
+
+
+Glide
+
+总体结构流程：
+
+1.发起请求：SingleRequest & RequestCoordinator
+2.转码和加载：EngineJob & DecodeJob
+3.获取数据：MemoryCache & DiskCache & LoadUrlFetcher & HttpUrlFetcher
+4.数据构成：Server & File & Memory & Active
+5.资源返回并显示：decode & transcode & encode
+
+ Glide 主要分为 4 个层：请求管理、 Engine （任务创建，发起，回调；管理存活和缓存的资源）、数据获取、数据层。
+
+
+设计模式：
+
+
+
+
+----------------------
+
+简单分析：
+Glide.with(this).load(mUrl).into(mImageView);
+
+with()方法：
+with()方法是Glide类中的一组静态方法，逻辑都是一样的，通过RequestManagerRetriever的重载get()方法获取一个RequestManager：
+1.如果get()参数是context或者view，那么返回的是applicationManager，与application的生命周期同步，当进程结束后，glide加载也会同时终止；
+2.如果get()的参数是FragmentActivity，Fragment，调用supportFragmentGet，加入一个SupportRequestManagerFragment
+3.如果Activity调用fragmentGet，加入一个RequestManagerFragment
+Glide添加隐藏Fragment，因为Fragment的生命周期和Activity是同步的，如果Activity被销毁了，Fragment是可以监听到的，这样Glide就可以捕获这个事件并停止图片加载了。如果我们是在非主线程当中使用的Glide，那么不管你是传入的Activity还是Fragment，都会被强制当成Application来处理。
+
+
+load()方法：
+load()方法是在RequestManager类当中的，RequestManager中也有很多个load()方法的重载，重点解析加载图片URL字符串的load()方法的调用顺序：
+1. 创建一个DrawableTypeRequest<String>并return
+2. 如果调用了DrawableTypeRequest的asBitmap(), 返回BitmapTypeRequest, asGif()->GifTypeRequest
+3. into()最终调用的是DrawableTypeRequest的父类：DrawableRequestBuilder中的into()
+
+
+into()方法：
+DrawableRequestBuilder的父类是GenericRequestBuilder，GenericRequestBuilder类中的into()方法：
+
+1.into(ImageView view)返回Target对象：return into(glide.buildImageViewTarget(view, transcodeClass))
+
+2.imageViewTargetFactory.buildTarget(imageView, transcodedClass)
+
+3.buildTarget返回GlideDrawableImageViewTarget，如果是bitmap返回BitmapImageViewTarget
+
+4.原始的into() 重载一个 into(Y target)方法，这个方法中: Request request=buildRequest(target); requestTracker.runRequest(request);
+
+5.解析4步的buildRequest(): buildRequestRecursive->GenericRequest.obtain() -> GenericRequest
+  runRequest()->判断是否暂停 if(!isPaused) -> request.begin() -> GenericRequest中的begin()
+
+6.begin(): 
+  6.1 调用onException(null)会显示setErrorPlaceholder()中的占位图
+  6.2 如果调用override()会执行onSizeReady()，没有则调用target.getSize()，拿到图片的宽高
+  6.3 onSizeReady(overrideWidth, overrideHeight)重点
+  6.4 加载中的占位图：target.onLoadStarted(getPlaceholderDrawable());
+
+7.onSizeReady，
+  
+  engine.load(…) -> EngineJob 开启线程 -> engineJob.start(EngineRunnable) -> EngineRunnable.run() -> decode() -> decodeFromCache()或者decodeFromSource() -> decodeFromSource 调用 decodeJob.decodeFromSource() -> 
+Resource<T> decoded = decodeSource()构建资源类Resource & transformEncodeAndTranscode(decoded)
+
+8. decodeSource两步骤：
+（1）. 整体返回流程：decodeSource()将返回的data封装成Resource<T>并返回 -> (ImageVideoWrapper)ImageVideoFetcher.loadData() 将获取到的InputStream封装为ImageVideoWrapper并返回 -> (HttpUrlFetcher)streamFetcher.loadData() 返回InputStream
+
+（2）. 对流的解码：decodeSource()拿到 -> decodeFromSourceData(data)封装 (ImageVideoWrapper)data返回Resource类 -> (FixedLoadProvider)loadProvider.getSourceDecoder().decode() 返回Resource<GifBitmapWrapper> -> 
+
+GifBitmapWrapperResourceDecoder.decode()封装(还是利用InputStream)返回GifBitmapWrapper类 这里会区分Gif这个分类 -> decodeStream()返回GifBitmapWrapper -> decodeBitmapWrapper()封装result返回GifBitmapWrapper-> 
+
+Resource<Bitmap> result = (ImageVideoBitmapDecoder)bitmapDecoder.decode(toDecode,…) -> 
+将ImageVideoWrapper中取出的InputStream, 转换成：
+Resource<Bitmap> result = (StreamBitmapDecoder)streamDecoder.decode(is,…) ->
+Bitmap bitmap = downsampler.decode(…) 最完整的输入流转换代码：downsampler.decode
+
+
+9. transformEncodeAndTranscode(decoded) 将Resource<GifBitmapWrapper>作为参数，并返回Resource<Z>：
+(GifBitmapWrapperDrawableTranscoder)transcoder.transcode() transcode方法先从Resource<GifBitmapWrapper>中取出GifBitmapWrapper对象，然后再从GifBitmapWrapper中取出Resource<Bitmap>对象。
+接下来做了一个判断，如果Resource<Bitmap>为空，那么说明此时加载的是GIF图，直接调用getGifResource()方法将图片取出即可，因为Glide用于加载GIF图片是使用的GifDrawable这个类，它本身就是一个Drawable对象了。而如果Resource<Bitmap>不为空，那么就需要再做一次转码，将Bitmap转换成Drawable对象才行，因为要保证静图和动图的类型一致性，不然逻辑上是不好处理的。
+-> result = (GlideBitmapDrawableTranscoder)bitmapDrawableResourceTranscoder.transcode(bitmapResource);
+-> GlideBitmapDrawableTranscoder中的transcode方法，最终返回一个Resource<GlideBitmapDrawable>
+GlideBitmapDrawable drawable = new GlideBitmapDrawable(resources, toTranscode.get());
+return new GlideBitmapDrawableResource(drawable, bitmapPool);
+总结：最终会返回一个Resource<GlideDrawable> 有可能是Resource<GifDrawable>也可能是Resource<GlideBitmapDrawable>
+
+10. 回到EngineRunnable中decode()返回一个 Resource<?> resource -> onLoadComplete(resource) -> (EngineJob)manager.onResourceReady(resource)-> MAIN_THREAD_HANDLER.obtainMessage(MSG_COMPLETE, this).sendToTarget() 主线程开始更新-> MainThreadCallback job.handleResultOnMainThread() 调用了所有ResourceCallback的onResourceReady()方法,addCallback()在Engine.load()中调用过 -> 最后回到：GenericRequest.onResourceReady() 这里两个onResourceReady()方法，-> (GlideDrawableImageViewTarget)target.onResourceReady() ->ImageViewTarget.onResourceReady() -> GlideDrawableImageViewTarget.setResource()
+
+----------------------
+
+网络加载：
+HttpUrlFetcher -> DefaultHttpUrlConnectionFactory -> 默认就是 URL.openConnection() 构造一个URLConnection -> 返回一个InputStream，这就是图片的数据
+
+----------------------
+
+缓存调用：加载图片时，取缓存 Engine.load() -> Engine.loadFromCache() 如果拿到的是空值
+
+----------------------
+
+线程池的创建和并发执行：
+1. 线程池在GlideBuilder中创建，createGlide()：
+        if (sourceService == null) {
+            final int cores = Math.max(1, Runtime.getRuntime().availableProcessors());
+            sourceService = new FifoPriorityThreadPoolExecutor(cores);
+        }
+        if (diskCacheService == null) {
+            diskCacheService = new FifoPriorityThreadPoolExecutor(1);
+        }
+
+创建之后createGlide()：Engine构造方法创建Engine对象，并把sourceService ，diskCacheService 传给Engine，
+最后new Glide(engine, memoryCache, bitmapPool, context, decodeFormat)
+也证明了engine对象在Glide对象中只有一个，线程池sourceService和diskCacheService也只有一个
+
+2.构造方法Engine()，参数很多不列出
+new EngineJobFactory(diskCacheService, sourceService, this)
+EngineJob工厂会在创建EngineJob时，把diskCacheService, sourceService再传给EngineJob
+
+3.线程池执行线程，EngineJob.start(EngineRunnable engineRunnable)：
+diskCacheService.submit(engineRunnable)
+一个engineRunnable 对应一个EngineJob和 一个DecodeJob
+
+4.线程池diskCacheService详解
+
+
+
+5.线程池sourceService详解
+EngineJob.submitForSource()调用EngineJob
+
+
+
+----------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

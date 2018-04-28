@@ -1,0 +1,231 @@
+
+
+基础
+主键和外键：
+
+主键：关系型数据库中的一条记录中有若干个属性，若其中某一个属性组(注意是组)能唯一标识一条记录，该属性组就可以成为一个主键 
+比如  
+学生表(学号，姓名，性别，班级) 
+其中每个学生的学号是唯一的，学号就是一个主键 
+课程表(课程编号,课程名,学分) 
+其中课程编号是唯一的,课程编号就是一个主键 
+成绩表(学号,课程号,成绩) 
+成绩表中单一一个属性无法唯一标识一条记录，学号和课程号的组合才可以唯一标识一条记录，所以 学号和课程号的属性组是一个主键 
+
+外键：
+成绩表中的学号不是成绩表的主键，但它和学生表中的学号相对应，并且学生表中的学号是学生表的主键，则称成绩表中的学号是学生表的外键 
+同理 成绩表中的课程号是课程表的外键 
+
+定义主键和外键主要是为了维护关系数据库的完整性，总结：
+主键是能确定一条记录的唯一标识
+外键用于与另一张表的关联
+
+
+--------------------------------------------------------------------------------
+
+数据类型：
+Text		用于文本或文本与数字的组合。最多 255 个字符。	 
+
+Memo		Memo 用于更大数量的文本。最多存储 65,536 个字符。注释：无法对 memo 字段进行排序。不过它们是可搜索的。
+
+Byte		允许 0 到 255 的数字。	1 字节
+
+Integer		允许介于 -32,768 到 32,767 之间的数字。	2 字节
+
+Long		允许介于 -2,147,483,648 与 2,147,483,647 之间的全部数字	4 字节
+
+Single		单精度浮点。处理大多数小数。	4 字节
+
+Double		双精度浮点。处理大多数小数。	8 字节
+
+Currency	用于货币。支持 15 位的元，外加 4 位小数。提示：您可以选择使用哪个国家的货币。8 字节
+
+AutoNumber	AutoNumber 字段自动为每条记录分配数字，通常从 1 开始。	4 字节
+
+Date/Time	用于日期和时间	8 字节
+
+Yes/No		逻辑字段，可以显示为 Yes/No、True/False 或 On/Off。在代码中，使用常量 True 和 False （等价于 1 和 0）注释：Yes/No 字段中不允许 Null 值。1 比特
+
+Ole Object	可以存储图片、音频、视频或其他 BLOBs (Binary Large OBjects)	最多 1GB
+
+Hyperlink	包含指向其他文件的链接，包括网页。	 
+
+Lookup Wizard	允许你创建一个可从下列列表中进行选择的选项列表。	
+
+
+--------------------------------------------------------------------------------
+
+
+
+SQL 命令
+
+
+创建数据库：
+sqlite3 DatabaseName.db
+
+
+创建表：
+CREATE TABLE 语句的基本语法如下：
+CREATE TABLE database_name.table_name(
+   column1 datatype  PRIMARY KEY(one or more columns),
+   column2 datatype,
+   column3 datatype,
+   .....
+   columnN datatype,
+);
+实例：
+CREATE TABLE COMPANY(
+   ID INT PRIMARY KEY     NOT NULL,
+   NAME           TEXT    NOT NULL,
+   AGE            INT     NOT NULL,
+   ADDRESS        CHAR(50),
+   SALARY         REAL
+);
+CREATE TABLE MyDataTable(
+  id INT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL
+);
+
+-------------------------
+
+插入语句：
+INSERT INTO 表名称 VALUES (值1, 值2,....)
+也可以指定所要插入数据的列：
+INSERT INTO table_name (列1, 列2,...) VALUES (值1, 值2,....)
+
+例如：
+INSERT INTO MyDataTable VALUES (101, 'nameB'), (102, 'nameC');
+
+
+-------------------------
+
+查询语句：
+SQL SELECT 语法
+SELECT 列名称 FROM 表名称
+以及：
+SELECT * FROM 表名称
+
+例如：
+SELECT LastName,FirstName FROM Persons
+SELECT * FROM MyDataTable
+
+
+-------------------------
+
+更新语句
+UPDATE 表名称 SET 列名称 = 新值 WHERE 列名称 = 某值
+
+实例1：
+更新某一行中的一个列
+UPDATE Person SET FirstName = 'Fred' WHERE LastName = 'Wilson' 
+
+实例2：
+更新某一行中的若干列
+UPDATE Person SET Address = 'Zhongshan 23', City = 'Nanjing'
+WHERE LastName = 'Wilson'
+
+实例3：
+UPDATE MyDataTable SET name='nameABC' WHERE id = 103;
+
+
+
+-------------------------
+
+删除语句
+DELETE FROM 表名称 WHERE 列名称 = 值
+
+实例：
+删除一行
+DELETE FROM MyDataTable WHERE id=103
+
+删除所有行
+可以在不删除表的情况下删除所有的行。这意味着表的结构、属性和索引都是完整的：
+DELETE FROM table_name
+或者：
+DELETE * FROM table_name
+
+
+
+-------------------------
+
+其他语句：
+
+SQL SELECT DISTINCT 语句
+在表中，可能会包含重复值。这并不成问题，不过，有时您也许希望仅仅列出不同（distinct）的值。
+关键词 DISTINCT 用于返回唯一不同的值。
+语法：
+SELECT DISTINCT 列名称 FROM 表名称
+
+
+
+AND 和 OR 运算符
+AND 和 OR 可在 WHERE 子语句中把两个或多个条件结合起来。
+如果第一个条件和第二个条件都成立，则 AND 运算符显示一条记录。
+如果第一个条件和第二个条件中只要有一个成立，则 OR 运算符显示一条记录。
+例如：
+SELECT * FROM Persons WHERE FirstName='Thomas' AND LastName='Carter'
+SELECT * FROM Persons WHERE FirstName ='Thomas' OR LastName ='Carter'
+结合 AND 和 OR 实例，使用圆括号来组成复杂的表达式）:
+SELECT * FROM Persons WHERE (FirstName='Thomas' OR FirstName='William') AND LastName='Carter'
+
+
+
+ORDER BY 语句
+ORDER BY 语句用于根据指定的列对结果集进行排序。
+ORDER BY 语句默认按照升序对记录进行排序。
+如果您希望按照降序对记录进行排序，可以使用 DESC 关键字。
+实例 1
+以字母顺序显示公司名称：
+SELECT Company, OrderNumber FROM Orders ORDER BY Company
+实例 2
+以字母顺序显示公司名称（Company），并以数字顺序显示顺序号（OrderNumber）：
+SELECT Company, OrderNumber FROM Orders ORDER BY Company, OrderNumber
+实例 3
+以逆字母顺序显示公司名称：
+SELECT Company, OrderNumber FROM Orders ORDER BY Company DESC
+实例 4
+以逆字母顺序显示公司名称，并以数字顺序显示顺序号：
+SELECT Company, OrderNumber FROM Orders ORDER BY Company DESC, OrderNumber ASC
+
+
+-------------------------
+
+
+SQLite 命令：
+进入到一个有 数据库的目录中，
+1, sqlite3 命令进入到sqlite3执行程序中
+2, .open db.sqlite3 打开数据库
+3, .databases 显示当前打开的数据库文件
+4, .exit 退出交互模式
+5, .help 列出命令的提示信息，可供于查阅。
+6, .table 查询所有表
+7, .schema + 表名    查询表结构
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

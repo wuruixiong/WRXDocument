@@ -339,6 +339,8 @@ Manifest merger failed with multiple errors, see logs
 
 在左边栏目中，点击 show console output 项，可以打开 gradle console 查看错误详情
 
+写好一个函数之后，在函数前面写上 /** 然后直接回车(Enter键啊），会自动生成注释，函数所有参数都自动帮你写上了，然后你自己加上一些说明就可以了
+
 
 ------------------------------------------------
 
