@@ -60,10 +60,6 @@ Lookup Wizard	允许你创建一个可从下列列表中进行选择的选项列
 SQL 命令
 
 
-创建数据库：
-sqlite3 DatabaseName.db
-
-
 创建表：
 CREATE TABLE 语句的基本语法如下：
 CREATE TABLE database_name.table_name(
@@ -192,6 +188,11 @@ SELECT Company, OrderNumber FROM Orders ORDER BY Company DESC, OrderNumber ASC
 
 
 SQLite 命令：
+
+创建数据库：
+sqlite3 DatabaseName.db
+
+
 进入到一个有 数据库的目录中，
 1, sqlite3 命令进入到sqlite3执行程序中
 2, .open db.sqlite3 打开数据库
