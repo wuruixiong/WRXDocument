@@ -76,7 +76,8 @@ adb shell su 获取权限，可以查看data目录下的文件,只有root的手�
 
 adb pull  从真机上拷贝文件到PC上
 adb push  从PC上复制一份文件到的手机机上
-adb push ./openvpn-keys /sdcard
+实测window下也可以执行
+adb push ./openvpn-keys /sdcard  
 
 adb shell am force-stop com.my.app.package 停止一个app
 
@@ -341,6 +342,11 @@ Manifest merger failed with multiple errors, see logs
 
 写好一个函数之后，在函数前面写上 /** 然后直接回车(Enter键啊），会自动生成注释，函数所有参数都自动帮你写上了，然后你自己加上一些说明就可以了
 
+
+配置调试activity
+在 Edit Configuations 下的 Launcher Options，下拉菜单选择 Specfied Activity 可对其他activity调试
+如果选择 Default Activity，则对应的是manifest文件中的 category.DEFAULT的activity
+如果项目中配置的多个category.DEFAULT就需要选择 Specfied Activity进行调试
 
 ------------------------------------------------
 

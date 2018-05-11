@@ -21,7 +21,7 @@ double	8个字节
 关于boolean占几个字节，众说纷纭，虽然boolean表现出非0即1的“位”特性，但是存储空间的基本计量单位是字节，不是位。所以boolean至少占一个字节。 
 JVM规范中，boolean变量作为int处理，也就是4字节；boolean数组当做byte数组处理。
 
-
+String，一个英文字符占1个字节。中文字符根据编码，UTF-8编码：中文字符3个字节；GBK编码：中文字符占2个字节。
 
 
 内存分配基础
@@ -567,9 +567,21 @@ void main {
         System.out.println(list); // 输出两个元素的列表：[3443, gfj]
 }
 
+-------------------------------------------------------------------------------------
 
+在String中，一个英文字符占1个字节，而中文字符根据编码的不同所占字节数也不同。
+在UTF-8编码下，一个中文字符占3个字节；而使用GBK编码时一个中文字符占2个字节。
+测试代码如下：
+ public static void main(String[] args) throws UnsupportedEncodingException {
+        String str1 = "hello";
+        String str2 = "你好abc";
 
+        System.out.println("utf-8编码下'hello'所占的字节数:" + str1.getBytes("utf-8").length);
+        System.out.println("gbk编码下'hello'所占的字节数:" + str1.getBytes("gbk").length);
 
+        System.out.println("utf-8编码下'你好abc'所占的字节数:" + str2.getBytes("utf-8").length);
+        System.out.println("gbk编码下你好'你好abc'所占的字节数:" + str2.getBytes("gbk").length);
+    }
 
 
 
