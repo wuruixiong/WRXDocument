@@ -59,6 +59,7 @@ b 向后移动一个单词
 
 > 全选缩进
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 adb shell 命令略等于linux 终端命令，即大部分命令的相同的，是只能运行在android机器上的命令，例如在android机器上复制目录、文件到android机器上的另一个目录
 而adb 命令则不同于linux 终端命令，可以用于android机器于编译环境（电脑）的交互，例如从android机器上复制文件到电脑上
@@ -94,7 +95,7 @@ adb shell am force-stop com.my.app.package 停止一个app
 	cp -r files ../../../mnt/sdcard/
 
 删除apk
-adb uninstall apkName
+adb uninstall <package_name>
 
 在手机中导出apk：
 查看所有的apk包名
@@ -110,6 +111,55 @@ adb pull /data/app/com.mms.emojiplugin.twemoji-1/base.apk ./com.mms.emojiplugin.
 方法一:使用cp 命令将data/data下的文件复制到sdcard上，再使用pull命令导出
 方法二:使用 豌豆荚 导出，如果不能导出，使用 豌豆荚 root ，再导出
 
+------------------
+列出所有app的包名
+adb shell pm list packages
+
+------------------
+adb shell下执行
+切换屏幕分辨率
+wm size 800x480
+wm size 1024x600
+wm是高通平台（MTK平台类似的命令为am）下对手机分辨率、像素密度、显示区域进行设置的命令。
+------------------
+adb shell am force-stop com.xyz.package;
+adb shell am start -n com.xyz.package/.SomeMainActivity
+
+------------------
+adb setprop/getprop/watchprops 
+
+getprop命令的作用就是从系统的各种配置文件中读取一些设备的信息:
+查询所有的配置 : adb shell getprop
+加过滤条件: adb shell getprop | grep dalvik
+这些文件在我们的手机设备中是可以找到的：
+init.rc
+default.prop
+/system/build.prop
+
+setprop可以对手机一些配置进行设置，当然这些配置必须是可写的。 
+命令格式：setprop [key] [value] 
+修改进程默认分配的可使用堆内存大小：
+adb shell setprop dalvik.vm.heapgrowthlimit 512m
+
+watchprops命令用来监听系统属性的变化，如果期间系统的属性发生变化则把变化的值显示出来。
+
+一些参数说明
+dalvik.vm.heapgrowthlimit：默认给进程分配的可使用堆内存
+dalvik.vm.heapsize：设置了android:largeHeap以后可使用的内存大小
+ro.product.brand：手机品牌
+ro.product.device：设备名称
+ro.product.model：设备内部代号
+ro.product.name：设备名称
+ro.product.manufacturer：设备制造商
+ro.serialno：设备序列号
+ro.sf.lcd_density：设备屏幕密度
+ro.config.ringtone：默认来电铃声
+ro.config.notification_sound：默认通知铃声
+ro.config.alarm_alert：默认闹钟铃声
+dalvik.vm.stack-trace-file：trace文件放置目录
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 git 命令：
 git log 查看commit
@@ -342,11 +392,16 @@ Manifest merger failed with multiple errors, see logs
 
 写好一个函数之后，在函数前面写上 /** 然后直接回车(Enter键啊），会自动生成注释，函数所有参数都自动帮你写上了，然后你自己加上一些说明就可以了
 
-
+-------------
 配置调试activity
 在 Edit Configuations 下的 Launcher Options，下拉菜单选择 Specfied Activity 可对其他activity调试
 如果选择 Default Activity，则对应的是manifest文件中的 category.DEFAULT的activity
 如果项目中配置的多个category.DEFAULT就需要选择 Specfied Activity进行调试
+
+-------------
+logcat栏，最右边下拉菜单，选择No Filters不过滤，打印所有app的log。
+选择Show Only Selected Application 打印目标app的log
+
 
 ------------------------------------------------
 

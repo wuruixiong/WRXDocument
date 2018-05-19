@@ -1,0 +1,300 @@
+Launcher
+
+AppsCustomizePagedView.onClick 启动所有app点击事件
+
+热键页 子元素 BubbleTextView
+全部App页 子元素 PagedViewIcon
+
+布局修改
+layout-sw240dp-land/launcher.xml
+layout-sw360dp-land/launcher.xml
+
+
+------------------------------------------------------
+主要组成部分：
+Workspace：主页（热键页）
+AppsCustomizePagedView：所有app页
+DragLayer：主页和所有app页的父布局，负责一些动效的绘制
+
+Launcher定义了LauncherTransitionable接口，
+有onLauncherTransitionStart，onLauncherTransitionEnd等方法，被Workspace和AppsCustomizePagedView继承
+当动画结束时，Workspace和AppsCustomizePagedView都会控制父布局DragLayer或者同级控件的显示和隐藏
+
+1. Launcher.onCreate->mModel.startLoader
+2. Launcher.onCreate->initMyTheme->mModel.startLoader
+LauncherModel.startLoader(两个地方调用startLoader，导致启动时闪烁并且增加 启动时加载主页的时间)
+LauncherModel.LoaderTask.run()
+-> LauncherModel.loadAndBindWorkspace
+-> LauncherModel.bindWorkspaceItems
+-> Launcher.bindItems
+-> Workspace.addInScreenFromBind
+-> Workspace.addInScreen
+-> CellLayout.addViewToCellLayout
+
+
+------------------------------------------------------
+
+BubbleTextView.ondraw.setBackground // huayang分支 绘制最外圈
+
+
+LauncherModel.getShortcutInfo  // 创建app图标资源信息
+-> mIconCache.getIcon 
+-> IconReplaceManager.getBitmap
+-> IconReplaceManager.makeAppIconWithBg // 为bitmap图标添加圆角边框；
+					// 背景图片一张切的情况下,背景图片名称,LauncherConfigInit.HomeIconBgFile = "app_other_bg"
+-> Utilities.createIconBitmapEx 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------
+
+问题：
+1. 编程习惯不好，代码没有遵循MVC模式，
+糟糕的代码不仅会导致开发周期变长，代码维护成本也会直线上升
+ 1.1 子级别控件 控制 父级控件和同一级别控件。
+例如Launcher动画，子级别的AppsCustomizeLayout可以控制
+其他不属于AppsCustomizeLayout的子view的控件，甚至还可以控制父控件的动效。
+这样做很危险，多人协作的情况下，你写的view控制父控件，我写的view也控制那个父控件，他写的也控制同一个父控件，
+最后导致控制混乱，动效混乱，一旦出问题，都不知道是哪边的控制引起的问题
+ 1.2 乱加垃圾代码 挖坑，导致workspace重新加载两次。
+ 1.3 有些地方布局用的单位居然是px，dp的概念从安卓系统发布就已经有了，居然还有人用px。
+   其实有些情况根本不需要多做xml布局的大小屏幕适配，统一使用dp单位。
+ 1.4 程序改后没有跑一遍测试，加代码不考虑，胡乱加，导致程序崩溃，例如 carFactorySetting SingleSettingActivity
+ 1.5 资源定义没有规范，分支有些nodpi，有些sw240dp，有些没有但是有layout-land。
+ 1.6 同一个分支下layout和drawable和values的种类还不匹配，例如layot有nodpi但是drawable没有
+ 1.7 app开发没有文档，修改东西找半天，效率低下。
+ 1.8 java代码资源归类，代码按照 同一功能类型 或者 同一功能模块 分包放置，例如控件放在 view或者widget的包下，AppInfo放在info或者bean的包下。
+
+2. 代码耦合性太高，很多代码都是写死、强转，很容易报错，改点东西就崩溃。
+例如，Launcher这个Activity在view中直接被getcontext强转成Launcher类型，view无法脱离launcher。
+
+3. 电脑卡的飞起，一出问题死机重启再到启动android studio，半小时。
+svn更新奇慢无比，有一次svn清理一个小时。
+
+4. 拷贝升级包到U盘花费大量时间，USB3.0
+
+
+   
+
+
+
+
+
+

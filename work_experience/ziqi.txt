@@ -1,0 +1,242 @@
+
+
+------------------------------------------------------
+
+结构和各种app
+
+carService也是app(carService_PX5-gm-release)，没有界面，是默认安装的app。
+负责与service的接收发交互，众多app与carService交互，carService与MCU交互，沟通app与MCU。
+carCanbus也会和carService交互，carService收到消息之后再与app或者MCU交互。
+
+carCanbus也是app(carCanbus-gm-release)，没有界面，是默认安装的app。
+负责与canbus交互。
+
+carBtService也是app(carBtService_Com-release)，没有界面，是默认安装的app。
+负责与蓝牙模块交互。
+
+--------------
+
+px3 6.0 
+px4 7.1
+px5 6.0/8.0
+
+android_V001_AS目录下
+project_01  大部分app
+project_lib 打包成carPublicLib-v+.aar 的源代码
+project_public carFactorySetting和carCanbus两个app
+
+android_V001_AS_Core本身是一个gradle工程：
+carService_PX5 适配PX5的carService
+
+carBtService_Com，carBtFramework 蓝牙相关的app
+
+
+------------------------------------------------------
+蓝牙通信：
+
+搜索
+
+连接
+
+处于连接状态的数据交互
+
+断开
+
+--------------
+carBtFramework：代替原来的android framework层的蓝牙机制，使用AIDL与其他进程通信
+AdapterService.AdapterServiceBinder，继承自IBluetooth.Stub，
+
+
+
+
+
+--------------
+carBtService_Com：
+
+与蓝牙设备 初始化连接
+BtCore.reapplyConfig()：
+1. 先获取BT_TYPE，赋值uartPath变量，赋值baudrate(波特率)变量
+2. 初始化串口，configUart()返回true算是初始化串口成功，Uart中传入串口路径uartPath，Uart中有SerialPort类型变量
+3. 复位
+configUart()是从Uart中拿到一个输入流mUartInput和一个输出流mUartOutput
+串口的路径
+
+--------------
+
+carBtService_Com和carService交互，负责将接收到的蓝牙信息转发给carService，再由carService和其他需要蓝牙功能的app通信。
+carBtService_Com和carService交互使用AIDL通信。
+
+连接carService流程：
+连接从初始化开始就调用连接接口，
+BtServiceManager构造方法，CarBaseManager构造中connectToCarService，作为一个客户端，取到ICarService成功，就算是连接成功。
+ICarService就是CarService的CarServiceMain类(继承ICarService.Stub)
+
+创建流程：
+BtServiceManager.create创建，构造方法BtServiceManager创建BtMain，BtMain构造创建BtCore并调用startRecvThread()
+BtReadThread：死循环，一直调用loopOnce，从输入流mUartInput取出Bt(蓝牙)指令，调用onBtCmd,BtCmdHandler.dispatchCmd分发指令。
+
+分发Bt消息流程：
+找到蓝牙设备之后的流程，在BtCmdHandler下：
+case FindDeviceItem，onSearchDevice，mDataManager.setStringArray，这样就把数据放进了BtServiceManager的CarDataManager中。
+BtServiceManager和CarService通信的接口，BtServiceManager是从CarBaseManager再从ICarCallback.Stub继承下来的，就是IBinder
+接着调到setValueByObject，setValue，mBaseManager.request，mCarService.request
+
+这里走到了CarServiceMain的request方法，mRequestManager.dispatchRequest，MAIN_HANDLER.onRequest
+这里发的type=1，what=103(为什么不写在BT_HANDLER中?)
+（RequestManager负责向app分发消息，会给每种类型的app创建一个IRequestHandler，例如，蓝牙的BT_HANDLER，主要的MAIN_HANDLER）
+
+mRequestHandler.setGlobalValue->DataManager.notifyDataChange -> DataObserverItem.onDataChange -> observer.onDataChange
+（这个observerCallbackInfo类型，在CallbackManager的register方法中创建，CallbackInfo实现了IDataObserver接口）
+CallbackInfo的onDataChange中，(ICarCallback)cbk.onCarCallback
+
+--------------
+蓝牙app(android.car.app.bt)和carService的交互
+
+连接carService，从初始化开始就调用连接接口：
+BtApplication的onCreate，BtManager.create，BtManager super调用父类CarBaseManager构造方法，
+CarBaseManager构造中connectToCarService，蓝牙app作为一个客户端，取到ICarService不为空，就算是连接成功。
+
+在carService注册callBack，在初始化时就已经完成注册，
+BtManager的构造方法，registerCallback。
+
+这样，接上边CarService的(ICarCallback)cbk.onCarCallback，cbk就是BtManager，
+BtManager的onCallback拿到了来自CarService的数据
+--------------
+
+总结，在px5上，蓝牙通信三部分组成，
+CarService为中转，将carBtService_Com和蓝牙app的数据转发给对方
+carBtService_Com与蓝牙模块通信，
+蓝牙app(android.car.app.bt)与用户交互
+
+
+--------------
+------------------------------------------------------
+
+carBtService_Com与蓝牙设备交互流程：
+
+carBtService_Com中，利用拿到的输入流mUartInput进行解析，得出蓝牙的指令：
+
+BtCore.loopOnce：
+1.验证mUartInput为空，为空时调用reapplyConfig创建串口，并获取mUartInput
+2.mUartInput取出byte数组赋值到mReadBuff
+3.mReadBuff复制一份到mCmdBuffer
+4.BtCmdParse.popCmd(mCmdBuffer)，获取byte[] cmd数组
+5.onBtCmd(cmd) 分发命令—>mBtCmdHandler.dispatchCmd
+
+两个重要的校验方法 popCmd，parseReply：
+BtCore.loopOnce->BtCmdParse.popCmd，popCmd负责解析原始的始祖得到 cmd数组：
+1. 先验证是否满足最小限制
+2. cmdBuffer.array()取出cmd字节数组
+3. 创建result数组(3个元素)并传入findValidCmd
+4. 如果找不到重置cmdBuffer.reset()
+5. 如果找到了byte[] cmd = Arrays.copyOfRange(data, result[0], result[1])，并返回cmd数组
+
+BtCore.loopOnce->onBtCmd(cmd)—>mBtCmdHandler.dispatchCmd->BtCmdParse.parseReply，
+parseReply解析cmd数组，得到BtReplyType，retStr等即将发给carService出去的数据
+1. mReplyList.find获取BtReplayItem
+2. 根据偏移量和cmd长度 将cmd数组截取一段，用来创建一个string
+
+mReplyList.find()：
+遍历mArr列表，调用BtReplayItem.beginWith比较cmd数组的前部是否与BtReplayItem的cmd相同
+
+mArr列表在ReplyList类中，mReplyList是静态变量，初始化时将大量AT指令存入mArr中，
+这一部分代码在BtCmdParse中，ReplyList是BtCmdParse的内部类
+
+总结：发送给蓝牙的是一串数组，转成字符串会是例如这样的: AT#CG\r\n 表示挂机
+
+--------------
+
+交互指令分两块，
+发送给蓝牙的指令，CG：AT#CG\r\n 挂机
+接收到蓝牙发过来的指令，IJ：IJ1 已配对；IJ2 结束配对
+这两种指令都有可能带参数，例如
+
+--------------
+疑问：
+如何取得蓝牙发过来的数据
+aidl serviceConnect的代码，CarBaseManager ServiceManager.getService("car")
+底层蓝牙协议打印
+
+------------------------------------------------------
+
+carService
+MainApplication，ServiceManager.addService("car", mCarServiceMain)，向系统中添加了这个Service，
+这样，类似于ActivityManager和PackageManager，其他app可以直接获取carService的Binder，
+绕开了官方aidl通讯机制，不需要再carService中启动service，也不需要在其他app绑定这个service 就可以获得到Binder。
+
+carPublicLib库中 android.os.ServiceManager.getService()返回空：
+除了反射还有一种方法使用系统的不开发的代码，写一个同名并且同包名的类，编译时，如果这个类与系统同名，
+那么会使用到系统的类而不是自己写的类。
+所以真实调用getService并不返回空，而是调用系统的ServiceManager.getService()。而这个getService方法并不对普通开发者开放。
+
+
+
+
+
+------------------------------------------------------
+apps:
+
+com.android.settings 普通设置app
+
+android.car.app.car_settings 车设置app，由普通设置app点击car setting进入
+carSettings_Single
+
+carDvr 行车记录仪,前置摄像头
+
+------------------------------------------------------
+
+右侧边栏的gradle工具栏，编译不同版本
+在app的build.gradle加入：
+   generateVersions(project)
+   createAllCopyTask(project)
+之后，右侧边栏的gradle工具栏就可以看到fix_copy等配置选项。
+
+
+在project_01的build.gradle加入，依赖另外一个gradle：
+apply from: '../as_config/public.gradle'
+
+public.gradle 导入了这两个文件来配置参数
+def files = ['lib_config.properties', 'local_config.properties']
+lib_config.properties中各种aar的路径的参数，例如ZQ_PUBLIC_LIB
+local_config.properties是输出路径。
+
+public.gradle上边的 createAllCopyTask和generateVersions这两个gradle函数就在这里写的。
+
+------------------------------------------------------
+
+Log过滤：
+android.car.service.bt，carBtService_Com
+com.android.bluetooth，carBtFramework
+
+------------
+
+在CarService中有各种logcat输出，但需要打开配置才会出现。
+
+所有的配置都在MainConfig和PropDefine中，
+MainConfig是代码相关的布尔值静态变量和prop注解，PropDefine是adb setprop相关的配置prop的参数
+
+例如，想要查看到 RequestManager.BT_HANDLER 的蓝牙log输出，需要将MainConfig.REQUEST_DEBUG设为true
+    if (MainConfig.REQUEST_DEBUG) {
+	Log.d(TAG, "BT_HANDLER what=" + what + ", data=" + data);
+    }
+那么使用adb命令，将persist.car.request_debug设为true，adb shell下执行：
+setprop persist.car.request_debug true
+
+------------
+
+工厂设置 55552, debug模式
+bootcfg s otg_mode 2 && setprop persist.car.enable_zlink false
+
+------------
+Log打印
+
+app启动时 log 屏蔽 start u
+
+setprop persist.car.mcu_cmd_debug true  // 设置系统变量
+SendMcu 发送给MCU
+RecvMcu 接收MCU的消息
+
+adb shell am force-stop com.my.app.package 停止一个app
+
+------------------------------------------------------
+
