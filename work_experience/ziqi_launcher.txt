@@ -45,12 +45,13 @@ LauncherModel.getShortcutInfo  // 创建app图标资源信息
 -> Utilities.createIconBitmapEx 
 
 
+PagedViewIcon
+BubbleTextView
 
 
+DeviceProfile.layout
 
-
-
-
+dimen dynamic_grid_edge_margin
 
 
 
@@ -267,28 +268,46 @@ LauncherModel.getShortcutInfo  // 创建app图标资源信息
 
 问题：
 1. 编程习惯不好，代码没有遵循MVC模式，
-糟糕的代码不仅会导致开发周期变长，代码维护成本也会直线上升
+糟糕的代码不仅会导致开发周期变长，代码维护成本也会直线上升：
+
  1.1 子级别控件 控制 父级控件和同一级别控件。
-例如Launcher动画，子级别的AppsCustomizeLayout可以控制
-其他不属于AppsCustomizeLayout的子view的控件，甚至还可以控制父控件的动效。
-这样做很危险，多人协作的情况下，你写的view控制父控件，我写的view也控制那个父控件，他写的也控制同一个父控件，
-最后导致控制混乱，动效混乱，一旦出问题，都不知道是哪边的控制引起的问题
+     例如Launcher动画，子级别的AppsCustomizeLayout可以控制
+     其他不属于AppsCustomizeLayout的子view的控件，甚至还可以控制父控件的动效。
+     这样做很危险，多人协作的情况下，你写的view控制父控件，我写的view也控制那个父控件，他写的也控制同一个父控件，
+     最后导致控制混乱，动效混乱，一旦出问题，都不知道是哪边的控制引起的问题。解决BUG要一个个排查。
  1.2 乱加垃圾代码 挖坑，导致workspace重新加载两次。
  1.3 有些地方布局用的单位居然是px，dp的概念从安卓系统发布就已经有了，居然还有人用px。
-   其实有些情况根本不需要多做xml布局的大小屏幕适配，统一使用dp单位。
+     其实有些情况根本不需要多做xml布局的大小屏幕适配，统一使用dp单位。
+     layout不需要多屏幕适配，才需要drawable，因为不能做到大屏幕 把低像素图标 高清显示
  1.4 程序改后没有跑一遍测试，加代码不考虑，胡乱加，导致程序崩溃，例如 carFactorySetting SingleSettingActivity
- 1.5 资源定义没有规范，分支有些nodpi，有些sw240dp，有些没有但是有layout-land。
+ 1.5 资源定义没有规范，分支有些nodpi，有些sw240dp，有些没有但是有layout-land。甚至有些还是1024x600。
  1.6 同一个分支下layout和drawable和values的种类还不匹配，例如layot有nodpi但是drawable没有
  1.7 app开发没有文档，修改东西找半天，效率低下。
  1.8 java代码资源归类，代码按照 同一功能类型 或者 同一功能模块 分包放置，例如控件放在 view或者widget的包下，AppInfo放在info或者bean的包下。
+ 1.9 编码思维极其怪异，Utilities.getHomeIconBackgroudDrawable, launcher利用 资源图片和view的宽的差，去做piadding，
+     而不是从view的本身去考虑，有没有考虑过如果换了资源怎么办？
+ 1.10 虽然只是小细节，但写得不好就是不好，xml布局基础打得不牢固
+      例如，子LinearLayout嵌套进父LinearLayout，但是没有其他任何跟 子LinearLayout同级的控件
+ 1.11 胡乱拷贝垃圾资源，使用不到的资源也拷贝，例如carBt huayang，维护难度直线上升。
+      例如，layout做小幕适配 如果看到没有在项目中用过的layout，那是改还是不改？
+ 1.12 编码思维极其怪异：
+      ViewGroup.LayoutParams lp = mTopBar.getLayoutParams(); // 取出的LayoutParams可能为空
+      lp.height = 100 - statusHeight; // 100是什么鬼？太草率了吧？
+      mTopBar.setLayoutParams(lp);    // lp是从mTopBar.get出来的，还要再设回去？
+      // 如果我想改这个mTopBar的高度，我会发现无论在xml layout中怎么设置，都无效，
+      // 这无效原因得找到什么时候？没有文档就算了，注释也不写？
+      // 代码实锤，不加这段代码完全没关系，只需要把xml布局 TopBar的高度 1px换成wrap_content
+ 1.13 代码耦合性太高，很多代码都是写死、强转，很容易报错，改点东西就崩溃。
+      例如，Launcher这个Activity在view中直接被getcontext强转成Launcher类型，view无法脱离launcher。
+ 1.14 huayan分支 BtMain：View rootLayout = findViewById(R.id.root_layout); 
+      这个view从来没有被用过。增加了初始化时间，增加了内存开销，不想删掉代码可以理解，为啥不注释掉？
+ 1.15 
 
-2. 代码耦合性太高，很多代码都是写死、强转，很容易报错，改点东西就崩溃。
-例如，Launcher这个Activity在view中直接被getcontext强转成Launcher类型，view无法脱离launcher。
 
-3. 电脑卡的飞起，一出问题死机重启再到启动android studio，半小时。
+2. 电脑卡的飞起，一出问题死机重启再到启动android studio，半小时。
 svn更新奇慢无比，有一次svn清理一个小时。
 
-4. 拷贝升级包到U盘花费大量时间，USB3.0
+3. 拷贝升级包到U盘花费大量时间，USB3.0
 
 
    
