@@ -1,0 +1,21 @@
+
+log 过滤
+start u 显示打开的activity
+
+-------------------------------------------------------------
+
+工厂设置55552 之后
+bootcfg s otg_mode 2 && setprop persist.car.enable_zlink false
+
+-------------------------------------------------------------
+
+canbus 调试
+adb forward tcp:8888 tcp:8888
+adb shell
+setprop persist.car.canbus_dbg_port 8888
+setprop  persist.car.canbus_dbg_id [id]
+
+-------------------------------------------------------------
+
+
+attachedToWindow

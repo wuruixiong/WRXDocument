@@ -1,3 +1,4 @@
+
 Launcher
 
 AppsCustomizePagedView.onClick 启动所有app点击事件
@@ -13,8 +14,10 @@ layout-sw360dp-land/launcher.xml
 ------------------------------------------------------
 主要组成部分：
 Workspace：主页（热键页）
-AppsCustomizePagedView：所有app页
+AppsCustomizePagedView：所有app页（这个控件是AppsCustomizeLayout子控件）
 DragLayer：主页和所有app页的父布局，负责一些动效的绘制
+CellLayout：AppsCustomizePagedView和Workspace的子布局，
+            AppsCustomizePagedView和Workspace都是可滑动的pagerview控件，一个CellLayout代表了其中一页。
 
 Launcher定义了LauncherTransitionable接口，
 有onLauncherTransitionStart，onLauncherTransitionEnd等方法，被Workspace和AppsCustomizePagedView继承
@@ -34,37 +37,129 @@ LauncherModel.LoaderTask.run()
 
 ------------------------------------------------------
 
-BubbleTextView.ondraw.setBackground // huayang分支 绘制最外圈
+主页的最底层view：BubbleTextView 在application.xml中
+所有App页最底层的view：PagedViewIcon 在apps_customize_application.xml
+
+------------------------------------------------------
+
+主页长按拖拽流程:
+
+1. DragLayer的mDropView是在长按图标之后出现的那个可以被拖动的图标。
+
+2. Launcher类的onLongClick，长按主页图标，触发Launcher.onLongClick，接下来的调用顺序：
+
+Workspace.startDrag->Workspace.beginDragShared->
+
+DragController.startDrag方法 将mDragging 置为 true，还创建了DragObject和一个DragView，这个DragView就是DragLayer的mDropView
+
+3. DragLayer 的 onInterceptTouchEvent ，再调到 DragController的onInterceptTouchEvent，
+
+返回mDragging(之前已经被startDrag方法设为true)，拦截touch事件。所以会调用DragLayer的 onTouchEvent ，
+
+DragLayer在onTouchEvent的ACTION_MOVE 对 DragLayer的 mDropView 做出修改，这里会调用 DragController 的onTouchEvent。
+
+4. 拖拽结束 调用 endDrag方法，从DragLayer中移除DropView
+
+5. 拖拽判定，删除和打开信息的拖拽区域判定：ButtonDropTarget.getHitRectRelativeToDragLayer，outRect修改这个区间。ButtonDropTarget的有两个子类：DeleteDropTarget，InfoDropTarget
+
+-------------------------------------------------
+
+主页和所有app页动效切换
+
+showAppsCustomizeHelper()：创建动画，动画结束时：mStateAnimation的动画结束监听回调：onAnimationEnd。
+
+Launcher定义了LauncherTransitionable接口，有onLauncherTransitionStart，onLauncherTransitionEnd等方法，被Workspace和AppsCustomizePagedView继承。
+
+当动画结束时，Workspace和AppsCustomizePagedView都会控制父布局DragLayer或者同级控件的显示和隐藏。
+
+-------------------------------------------------
+加载app图标流程
+
+新启动的Launcher3会加载workspace页但并不会加载 所有app页，而是等到第一次点击 allapps键时加载app并创建显示app图标的视图。
+
+huayang加载主页图标流程：
+
+1. Launcher.onCreate->mModel.startLoader
+
+2. Launcher.onCreate->initMyTheme->mModel.startLoader
+
+LauncherModel.startLoader(两个地方调用startLoader，导致启动时闪烁并且增加 启动时加载主页的时间)
+
+-> LauncherModel.LoaderTask.run()
+
+-> LauncherModel.loadAndBindWorkspace
+
+-> LauncherModel.bindWorkspaceItems
+
+-> Launcher.bindItems （这了调用createShortcut，创建了每一个放置图标的控件）
+
+-> Workspace.addInScreenFromBind
+
+-> Workspace.addInScreen
+
+-> CellLayout.addViewToCellLayout
 
 
-LauncherModel.getShortcutInfo  // 创建app图标资源信息
+
+主页图标加载：
+
+一共两个背景绘制：
+
+一：BubbleTextView.ondraw.setBackground  // 绘制最外圈
+
+
+
+二：LauncherModel.getShortcutInfo  // 创建app图标资源信息
+
 -> mIconCache.getIcon 
--> IconReplaceManager.getBitmap
--> IconReplaceManager.makeAppIconWithBg // 为bitmap图标添加圆角边框；
-					// 背景图片一张切的情况下,背景图片名称,LauncherConfigInit.HomeIconBgFile = "app_other_bg"
+
+-> IconReplaceManager.getBitmap(ComponentName comp, ResolveInfo resolveInfo) // 可能走makeAppIconWithBg或者getBitmap
+
+1 . 走 IconReplaceManager.makeAppIconWithBg // 为bitmap图标添加圆角边框；
+
+// 背景图片一张切的情况下,背景图片名称,LauncherConfigInit.HomeIconBgFile = "app_other_bg"
+
 -> Utilities.createIconBitmapEx 
 
+2 . 走getBitmap -> loadBitmap -> Utilities.createIconBitmapEx 
 
-PagedViewIcon
-BubbleTextView
+-------------------------------------------------
 
-
-DeviceProfile.layout
-
-dimen dynamic_grid_edge_margin
+ky分支：
+主页加载：
 
 
 
 
 
+-------------------------------------------------
+
+其他：
+
+CellLayout.addViewToCellLayout.ShortcutAndWidgetContainer
+
+App图标移动动画，灰色线框 mDragOutlines mDragOutlineAlphas mDragOutlineAnims
 
 
 
+BubbleTextView.onTouchEvent 绘制发光外圈
+
+CellLayout.onInterceptTouchEvent 点击图标放大
+
+workspace.onInterceptTouchEvent 暂无作用
+
+DragLayer.onInterceptTouchEvent 拖拽、灰色线框
+
+DragController.drop 拖拽释放，删除app和显示app信息
 
 
 
+ShortcutAndWidgetContainer.measureChild 主页，显示和移动的最终位置
+
+CellLayout.visualizeDropLocation 设置mDragOutlines/rect
 
 
+主页：app的图标和文字，间距控制mIconDrawablePaddingOffset
 
 
 
@@ -273,23 +368,34 @@ dimen dynamic_grid_edge_margin
  1.1 子级别控件 控制 父级控件和同一级别控件。
      例如Launcher动画，子级别的AppsCustomizeLayout可以控制
      其他不属于AppsCustomizeLayout的子view的控件，甚至还可以控制父控件的动效。
-     这样做很危险，多人协作的情况下，你写的view控制父控件，我写的view也控制那个父控件，他写的也控制同一个父控件，
+     这样做很危险，你写的view控制父控件，我写的view也控制那个父控件，他写的也控制同一个父控件，
      最后导致控制混乱，动效混乱，一旦出问题，都不知道是哪边的控制引起的问题。解决BUG要一个个排查。
- 1.2 乱加垃圾代码 挖坑，导致workspace重新加载两次。
+
+ 1.2 华阳launcher3，乱加代码，挖坑，导致workspace重新加载两次。
+
  1.3 有些地方布局用的单位居然是px，dp的概念从安卓系统发布就已经有了，居然还有人用px。
      其实有些情况根本不需要多做xml布局的大小屏幕适配，统一使用dp单位。
-     layout不需要多屏幕适配，才需要drawable，因为不能做到大屏幕 把低像素图标 高清显示
+     layout不需要多屏幕适配，需要的是图标drawable，因为不能做到大屏幕 把低像素图标 高清显示。
+     凯越carBT和，华阳launcher3，
+
  1.4 程序改后没有跑一遍测试，加代码不考虑，胡乱加，导致程序崩溃，例如 carFactorySetting SingleSettingActivity
- 1.5 资源定义没有规范，分支有些nodpi，有些sw240dp，有些没有但是有layout-land。甚至有些还是1024x600。
+     希望提交代码之前，能再多检查提交的代码。
+
  1.6 同一个分支下layout和drawable和values的种类还不匹配，例如layot有nodpi但是drawable没有
+ 
  1.7 app开发没有文档，修改东西找半天，效率低下。
+ 
  1.8 java代码资源归类，代码按照 同一功能类型 或者 同一功能模块 分包放置，例如控件放在 view或者widget的包下，AppInfo放在info或者bean的包下。
+ 
  1.9 编码思维极其怪异，Utilities.getHomeIconBackgroudDrawable, launcher利用 资源图片和view的宽的差，去做piadding，
      而不是从view的本身去考虑，有没有考虑过如果换了资源怎么办？
+
  1.10 虽然只是小细节，但写得不好就是不好，xml布局基础打得不牢固
       例如，子LinearLayout嵌套进父LinearLayout，但是没有其他任何跟 子LinearLayout同级的控件
+
  1.11 胡乱拷贝垃圾资源，使用不到的资源也拷贝，例如carBt huayang，维护难度直线上升。
       例如，layout做小幕适配 如果看到没有在项目中用过的layout，那是改还是不改？
+
  1.12 编码思维极其怪异：
       ViewGroup.LayoutParams lp = mTopBar.getLayoutParams(); // 取出的LayoutParams可能为空
       lp.height = 100 - statusHeight; // 100是什么鬼？太草率了吧？
@@ -297,20 +403,109 @@ dimen dynamic_grid_edge_margin
       // 如果我想改这个mTopBar的高度，我会发现无论在xml layout中怎么设置，都无效，
       // 这无效原因得找到什么时候？没有文档就算了，注释也不写？
       // 代码实锤，不加这段代码完全没关系，只需要把xml布局 TopBar的高度 1px换成wrap_content
+
  1.13 代码耦合性太高，很多代码都是写死、强转，很容易报错，改点东西就崩溃。
       例如，Launcher这个Activity在view中直接被getcontext强转成Launcher类型，view无法脱离launcher。
+
  1.14 huayan分支 BtMain：View rootLayout = findViewById(R.id.root_layout); 
       这个view从来没有被用过。增加了初始化时间，增加了内存开销，不想删掉代码可以理解，为啥不注释掉？
- 1.15 
+
+ 1.15 carBT不使用fragment，而是使用include在xml布局中配置，再用visibility的方式设置显示和消失
+
+ 1.16 路畅，音乐app，为什么存在不同的两种定义？
+      参数传错了不是关键，关键是为什么会有两个地方去定义这个类型
+      SearchActivity.java:setSearchKeyWord(PLAY_TYPE_AUDIO)->  PLAY_TYPE_AUDIO的值是0
+      DBMediaListHelper.class:case TYPE_AUDIO-> TYPE_AUDIO的值是2
+      另外路畅的音乐app布局使用了大量的px单位，大小屏幕适配很有问题。
+
+ 1.17 路畅音效设置等响度
+
+      初始化时创建了AudioSettingData对象，AudioSettingData.Loud变量已经通过CarDataManager拿到了等响度的状态，
+      UI的init时，会根据Loud状态修改 等响度按钮效果。
+      MCU收到后返回设置结果，会再次修改Loud变量并根据Loud状态修改 等响度按钮效果。
+
+      但是，路畅中还有一个mIsOn布尔变量，初始值为false。
+      路畅的流程是：
+      1. 点击等响度按钮，做了三个操作，先根据mIsOn给MCU发送 1或者0，接着直接修改按钮显示效果，最后修改mIsOn变量。
+      2. MCU收到后返回设置结果，会再次修改Loud变量并根据Loud状态修改 等响度按钮效果。
+
+      暴露几个问题：
+      1.假设只有 mIsOn负责控制按钮，那么点击时做的逻辑是错的，最先被执行的应该是修改mIsOn变量。
+      2.在修改代码时，希望能先弄清楚原来的代码，再去修改代码。乱改的结果是把没有问题的代码改到有问题。
+      3.整体流程不熟悉。
+
+      做出修改，将mIsOn变量删除，点击只做一个操作，发送Loud的取反值
+
+1.18 凯越carBT，左边栏，有一个三个按钮的背景，使用px单位去对齐背景，将三个按钮放置在背景中的按钮上。
+     这是不灵活的方式，一旦屏幕大小变化，背景会改变大小，按钮不再准确。
+     最恐怖的是三个按钮的图标的大小还不一样。
+     修改：重新生成图标。
+
+1.19 app在多窗口（分屏）的情况下，从右向左滑动，出现布局位移BUG。
+     实锤：编写只有界面的测试app，不会出现这种情况。
+     res资源目录不规范有关，res/drawable下：drawable-nodpi-1024x600，drawable-nodpi-800x480，drawable-nodpi。
+     layout-nodpi-1024x600，values-nodpi-1024x600
+     又是nodpi，又是1024x600，没见过这种命名方式的。
+     怀疑：在由多窗口进入 全屏时，加载了layout-nodpi下的布局。
+
+1.20 路畅，carBt, BtMain.class，为底部注册监听事件：
+    外部只有一处调用： setButtonsClickListener(bottomView, mOnClickListener, null);
+    实在是不明白，传一个空的值，要longListener有什么用？
+    public static void setButtonsClickListener(View view, OnClickListener listener, OnLongClickListener longListener) {
+        if (view != null) {
+            if (view instanceof ViewGroup) {    // if 下边的 else if ，判断逻辑一致
+                ViewGroup vg = (ViewGroup) view;
+                if (vg.getId() != -1) {
+                    if (listener != null) {
+                        view.setOnClickListener(listener);
+                    }
+
+                    if (longListener != null) {
+                        view.setOnLongClickListener(longListener);
+                    }
+                }
+
+                for (int i = 0; i < vg.getChildCount(); ++i) {
+                    View v = vg.getChildAt(i);
+                    setButtonsClickListener(v, listener, longListener);  // 递归调用
+                }
+            } else if (view instanceof ViewGroup) {  // else if 上边的 if ，判断逻辑一致
+                if (listener != null) {
+                    view.setOnClickListener(listener);
+                }
+
+                if (longListener != null) {
+                    view.setOnLongClickListener(longListener);
+                }
+            }
+        }
+    }
+
+1.21 按钮重复监听，路畅，carBt, BtMain.class，
+导致问题：经常点击无响应，点击时还有按键声。
+为底部的layout设置监听，setButtonsClickListener(bottomView, mOnClickListener, null);
+底部的layout是写了监听逻辑的。
+
+WidgetUtils.setButtonsClickListener(getWindow().getDecorView(), mOnClickListener, null);
+这个方法是把所有的button和imagebutton设置监听，但是路畅 并没有为底部的imagebutton设置id，也没有为imagebutton写监听的代码。
+代码拷贝严重，别的平台的蓝牙app说不定也会出现这种问题。说的重一点，写代码的人根本不为自己写的代码负责。
+
+由于布局很多，怕其他imagebutton会引用到这行代码WidgetUtils.setButtonsClickListener，
+所以只能将底部按钮imagebutton再取父布局再走一遍 case view.id
+理想做法是检查activity的所有view，看这些view是否有在监听，最后将WidgetUtils.setButtonsClickListener注释
+
+1.22
+
+
 
 
 2. 电脑卡的飞起，一出问题死机重启再到启动android studio，半小时。
 svn更新奇慢无比，有一次svn清理一个小时。
 
 3. 拷贝升级包到U盘花费大量时间，USB3.0
+   升级设备也很慢
 
-
-   
+4. 希望可以拥有两台测试机，测试不同平台的UI和app
 
 
 

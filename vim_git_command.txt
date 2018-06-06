@@ -112,6 +112,15 @@ adb pull /data/app/com.mms.emojiplugin.twemoji-1/base.apk ./com.mms.emojiplugin.
 方法二:使用 豌豆荚 导出，如果不能导出，使用 豌豆荚 root ，再导出
 
 ------------------
+停止app
+adb shell am force-stop com.xyz.package;
+启动app
+adb shell am start -n com.xyz.package/.SomeMainActivity
+
+adb shell pm clear <packagename>
+清除缓存 和 清除数据
+
+------------------
 列出所有app的包名
 adb shell pm list packages
 
@@ -121,9 +130,6 @@ adb shell下执行
 wm size 800x480
 wm size 1024x600
 wm是高通平台（MTK平台类似的命令为am）下对手机分辨率、像素密度、显示区域进行设置的命令。
-------------------
-adb shell am force-stop com.xyz.package;
-adb shell am start -n com.xyz.package/.SomeMainActivity
 
 ------------------
 adb setprop/getprop/watchprops 

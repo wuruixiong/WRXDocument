@@ -1,71 +1,18 @@
 
 
-------------------------------------------------------
-
-½á¹¹ºÍ¸÷ÖÖapp
-
-carServiceÒ²ÊÇapp(carService_PX5-gm-release)£¬Ã»ÓĞ½çÃæ£¬ÊÇÄ¬ÈÏ°²×°µÄapp¡£
-¸ºÔğÓëserviceµÄ½ÓÊÕ·¢½»»¥£¬ÖÚ¶àappÓëcarService½»»¥£¬carServiceÓëMCU½»»¥£¬¹µÍ¨appÓëMCU¡£
-carCanbusÒ²»áºÍcarService½»»¥£¬carServiceÊÕµ½ÏûÏ¢Ö®ºóÔÙÓëapp»òÕßMCU½»»¥¡£
-
-carCanbusÒ²ÊÇapp(carCanbus-gm-release)£¬Ã»ÓĞ½çÃæ£¬ÊÇÄ¬ÈÏ°²×°µÄapp¡£
-¸ºÔğÓëcanbus½»»¥¡£
-
-carBtServiceÒ²ÊÇapp(carBtService_Com-release)£¬Ã»ÓĞ½çÃæ£¬ÊÇÄ¬ÈÏ°²×°µÄapp¡£
-¸ºÔğÓëÀ¶ÑÀÄ£¿é½»»¥¡£
-
-
-carVideo_CameraÒ»¸öÏîÄ¿°üº¬ÒÔÏÂÆô¶¯Í¼±ê£º
-dvd
-IPOD
-Aux
-TV
-DTV
-CDC
-FrontView
-
---------------
-
-px3 ´îÔØ°²×¿7.1 
-px4 ???
-px5 ´îÔØ°²×¿6.0»òÕß8.0
-px3£¬px4£¬px5´ú±í²»Í¬µÄºËĞÄ°å£¬ºËĞÄ°åÉÏÄÚÖÃ À¶ÑÀ£¬cpu£¬
-
-android_V001_ASÄ¿Â¼ÏÂ
-project_01  ´ó²¿·Öapp
-project_lib ´ò°ü³ÉcarPublicLib-v+.aar µÄÔ´´úÂë
-project_public carFactorySettingºÍcarCanbusÁ½¸öapp
-
-android_V001_AS_Core±¾ÉíÊÇÒ»¸ögradle¹¤³Ì£º
-carService_PX5 ÊÊÅäPX5µÄcarService
-
-carBtService_Com£¬carBtFramework À¶ÑÀÏà¹ØµÄapp
-
-
-------------------------------------------------------
-À¶ÑÀÍ¨ĞÅ£º
-
-ËÑË÷
-
-Á¬½Ó
-
-´¦ÓÚÁ¬½Ó×´Ì¬µÄÊı¾İ½»»¥
-
-¶Ï¿ª
-
---------------
 
 carBtFramework£º´úÌæÔ­À´µÄandroid framework²ãµÄÀ¶ÑÀ»úÖÆ£¬Ê¹ÓÃAIDLÓëÆäËû½ø³ÌÍ¨ĞÅ
 AdapterService.AdapterServiceBinder£¬¼Ì³Ğ×ÔIBluetooth.Stub£¬
 
-
-
-
 ------------------------------------------------------
 
-carBtService_Com£º
+ÕûÌåÀ¶ÑÀÍ¨Ñ¶£º
+carBtService_Com¸ºÔğ½«½ÓÊÕµ½µÄÀ¶ÑÀĞÅÏ¢×ª·¢¸øcarService£¬ÔÙÓÉcarServiceºÍÆäËûĞèÒªÀ¶ÑÀ¹¦ÄÜµÄappÍ¨ĞÅ¡£
+carBT(À¶ÑÀapp)±»ÓÃ»§µã»÷£¬½«Í¨ĞÅÏûÏ¢·¢¸øcarService£¬carServiceÔÙ×ª·¢¸øcarBtService_Com£¬carBtService_ComÔÙ·¢¸øÀ¶ÑÀÓ²¼şÉè±¸
 
-ÒÔËÑË÷À¶ÑÀÉè±¸ÎªÀı£º
+--------------
+
+carBtService_Com£¬ÓëÀ¶ÑÀÓ²¼şÍ¨ĞÅµÄapp£¬ÒÔËÑË÷À¶ÑÀÉè±¸ÎªÀı£º
 
 ÓëÀ¶ÑÀÉè±¸ ³õÊ¼»¯Á¬½Ó
 BtCore.reapplyConfig()£º
@@ -82,7 +29,6 @@ BT_UART_BLINK = "/dev/BT_serial";
 
 --------------
 
-carBtService_ComºÍcarService½»»¥£¬¸ºÔğ½«½ÓÊÕµ½µÄÀ¶ÑÀĞÅÏ¢×ª·¢¸øcarService£¬ÔÙÓÉcarServiceºÍÆäËûĞèÒªÀ¶ÑÀ¹¦ÄÜµÄappÍ¨ĞÅ¡£
 carBtService_ComºÍcarService½»»¥Ê¹ÓÃAIDLÍ¨ĞÅ¡£
 
 Á¬½ÓcarServiceÁ÷³Ì£º
@@ -196,12 +142,6 @@ mArrÁĞ±íÔÚReplyListÀàÖĞ£¬mReplyListÊÇ¾²Ì¬±äÁ¿£¬³õÊ¼»¯Ê±½«´óÁ¿ATÖ¸Áî´æÈëmArrÖĞ£¬
 ½ÓÊÕµ½À¶ÑÀ·¢¹ıÀ´µÄÖ¸Áî£¬IJ£ºIJ1 ÒÑÅä¶Ô£»IJ2 ½áÊøÅä¶Ô
 ÕâÁ½ÖÖÖ¸Áî¶¼ÓĞ¿ÉÄÜ´ø²ÎÊı£¬ÀıÈç IJµÄ²ÎÊıÊÇ1»òÕß2
 
---------------
-ÒÉÎÊ£º
-ÈçºÎÈ¡µÃÀ¶ÑÀ·¢¹ıÀ´µÄÊı¾İ
-aidl serviceConnectµÄ´úÂë£¬CarBaseManager ServiceManager.getService("car")
-µ×²ãÀ¶ÑÀĞ­Òé´òÓ¡
-
 ------------------------------------------------------
 
 carService£º
@@ -214,16 +154,6 @@ carPublicLib¿âÖĞ android.os.ServiceManager.getService()·µ»Ø¿Õ£º
 ³ıÁË·´Éä»¹ÓĞÒ»ÖÖ·½·¨Ê¹ÓÃÏµÍ³µÄ²»¿ª·¢µÄ´úÂë£¬Ğ´Ò»¸öÍ¬Ãû²¢ÇÒÍ¬°üÃûµÄÀà£¬±àÒëÊ±£¬Èç¹ûÕâ¸öÀàÓëÏµÍ³Í¬Ãû£¬
 ÄÇÃ´»áÊ¹ÓÃµ½ÏµÍ³µÄÀà¶ø²»ÊÇ×Ô¼ºĞ´µÄÀà¡£
 ËùÒÔÕæÊµµ÷ÓÃgetService²¢²»·µ»Ø¿Õ£¬¶øÊÇµ÷ÓÃÏµÍ³µÄServiceManager.getService()¡£¶øÕâ¸ögetService·½·¨²¢²»¶ÔÆÕÍ¨¿ª·¢Õß¿ª·Å¡£
-
-------------------------------------------------------
-apps:
-
-com.android.settings ÆÕÍ¨ÉèÖÃapp
-
-android.car.app.car_settings ³µÉèÖÃapp£¬ÓÉÆÕÍ¨ÉèÖÃappµã»÷car setting½øÈë
-carSettings_Single
-
-carDvr ĞĞ³µ¼ÇÂ¼ÒÇ,Ç°ÖÃÉãÏñÍ·
 
 ------------------------------------------------------
 
@@ -246,52 +176,21 @@ public.gradleÉÏ±ßµÄ createAllCopyTaskºÍgenerateVersionsÕâÁ½¸ögradleº¯Êı¾ÍÔÚÕâÀïĞ
 
 ------------------------------------------------------
 
-Log¹ıÂË£º
-android.car.service.bt£¬carBtService_Com
-com.android.bluetooth£¬carBtFramework
-
-------------
-
-ÔÚCarServiceÖĞÓĞ¸÷ÖÖlogcatÊä³ö£¬µ«ĞèÒª´ò¿ªÅäÖÃ²Å»á³öÏÖ¡£
-
-ËùÓĞµÄÅäÖÃ¶¼ÔÚMainConfigºÍPropDefineÖĞ£¬
-MainConfigÊÇ´úÂëÏà¹ØµÄ²¼¶ûÖµ¾²Ì¬±äÁ¿ºÍprop×¢½â£¬PropDefineÊÇadb setpropÏà¹ØµÄÅäÖÃpropµÄ²ÎÊı
-
-ÀıÈç£¬ÏëÒª²é¿´µ½ RequestManager.BT_HANDLER µÄÀ¶ÑÀlogÊä³ö£¬ĞèÒª½«MainConfig.REQUEST_DEBUGÉèÎªtrue
-    if (MainConfig.REQUEST_DEBUG) {
-	Log.d(TAG, "BT_HANDLER what=" + what + ", data=" + data);
-    }
-ÄÇÃ´Ê¹ÓÃadbÃüÁî£¬½«persist.car.request_debugÉèÎªtrue£¬adb shellÏÂÖ´ĞĞ£º
-setprop persist.car.request_debug true
-
-------------
-
-¹¤³§ÉèÖÃ 55552, debugÄ£Ê½
-bootcfg s otg_mode 2 && setprop persist.car.enable_zlink false
-
-------------
-Log´òÓ¡
-
-appÆô¶¯Ê± log ÆÁ±Î start u
-
-setprop persist.car.mcu_cmd_debug true  // ÉèÖÃÏµÍ³±äÁ¿
-SendMcu ·¢ËÍ¸øMCU
-RecvMcu ½ÓÊÕMCUµÄÏûÏ¢
-
-adb shell am force-stop com.my.app.package Í£Ö¹Ò»¸öapp
-
-------------------------------------------------------
 carService_8321Mtk
 carServicePx5 Óë MCU½»»¥£¬android.car.server.mcuµÄ°üÏÂ£º
 
 
 ×ÜÌå¶ÁÈ¡mcuÖ¸ÁîºÍ·Ö·¢Á÷³Ì£¬ÒÔCmdMainHandlerÎªÀı£º
 McuCore.loopOnce -> McuCore.onMcuCmd -> McuCore.mMcuCmdHandler.dispatchRawCmd(cmd)
--> McuCmdHandler.dispatchContentCmd£ºÕâ¸ö·½·¨ÓĞ¼¸ĞĞÖØÒª´úÂë
-int fun = cmd[McuDefine.CMD_POS_FUN] & 0xFF; 
-CmdHandler handler = mHm.get(fun);
-handler.handleCmd(fun, fun_sub, cmd);
+-> McuCmdHandler.dispatchContentCmd£º
+   Õâ¸ö·½·¨ÓĞ¼¸ĞĞÖØÒª´úÂë
+   int fun = cmd[McuDefine.CMD_POS_FUN] & 0xFF; 
+   CmdHandler handler = mHm.get(fun);
+   handler.handleCmd(fun, fun_sub, cmd);
+
 -> CmdMainHandler.onHandleCmd £¨Á½ÖÖ·Ö·¢·½Ê½£ºEventHub.sendEventºÍmDataManager.setInt£©
+   ĞèÒª×¢Òâ£¬²»Ö»ÊÇCmdMainHandler¿ÉÒÔ´¦Àí·Ö·¢ÊÂ¼ş£¬
+   CmdOtherHandler£¬CmdBtHandler£¬CmdRadioHandler£¬CmdSettingHandler£¬CmdTvHandler£¬CmdVideoHandler
 ************
 ·Ö·¢·½Ê½1£º
 -> EventHub.sendEvent
@@ -330,11 +229,17 @@ carRadioµÄRadioApplicationÖĞ¾Í»á´´½¨RadioManager£¬RadioManager¼Ì³Ğ×ÔCarBaseManag
 CarBaseManagerµÄ¹¹Ôì·½·¨ÖĞµ÷ÓÃconnectToCarService£º
 mCarService = android.car.server.ICarService.Stub.asInterface(ServiceManager.getService("car"));
 ÓĞÁË(CarServiceMain)mCarServiceÖ®ºó¾Í×¢²á£ºRadioManagerµÄ¹¹Ôì·½·¨ÖĞ×¢²á£¬registerCallback()
+registerCallback()µ÷µ½ mCallbackManager.registerÔÙµ½ CallbackList.register£¬
+×îÖÕ°Ñ»Øµ÷¼ÓÈëCallbackManagerµÄCallbackListÖĞ£¬ÕâÀïµÄICarCallback¶ÔÏó¾ÍÊÇRadioManager
+
 
 Launcher3µÄLauncherApplicationÖĞ¾Í»á´´½¨LauncherManager£¬LauncherManager¼Ì³Ğ×ÔCarBaseManager£¬
 CarBaseManagerµÄ¹¹Ôì·½·¨ÖĞµ÷ÓÃconnectToCarService£º
 mCarService = android.car.server.ICarService.Stub.asInterface(ServiceManager.getService("car"));
 ÓĞÁË(CarServiceMain)mCarServiceÖ®ºó¾Í×¢²á£ºLauncherManagerµÄ¹¹Ôì·½·¨ÖĞ×¢²á£¬registerCallback
+registerCallback()µ÷µ½ mCallbackManager.registerÔÙµ½ CallbackList.register£¬
+×îÖÕ°Ñ»Øµ÷¼ÓÈëCallbackManagerµÄCallbackListÖĞ£¬ÕâÀïµÄICarCallback¶ÔÏó¾ÍÊÇLauncherManager
+
 
 ·Ö·¢·½Ê½2£¬×îÖÕ»á×ßµ½CarBaseManager.onCarCallback£¬
 ½Ó×Å×ßµ½RadioManagerµÄonCallback/onMcuKeyµÈ·½·¨£¬
@@ -421,6 +326,136 @@ carRadio·¢ËÍÊı¾İ¸øcarService£º
 CarBaseManager.onCarCallback.onMainCallback (type, what, data)
 switchÀàĞÍÔÚ android.car.define.ServiceDefine ÖĞ¶¨Òå£¬
 ÀıÈçµ±Êı¾İ¸Ä±äÊ±£¬CallbackManager.CallbackInfo.onDataChange() ´«µÄÊÇPRO_TYPE_Main ºÍ CBK_MAIN_DataChange
+
+------------------------------------------------------
+
+carCanBus£¬ÆäÊµÊÇÓĞUI½çÃæµÄapp£¬½ÓÊÕÀ´×ÔcarServiceµÄcanBusÏûÏ¢£¬½«³µÁ¾µÄ±ä»¯Õ¹Ê¾¸øÓÃ»§£»
+ÓÃ»§²Ù×÷UI½çÃæ£¬²úÉú´¥µãÊÂ¼ş²¢·¢ËÍÏàÓ¦µÄÏûÏ¢¸øcarService
+ÆäÊµcarCanBus²»»áÖ±½ÓÊÕµ½CanbusĞ­ÒéºĞµÄÊı¾İ£¬
+CanbusĞ­ÒéºĞ·¢ËÍµÄÊı¾İ¾­¹ıÁË MCU£¬carService(Ò»¸öapp)£¬×îÖÕµ½´ïcarCanBus½øĞĞ´¦Àí¡£
+carCanBus·¢¸øCanbusĞ­ÒéºĞµÄÊı¾İÒ²ÊÇ£¬Òª¾­¹ıcarService£¬MCU£¬×îÖÕ²Å·¢¸øCanbusĞ­ÒéºĞ
+
+³õÊ¼»¯£º
+CanbusManager¼Ì³Ğ×ÔCarBaseManager
+CarBaseManagerµÄ¹¹Ôì·½·¨ÖĞµ÷ÓÃconnectToCarService£º
+mCarService = android.car.server.ICarService.Stub.asInterface(ServiceManager.getService("car"));
+ÓĞÁË(CarServiceMain)mCarServiceÖ®ºó¾Í×¢²á£º
+ÔÚCanbusManagerµÄinit·½·¨ÖĞ×¢²á£¬registerCallback(this)
+registerCallback()µ÷µ½ mCallbackManager.registerÔÙµ½ CallbackList.register£¬
+×îÖÕ°Ñ»Øµ÷¼ÓÈëCallbackManagerµÄCallbackListÖĞ£¬ÕâÀïµÄICarCallback¶ÔÏó¾ÍÊÇCanbusManager
+
+
+carService·¢ÏûÏ¢¸øcarCanBus£º
+McuCore.loopOnce -> McuCore.onMcuCmd -> McuCore.mMcuCmdHandler.dispatchRawCmd(cmd)
+-> McuCmdHandler.dispatchContentCmd 
+-> CmdOtherHandler.onHandleCmd ÕâÀïÊÇCmdOtherHandlerÀ´´¦Àí
+-> case CMD_MAIN_CANBUS:  // CMD_MAIN_CANBUSµÄÖµÊÇ0x60
+   return onHandleCanbusCmd(fun, fun_sub, bbw);
+   ×ßÁ½ÖÖ·Ö·¢·½Ê½£ºmCallbackManager.callbackByteArray1 »òÕß EventHub.sendEventOneObject
+-> mCallbackManager.callbackByteArray1
+-> CallbackManager.callback -> CallbackManager.doCallback
+-> mCallbackList.getBroadcastItem(i).onCarCallback
+-> CarBaseManager.onCarCallback ÕâÀï·ÖÁ½²½·Ö·¢£¬onMainCallbackºÍonCallback
+   CarBaseManager.onMainCallback -> case 9: onCarKey -> CanbusManager.onCarKey -> mHandler.obtainMessage
+-> mHandler.handleMessage µ½ÕâÀï¾Í¸ù¾İÃüÁî²»Í¬×ª·¢µ½²»Í¬µÄ·½·¨
+-> ÀıÈç: onCanbusCmd£¬±éÀú ArrayList<CanbusCallback> mCallbacks ²¢ÔÙ´Î·Ö·¢
+-> CanbusCallback.onCanbusCmd
+-> LiFanMain.onCanbusCmd
+
+
+carCanBus·¢ÏûÏ¢¸øcarService
+ÒÔLiFanMain.class(î£Ö¾³Ï2015¿îÁ¦·«720_820´®¿ÚÍ¨Ñ¶Ğ­Òé)ÎªÀı£¬
+-> µã»÷ÊÂ¼ş±»´¥·¢£ºcase R.id.ft_left_top_btn:
+-> LiFanMain£ºmCmdSender.sendCmd(0x89, 0x00)
+-> CanbusManager.sendCanbusCmd
+-> mHandler.handleMessage case:MSG_SEND_CANBUS_CMD
+-> CanbusManager.popSendCanbusCmd
+-> CanbusManager.doSendCanbusCmd
+-> CarBaseManager.request -> mCarService.request
+-> CarServiceMain.mRequestManager.dispatchRequest
+-> CANBUS_HANDLER.onRequest -> mRequestHandler.sendCanbusDataCmd
+-> mMcuCmdSender.sendCanbusDataCmd -> mMcuCmdSender.sendCmd
+-> mMcuCore.postCmd -> McuCore.postRawData -> McuCore.mMcuWriteHandler.sendMessage
+-> McuCore.writeRawData -> McuCore.mUartOutput.write
+
+
+
+
+ÆäËûÏ¸½Ú£º
+carService·¢µ½carCanBusÖ®ºó£¬ÓĞÁ½ÖÖ½Ó¿Ú£º
+1. CarBaseManagerµÄonCarCallback£¬Êı¾İµÄÀ´Ô´£»
+2. CanbusCallback£¬¼ÌĞøÍùÏÂ·Ö·¢µ½²»Í¬µÄcanBusµÄUI´úÂëµÄ½Ó¿Ú
+
+MaZiDa_RZC¼Ì³ĞCanbusBaseWithAirRadar¼Ì³ĞCanbusBase£¬
+CanbusBaseµÄ¹¹Ôì·½·¨ÖĞ»ñÈ¡µ½CanbusManager£¬ÕâÊÇÓëcarService½»»¥µÄ»ù´¡¡£
+°ÑCanbusCallback´«ÈëCanbusManagerÖĞ£¬mCanbusManager.registerCanbusCallback(this)
+
+carService·¢ÏûÏ¢¸øcarCanBus£¬¶¼ÊÇÍ¨¹ıCallback£¬»áµ÷ÓÃµ½CanbusManagerÖĞµÄ
+onCallback/onSourceChange/onSystemStateChange/onDataChange/onEnterApp/onExitApp/onClientRequest/onMcuKey/onCarKeyµÈ·½·¨¡£
+CanbusManager±éÀúArrayList<CanbusCallback> mCallbacksÁĞ±í£¬µ÷ÓÃCanbusCallback»Øµ÷¡£
+
+android.car.app.canbus.manager.CanbusFactory ÁĞ±í¶¨ÒåcanbusÀàĞÍ£¬¿ÉÒÔÔÚ¹¤³§ÉèÖÃµÄcanÉèÖÃÖĞ¿´µÄ
+
+------------------------------------------------------
+
+canBusĞ­Òé¿ª·¢£º
+carCanbusÏîÄ¿ÏÂ£¬¸ù¾İpdfÎÄµµµÄcanBusĞ­Òé£¬½«´«¹ıÀ´µÄÊı¾İ½øĞĞ½âÎö£¬Õ¹Ê¾½çÃæ±ä»¯¸øÓÃ»§¡£
+
+¿ª·¢Á÷³Ì£º
+
+
+1. HanTengMain_RZC¼Ì³ĞCanbusBaseWithAirRadar
+2. Èı¸öÃ¶¾ÙÀàĞÍINT_ENUM£¬BOOL_ENUM£¬STR_ENUM
+
+3. CanbusStateÄÚ²¿Àà¼Ì³ĞCanbusStateBase£¬¹¹Ôì·½·¨ÖĞ£¬super½«Èı¸öÃ¶¾ÙÀàĞÍ×÷Îª²ÎÊı
+super(INT_ENUM.class, BOOL_ENUM.class, STR_ENUM.class);
+
+4. CanbusStateBaseÖĞÓĞÊı×éTI[] mIntEnums£¬ËüµÄ³¤¶È¾ÍÊÇINT_ENUMÕâ¸öÃ¶¾ÙµÄ³¤¶È
+
+5. 
+
+
+
+
+
+
+CanbusStateBase
+ci() ¸Ä±äÕûĞÍÖµ
+cb() ¸Ä±ä²¼¶ûÀàĞÍÖµ
+cs() ¸Ä±ä×Ö·û´®Öµ
+i() »ñÈ¡ÕûĞÍÖµ
+b() »ñÈ¡²¼¶ûÀàĞÍÖµ
+s() »ñÈ¡×Ö·û´®
+
+
+ÆäËûÏ¸½Ú£º
+Slave -> Host cabBusºĞ×Ó·¢¸ø±¾µØARM
+Host -> Slave ±¾µØARM·¢¸øcabBusºĞ×Ó
+
+·¢ËÍ dataTypeÎª 0x90£¬data0Îª 0x36,0x28,0x23,0x7FµÈĞÅÏ¢£¬ÏòcabBusºĞ×ÓÇëÇóÊı¾İ
+cabBusºĞ×Ó»á·µ»ØÏàÓ¦µÄĞÅÏ¢£¬ÀıÈç ·¢0x36(ÊÒÍâÎÂ¶È)£¬»áÓĞdataTypeÎª0x36µÄ»Øµ÷Í¨ÖªUIÔÙ´ÎĞŞ¸Ä×´Ì¬
+
+0x23 µÚÆßÎ» 0 off£»1 on
+0000000000111 7 ×óÎ»ÒÆÒ»Î»
+0000000001110 14 ½á¹û
+
+CanbusManager.init  Ö¸¶¨¼ÓÔØÄ³Ò»¸öcanBusÀàĞÍ
+
+
+ÏûÏ¢·Ö·¢,ÒÔBeiQi_EC180_Main_RZC.class(±±Æûµç¶¯³µ´®¿ÚÍ¨ĞÅĞ­ÒéV1.01.000)ÎªÀı£º
+CanbusManager.onCallback -> CanbusManager.mHandler.obtainMessage(MSG_EVENT_CANBUS_CMD...)
+-> CanbusManager.onCanbusCmd 
+   ±éÀúArrayList<CanbusCallback> mCallbacks£¬mCallbacksÔÚÃ¿Ò»¸öCanbusBaseµÄ¹¹Ôì¶¼»áadd½øÒ»¸öÊµÀı
+-> (CanbusCallback)cb.onCanbusCmd(cmd);
+-> (CmdDispatcher)mDispatcher.dispatch ÔÚBeiQi_EC180_Main_RZC¹¹Ôì·½·¨ÖĞ»á´´½¨mDispatcher.setTarget(mCanbusState);
+-> Ö±½Ó·Ö·¢µ½CanbusStateÖĞÓĞ @CanbusCmd×¢½âµÄ·½·¨£¬CanbusStateÊÇBeiQi_EC180_Main_RZCµÄÄÚ²¿Àà, 
+   CanbusStateÊÇCanbusBase.CanbusStateBaseµÄ×ÓÀà
+-> ÀıÈç canBus´«¹ıÀ´µÄÊı¾İÊÇ0x23£¬×ßÓĞ @CanbusCmd×¢½âµÄCanbusState.onAirInfo·½·¨
+-> mUI.onAirInfoChanged ¿Õµ÷×´Ì¬¸Ä±ä£¬ĞŞ¸ÄUI
+-> 
+
+
+
 
 ------------------------------------------------------
 
