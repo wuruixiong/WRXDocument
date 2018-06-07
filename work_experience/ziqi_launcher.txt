@@ -494,9 +494,29 @@ WidgetUtils.setButtonsClickListener(getWindow().getDecorView(), mOnClickListener
 所以只能将底部按钮imagebutton再取父布局再走一遍 case view.id
 理想做法是检查activity的所有view，看这些view是否有在监听，最后将WidgetUtils.setButtonsClickListener注释
 
-1.22
-
-
+1.22 凯越，btmain，切换页面机制有问题.
+ public void attachedToWindow() {
+        BtData btData = mBtManager.requestBtData();
+        if (btData != null) {
+            mClientHandler.onHfpState(btData.getHfpState(), btData.getLastHfpState());
+            mClientHandler.onA2dpState(btData.getA2dpState(), btData.getLastA2dpState());
+            mClientHandler.onPhonebookState(btData.getPhonebookState(),
+                    btData.getLastPhonebookState());
+            if (mBtManager.isConnected()) {
+                if (TextUtils.equals(getActivity().getIntent().getComponent().getClassName(), "android.car.app.bt.BtMainMusic")) {
+                    switchToPage(PAGE_INDEX.Music);
+                } else {
+                    setSelectedPage(PAGE_INDEX.Keyboard);
+                }
+                loadPhonebook(false);
+                loadCallLog();
+            }
+        }
+    }
+三点写的不好：
+1.onHfpState() 本身就会执行switchToPage，一共会切换两次页面，
+2.已经有了BtData可以获取当前状态，为什么要用TextUtils.equals一个BtMainMusic来判断是否切页
+3.BtMainMusic这个类不存在
 
 
 2. 电脑卡的飞起，一出问题死机重启再到启动android studio，半小时。

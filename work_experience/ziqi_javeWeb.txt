@@ -1,0 +1,39 @@
+
+
+
+ZQ车机注册服务功能，ZQCarRegiService
+
+需求文档：
+https://mubu.com/doc/5PDHHtHNu
+密码：4hyv
+
+框架选型，基于Spring Boot：
+表现层：Spring MVC
+业务层：Spring
+持久层：MyBatis
+
+构建工具选用 Maven
+(三个项目构建工具 Ant/Gradle/Maven)
+
+------------------------------------------------------
+
+第一步，Spring MVC构建简单表现层，返回简单的get/post响应
+第二步，MongoDB数据库移植进项目中
+第三步，构建持久层，第一个持久层数据 userInfo  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
