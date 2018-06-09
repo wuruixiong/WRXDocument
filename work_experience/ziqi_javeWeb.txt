@@ -17,9 +17,133 @@ https://mubu.com/doc/5PDHHtHNu
 
 ------------------------------------------------------
 
-第一步，Spring MVC构建简单表现层，返回简单的get/post响应
+第一步，Spring MVC构建 功能简单的表现层，返回 结构简单的get/post响应
 第二步，MongoDB数据库移植进项目中
+
+----------
+
+
 第三步，构建持久层，第一个持久层数据 userInfo  
+第四步，编写简单业务层：操作持久层，在表现层中返回响应
+第五步，Docker服务器布署
+
+
+
+------------------------------------------------------
+
+@RestController
+
+
+@RequestMapping
+一个用来处理请求地址映射的注解，可用于类或方法上。
+用于类上，表示类中的所有响应请求的方法都是以该地址作为父路径； 
+用于方法上，表示在类的父路径下追加方法上注解中的地址将会访问到该方法，
+此处需注意 @RequestMapping用在类上可以没用 ，但是用在方法上必须有。
+
+1、 value， method；
+value：     指定请求的实际地址，指定的地址可以是URI Template 模式（后面将会说明）；
+method：  指定请求的method类型， GET、POST、PUT、DELETE等；
+还有一个注意的， @RequestMapping的默认属性为value， 所以 @RequestMapping (value= "/example") 和 @RequestMapping("/example")是等价的。
+
+2、 consumes，produces；
+consumes： 指定处理请求的提交内容类型（Content-Type），例如application/json, text/html;
+produces:  指定返回的内容类型，仅当request请求头中的(Accept)类型中包含该指定类型才返回；
+
+3、 params，headers；
+params： 指定request中必须包含某些参数值是，才让该方法处理。
+headers： 指定request中必须包含某些指定的header值，才能让该方法处理请求。
+
+
+@RequestBody
+@PostMapping("/request")
+public ResponseEntity postController(@RequestBody LoginForm loginForm) {
+    exampleService.fakeAuthenticate(loginForm);
+    return ResponseEntity.ok(HttpStatus.OK);
+}
+public class LoginForm {
+    private String username;
+    private String password;
+    // ...
+}
+
+
+------------------------------------------------------
+
+Spring MVC
+
+添加控制器：
+@Controller
+public class GreetingController {
+}
+
+
+------------------------------------------------------
+
+持久层：
+安装MongoDB，启动MongoDB服务。
+
+pom.xml添加mongodb依赖：spring-boot-starter-data-mongodb，
+持久层用mongodb的依赖库实现。
+
+application.properties，配置连接数据库：
+spring.data.mongodb.uri=mongodb://localhost:27017/runoob
+runoob是数据库名称，27017是mongodb服务的端口
+
+模型：
+public class Customer {
+    @Id
+    public String id;
+    public String firstName;
+    public String lastName;
+    public Customer() {}
+    public Customer(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+}
+
+DAO：
+public interface CustomerRepository extends MongoRepository<Customer, String> {
+    public Customer findByFirstName(String firstName);
+    public List<Customer> findByLastName(String lastName);
+}
+
+入口执行：
+@SpringBootApplication
+public class CarregiApplication  implements CommandLineRunner {
+    @Autowired
+    private CustomerRepository repository;
+    public static void main(String[] args) {
+        SpringApplication.run(CarregiApplication.class, args);
+    }
+    @Override
+    public void run(String... args) throws Exception {
+        repository.deleteAll();
+        repository.save(new Customer("Alice", "Smith"));
+        repository.save(new Customer("Bob", "Smith"));
+    }
+}
+
+
+之后，在MongoDB的数据库中查看到数据已经存进了数据库的集合：
+> use runoob
+switched to db runoob
+> show collections
+customer
+runoob
+> db.customer.find()
+{ "_id" : ObjectId("5b1b78be44fbd50de4b38b3d"), "firstName" : "Alice", "lastName" : "Smith", "_class" : "ziqi.carregi.dao.Customer" }
+{ "_id" : ObjectId("5b1b78be44fbd50de4b38b3e"), "firstName" : "Bob", "lastName" : "Smith", "_class" : "ziqi.carregi.dao.Customer" }
+
+
+
+
+
+------------------------------------------------------
+
+？？？：
+ApplicationRunner
+CommandLineRunner
 
 
 
@@ -30,6 +154,185 @@ https://mubu.com/doc/5PDHHtHNu
 
 
 
+
+
+
+
+
+------------------------------------------------------
+
+MongoDB基于NoSQL，非关系型数据库，
+特点是数据随意组合，键值对，扩展方便，结构类似于JSON。
+
+MongoDB使用(安装完成 并配置环境变量)
+
+SQL术语/概念	MongoDB术语/概念	解释/说明
+database	database		数据库
+table		collection		数据库表/集合
+row		document		数据记录行/文档
+column		field			数据字段/域
+index		index			索引
+table joins	无 			表连接,MongoDB不支持
+primary key	primary key		主键,MongoDB自动将_id字段设置为主键
+
+特别注意：collection(集合)相当于SQL中的表
+
+-----------------
+
+启动MongoDB：
+1. 打开一个终端, cd进入 E:\Work_App\MongoDB\bin
+2. 执行：mongod -dbpath "E:\Work_App\MongoDB\Data\db" 或者 mongod --dbpath ./
+3. 2步的命令是 将mongodb的数据库文件创建到E:\Work_App\MongoDB\Data\db
+   并且开启MongoDB服务
+
+-----------------
+
+连接MongoDB：
+1. 打开另一个终端，启动MongoDB服务的终端不要关闭，也不能关闭MongoDB服务
+2. 执行：mongo ，执行之后就可以输入mongoDB的命令
+
+3. 执行help，show dbs (这个命令是查看所有数据库)，db (当前正在使用的数据库)，等命令查看数据库状态
+4. use runoob (需要切到具体某个数据库才能使用那个数据库，
+		这个命令切换到runoob数据库，如果runoob不存在，会在插入数据时创建这个数据库)
+5. db.runoob.insert({"name":"wrx"})  
+	往runoob数据库插入数据，如果之前runoob不存在，这里会真正的创建一个数据库文件
+	没有集合也可以插入数据
+6. db.runoob.find()  查看runoob数据
+7. db.dropDatabase() 删除当前数据库，当前是runoob，所以runoob会被删除
+
+-----------------
+
+集合：
+1. db.createCollection(name, options)
+	参数说明：
+	name: 要创建的集合名称
+	options: 可选参数, 指定有关内存大小及索引的选项
+	例如：db.createCollection("mycol",{capped:true,autoIndexId:true,size:6142800,max:10000})
+	db.createCollection("runcoll")
+2. show collections 显示当前数据库集合
+3. db.collection.drop() 删除集合
+       例如 db.mycol.drop()
+
+-----------------
+
+插入文档：
+db.collectionName.insert(document)
+例如，col是集合：
+db.col.insert({title: 'MongoDB 教程',description: 'MongoDB 是一个 Nosql 数据库',by: '菜鸟教程',
+    url: 'http://www.runoob.com',tags: ['mongodb', 'database', 'NoSQL'],likes: 100
+})
+查看已插入文档：
+db.col.find()
+{ "_id" : ObjectId("56064886ade2f21f36b03134"), "title" : "MongoDB 教程",
+"description" : "MongoDB 是一个 Nosql 数据库", "by" : "菜鸟教程", 
+"url" : "http://www.runoob.com", "tags" : [ "mongodb", "database", "NoSQL" ], "likes" : 100 }
+
+-----------------
+
+更新：
+db.collection.update(
+   <query>,
+   <update>,
+   {
+     upsert: <boolean>,
+     multi: <boolean>,
+     writeConcern: <document>
+   }
+)
+query : update的查询条件，类似sql update查询内where后面的。
+update : update的对象和一些更新的操作符（如$,$inc...）等，也可以理解为sql update查询内set后面的
+upsert : 可选，这个参数的意思是，如果不存在update的记录，是否插入objNew,true为插入，默认是false，不插入。
+multi : 可选，mongodb 默认是false,只更新找到的第一条记录，如果这个参数为true,就把按条件查出来多条记录全部更新。
+writeConcern :可选，抛出异常的级别。
+实例：
+先插入数据：
+db.col.insert({
+    title: 'MongoDB 教程', 
+    description: 'MongoDB 是一个 Nosql 数据库',
+    by: '菜鸟教程',
+    url: 'http://www.runoob.com',
+    tags: ['mongodb', 'database', 'NoSQL'],
+    likes: 100
+})
+通过 update() 方法来更新标题(title):
+db.col.update({'title':'MongoDB 教程'},{$set:{'title':'MongoDB'}})
+save() 方法，通过传入的文档来替换已有文档：
+db.collection.save(
+   <document>,
+   {
+     writeConcern: <document>
+   }
+)
+参数说明：
+document : 文档数据。
+writeConcern :可选，抛出异常的级别。
+替换了 _id 为 56064f89ade2f21f36b03136 的文档数据：
+>db.col.save({
+    "_id" : ObjectId("56064f89ade2f21f36b03136"),
+    "title" : "MongoDB",
+    "description" : "MongoDB 是一个 Nosql 数据库",
+    "by" : "Runoob",
+    "url" : "http://www.runoob.com",
+    "tags" : [
+            "mongodb",
+            "NoSQL"
+    ],
+    "likes" : 110
+})
+替换成功后，我们可以通过 find() 命令来查看替换后的数据：
+db.col.find().pretty()
+
+-----------------
+
+删除文档：
+db.collection.remove(
+   <query>,
+   <justOne>
+)
+db.collection.remove(
+   <query>,
+   {
+     justOne: <boolean>,
+     writeConcern: <document>
+   }
+)
+参数说明：
+query :（可选）删除的文档的条件。
+justOne : （可选）如果设为 true 或 1，则只删除一个文档。
+writeConcern :（可选）抛出异常的级别。
+
+>db.col.remove({'title':'MongoDB 教程'})
+
+------------------
+
+查询
+MongoDB 查询数据的语法格式如下：
+db.collection.find(query, projection)
+query ：可选，使用查询操作符指定查询条件
+projection ：可选，使用投影操作符指定返回的键。查询时返回文档中所有键值， 只需省略该参数即可（默认省略）。
+
+如果你需要以易读的方式来读取数据，可以使用 pretty() 方法，语法格式如下：
+>db.col.find().pretty()
+查询了集合 col 中的数据：
+> db.col.find().pretty()
+
+
+
+
+------------------------------------------------------
+
+通常意义上的三层架构就是将整个业务应用划分为：
+表现层（UI）、业务逻辑层（BLL）、数据访问层（DAL）
+1. 显示层负责界面展示，接收请求，分发请求，
+2. 业务层完成运算逻辑，
+3. 持久层完成数据库的读写
+4. 业务层粘合显示层与持久层，显示层调用业务层，业务层调用持久层
+
+MVC是 Model-View-Controller，这三个加起来以后才是三层架构中的UI层，
+MVC把三层架构中的UI层再度进行了分化，分成了控制器、视图、实体三个部分。
+
+控制器与三层中的BLL进行对话。
+个人理解， Model就是与数据库表对应的映射JavaBean，View就是界面，Controller就是界面逻辑。
 
 
 
