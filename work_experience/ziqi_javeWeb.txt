@@ -184,6 +184,7 @@ primary key	primary key		主键,MongoDB自动将_id字段设置为主键
 2. 执行：mongod -dbpath "E:\Work_App\MongoDB\Data\db" 或者 mongod --dbpath ./
 3. 2步的命令是 将mongodb的数据库文件创建到E:\Work_App\MongoDB\Data\db
    并且开启MongoDB服务
+4. ctrl+C 键可以退出
 
 -----------------
 
@@ -199,6 +200,7 @@ primary key	primary key		主键,MongoDB自动将_id字段设置为主键
 	没有集合也可以插入数据
 6. db.runoob.find()  查看runoob数据
 7. db.dropDatabase() 删除当前数据库，当前是runoob，所以runoob会被删除
+8. ctrl+C 键可以退出
 
 -----------------
 
@@ -320,6 +322,7 @@ projection ：可选，使用投影操作符指定返回的键。查询时返回文档中所有键值， 只需省
 
 
 ------------------------------------------------------
+其他概念：
 
 通常意义上的三层架构就是将整个业务应用划分为：
 表现层（UI）、业务逻辑层（BLL）、数据访问层（DAL）
@@ -333,6 +336,25 @@ MVC把三层架构中的UI层再度进行了分化，分成了控制器、视图、实体三个部分。
 
 控制器与三层中的BLL进行对话。
 个人理解， Model就是与数据库表对应的映射JavaBean，View就是界面，Controller就是界面逻辑。
+
+
+DAO是一种设计模式，用来实现持久层。持久层框架Hibernate就可以实现DAO。
+DAO（data access object）数据访问对象，
+实现了DAO之后，外部人员不需要和数据库交互，不需要知道数据库的表的结构，
+而是通过DAO接口对数据进行操作（增删改查）
+
+持久层封装了JDBC。
+JDBC是直接操作数据库的java代码。
+
+POJO（Plain Ordinary Java Object）简单的Java对象，实际就是普通JavaBeans。
+贫血的业务对象POJO，业务对象用POJO表示，这些POJO只有属性，没有方法，因此称为贫血的领域对象。
+
+
+
+
+
+
+
 
 
 
