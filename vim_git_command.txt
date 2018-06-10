@@ -65,22 +65,22 @@ adb shell 命令略等于linux 终端命令，即大部分命令的相同的，�
 而adb 命令则不同于linux 终端命令，可以用于android机器于编译环境（电脑）的交互，例如从android机器上复制文件到电脑上
 
 adb 命令
+------------------
 adb shell dumpsys activity | grep "mFocusedActivity"   //linux下命令行，查看当前activity
 
 adb shell dumpsys activity | findstr "mFocusedActivity"   //windows下命令行，查看当前activity
 
-
+------------------
 adb shell am start -n breakan.test/breakan.test.TestActivity //启动activity
+adb shell am force-stop com.my.app.package 停止一个app
 
-
+------------------
 adb shell su 获取权限，可以查看data目录下的文件,只有root的手机可以使用 su 命令
-
+------------------
 adb pull  从真机上拷贝文件到PC上
 adb push  从PC上复制一份文件到的手机机上
 实测window下也可以执行
 adb push ./openvpn-keys /sdcard  
-
-adb shell am force-stop com.my.app.package 停止一个app
 
 
 使用 adb shell 命令， 查看data/data下文件夹时，如果不能查看，则必须使用root手机，并且使用 su 命令
@@ -94,8 +94,17 @@ adb shell am force-stop com.my.app.package 停止一个app
 // 要复制文件夹要加 -r
 	cp -r files ../../../mnt/sdcard/
 
+
+在删除和复制等等命令中，会遇到系统只读权限
+1. 最简单的，adb remount
+2. 不行的话，adb shell su之后将文件系统remount为读写权限： mount -o rw,remount /system。
+出于安全考虑，记得完事后remount回只读： mount -o ro,remount /system
+
+------------------
+
 删除apk
 adb uninstall <package_name>
+------------------
 
 在手机中导出apk：
 查看所有的apk包名
@@ -106,10 +115,20 @@ adb shell pm path com.mms.emojiplugin.twemoji
 adb pull /data/app/com.mms.emojiplugin.twemoji-1/base.apk ./com.mms.emojiplugin.twemoji-1.apk
 
 
+------------------
 
 有时需要将data/data下的文件导出，由于没有权限无法导出，
 方法一:使用cp 命令将data/data下的文件复制到sdcard上，再使用pull命令导出
 方法二:使用 豌豆荚 导出，如果不能导出，使用 豌豆荚 root ，再导出
+
+------------------
+停止app
+adb shell am force-stop com.xyz.package;
+启动app
+adb shell am start -n com.xyz.package/.SomeMainActivity
+
+adb shell pm clear <packagename>
+清除缓存 和 清除数据
 
 ------------------
 列出所有app的包名
@@ -121,9 +140,6 @@ adb shell下执行
 wm size 800x480
 wm size 1024x600
 wm是高通平台（MTK平台类似的命令为am）下对手机分辨率、像素密度、显示区域进行设置的命令。
-------------------
-adb shell am force-stop com.xyz.package;
-adb shell am start -n com.xyz.package/.SomeMainActivity
 
 ------------------
 adb setprop/getprop/watchprops 
@@ -352,8 +368,19 @@ printenv
 图片压缩
 mogrify -resize 64x64 *.png
 
+=========================================
 
+1、删除文件夹实例：
+rm -rf /var/log/httpd/access
+将会删除/var/log/httpd/access目录以及其下所有文件、文件夹
 
+2、删除文件使用实例：
+rm -f /var/log/httpd/access.log
+将会强制删除/var/log/httpd/access.log这个文件
+
+=========================================
+
+remount
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 

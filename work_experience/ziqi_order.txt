@@ -1,0 +1,61 @@
+
+log 过滤
+start u 显示打开的activity
+
+-------------------------------------------------------------
+
+工厂设置55552 之后
+bootcfg s otg_mode 2 && setprop persist.car.enable_zlink false
+
+-------------------------------------------------------------
+
+canbus 调试
+adb forward tcp:8888 tcp:8888
+adb shell
+setprop persist.car.canbus_dbg_port 8888
+setprop  persist.car.canbus_dbg_id [id]
+
+-------------------------------------------------------------
+
+
+停止app
+adb shell am force-stop com.xyz.package;
+启动app
+adb shell am start -n com.xyz.package/.SomeMainActivity
+
+adb shell pm clear <packagename>
+清除缓存 和 清除数据
+
+------------------
+列出所有app的包名
+adb shell pm list packages
+
+------------------
+adb shell下执行
+切换屏幕分辨率
+wm size 800x480
+wm size 1024x600
+wm是高通平台（MTK平台类似的命令为am）下对手机分辨率、像素密度、显示区域进行设置的命令。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

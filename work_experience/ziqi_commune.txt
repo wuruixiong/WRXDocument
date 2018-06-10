@@ -1,0 +1,475 @@
+
+
+
+carBtFramework：代替原来的android framework层的蓝牙机制，使用AIDL与其他进程通信
+AdapterService.AdapterServiceBinder，继承自IBluetooth.Stub，
+
+------------------------------------------------------
+
+整体蓝牙通讯：
+carBtService_Com负责将接收到的蓝牙信息转发给carService，再由carService和其他需要蓝牙功能的app通信。
+carBT(蓝牙app)被用户点击，将通信消息发给carService，carService再转发给carBtService_Com，carBtService_Com再发给蓝牙硬件设备
+
+--------------
+
+carBtService_Com，与蓝牙硬件通信的app，以搜索蓝牙设备为例：
+
+与蓝牙设备 初始化连接
+BtCore.reapplyConfig()：
+1. 先获取BT_TYPE，赋值uartPath变量，赋值baudrate(波特率)变量
+2. 初始化串口，configUart()返回true算是初始化串口成功，Uart中传入串口路径uartPath，Uart中有SerialPort类型变量
+3. 复位
+configUart()是从Uart中拿到一个输入流mUartInput和一个输出流mUartOutput
+串口的路径
+
+几个蓝牙设备的挂载路径：
+BT_UART = "/dev/ttyS1";
+BT_UART_VIRTUAL = "/dev/goc_serial";
+BT_UART_BLINK = "/dev/BT_serial";
+
+--------------
+
+carBtService_Com和carService交互使用AIDL通信。
+
+连接carService流程：
+连接从初始化开始就调用连接接口，
+BtServiceManager构造方法，CarBaseManager构造中connectToCarService，作为一个客户端，取到ICarService成功，就算是连接成功。
+ICarService就是CarService的CarServiceMain类(继承ICarService.Stub)
+
+创建流程：
+BtServiceManager.create创建，构造方法BtServiceManager创建BtMain，BtMain构造创建BtCore并调用startRecvThread()
+BtReadThread：死循环，一直调用loopOnce，从输入流mUartInput取出Bt(蓝牙)指令，调用onBtCmd,BtCmdHandler.dispatchCmd分发指令。
+
+分发Bt消息流程：
+找到蓝牙设备之后的流程，在BtCmdHandler下：
+case FindDeviceItem，onSearchDevice，mDataManager.setStringArray，这样就把数据放进了BtServiceManager的CarDataManager中。
+BtServiceManager和CarService通信的接口，BtServiceManager是从CarBaseManager再从ICarCallback.Stub继承下来的，就是IBinder
+接着调到setValueByObject，setValue，mBaseManager.request，mCarService.request
+
+这里走到了CarServiceMain的request方法，mRequestManager.dispatchRequest，MAIN_HANDLER.onRequest
+这里发的type=1，what=103(为什么不写在BT_HANDLER中?)
+（RequestManager负责向app分发消息，会给每种类型的app创建一个IRequestHandler，例如，蓝牙的BT_HANDLER，主要的MAIN_HANDLER）
+
+mRequestHandler.setGlobalValue->DataManager.notifyDataChange -> DataObserverItem.onDataChange -> observer.onDataChange
+（这个observerCallbackInfo类型，在CallbackManager的register方法中创建，CallbackInfo实现了IDataObserver接口）
+CallbackInfo的onDataChange中，(ICarCallback)cbk.onCarCallback
+
+--------------
+
+蓝牙app(carBT)和carService的交互
+
+连接carService，从初始化开始就调用连接接口：
+BtApplication的onCreate，BtManager.create，BtManager super调用父类CarBaseManager构造方法，
+CarBaseManager构造中connectToCarService，蓝牙app作为一个客户端，取到ICarService不为空，就算是连接成功。
+在carService注册callBack，在初始化时就已经完成注册，
+BtManager的构造方法，registerCallback。
+这样，接上边CarService的(ICarCallback)cbk.onCarCallback，cbk就是BtManager，
+BtManager的onCallback拿到了来自CarService的数据
+
+carService发送数据给carBT：
+当 carService收到消息时，调用DataManager.notifyDataChange最终走到：(ICarCallback)cbk.onCarCallback
+接着可能调用到 BtManager的几个方法：onCallback/onSourceChange/onDataChange/onMcuKey
+
+carBT发送数据给carService(类似于carBtService_Com对carService)：
+BtManager调用一些请求方法：requestInt1，requestNamedInt1等
+-> CarBaseManager.request -> (CarServiceMain)mCarService.request
+-> mRequestManager.dispatchRequest -> 由于发过来的是PRO_TYPE_BT，IRequestHandler BT_HANDLER.onRequest
+-> handleBtFun()
+-> case GetPhoneList
+-> EventSender.sendGetPhoneList();
+-> sendEvent(EVENT_BT_FIND_PHONE);
+-> sHandler.obtainMessage
+-> BtProxy.mEventReceiver case EVENT_BT_FIND_PHONE
+-> sendRemoteMessage(BtMessage.BT_MSG_REQ_FIND_PHONE)
+-> mHandler.obtainMessage
+-> mClient.send 这个mClient是 carBtService_Com的 BtMain.mLocal
+-> BtMain.BinderHandler.handleMessage  case BT_MSG_REQ_FIND_PHONE
+-> mBtCmdSender.findPhone(true)
+-> BtCmdSender.sendRawData
+-> mBtCore.postRawData
+-> mBtWriteHandler.sendMessage/sendMessageDelayed
+-> BtWriteHandler.handleMessage
+-> mBtCore.writeRawData
+-> mUartOutput.write(cmd) 到这里就结束了，已经开始往蓝牙设备写入 字节数组
+
+--------------
+
+总结，在px5上，蓝牙通信三部分组成，
+CarService为中转，将carBtService_Com和蓝牙app的数据转发给对方
+carBtService_Com与蓝牙模块通信，
+蓝牙app(android.car.app.bt)与用户交互
+
+
+--------------
+
+carBtService_Com与蓝牙设备交互流程：
+
+carBtService_Com中，利用拿到的输入流mUartInput进行解析，得出蓝牙的指令：
+
+BtCore.loopOnce：
+1.验证mUartInput为空，为空时调用reapplyConfig创建串口，并获取mUartInput
+2.mUartInput取出byte数组赋值到mReadBuff
+3.mReadBuff复制一份到mCmdBuffer
+4.BtCmdParse.popCmd(mCmdBuffer)，获取byte[] cmd数组
+5.onBtCmd(cmd) 分发命令—>mBtCmdHandler.dispatchCmd
+
+两个重要的校验方法 popCmd，parseReply：
+BtCore.loopOnce->BtCmdParse.popCmd，popCmd负责解析原始的始祖得到 cmd数组：
+1. 先验证是否满足最小限制
+2. cmdBuffer.array()取出cmd字节数组
+3. 创建result数组(3个元素)并传入findValidCmd
+4. 如果找不到重置cmdBuffer.reset()
+5. 如果找到了byte[] cmd = Arrays.copyOfRange(data, result[0], result[1])，并返回cmd数组
+
+BtCore.loopOnce->onBtCmd(cmd)—>mBtCmdHandler.dispatchCmd->BtCmdParse.parseReply，
+parseReply解析cmd数组，得到BtReplyType，retStr等即将发给carService出去的数据
+1. mReplyList.find获取BtReplayItem
+2. 根据偏移量和cmd长度 将cmd数组截取一段，用来创建一个string
+
+mReplyList.find()：
+遍历mArr列表，调用BtReplayItem.beginWith比较cmd数组的前部是否与BtReplayItem的cmd相同
+
+mArr列表在ReplyList类中，mReplyList是静态变量，初始化时将大量AT指令存入mArr中，
+这一部分代码在BtCmdParse中，ReplyList是BtCmdParse的内部类
+
+总结：发送给蓝牙的是一串数组，转成字符串会是例如这样的: AT#CG\r\n 表示挂机
+
+
+--------------
+
+交互指令分两块，
+发送给蓝牙的指令，CG：AT#CG\r\n 挂机
+接收到蓝牙发过来的指令，IJ：IJ1 已配对；IJ2 结束配对
+这两种指令都有可能带参数，例如 IJ的参数是1或者2
+
+------------------------------------------------------
+
+carService：
+
+MainApplication，ServiceManager.addService("car", mCarServiceMain)，向系统中添加了这个Service，
+这样，类似于ActivityManager和PackageManager，其他app可以直接获取carService的Binder，
+绕开了官方aidl通讯机制，不需要再carService中启动service，也不需要在其他app绑定这个service 就可以获得到Binder。
+
+carPublicLib库中 android.os.ServiceManager.getService()返回空：
+除了反射还有一种方法使用系统的不开发的代码，写一个同名并且同包名的类，编译时，如果这个类与系统同名，
+那么会使用到系统的类而不是自己写的类。
+所以真实调用getService并不返回空，而是调用系统的ServiceManager.getService()。而这个getService方法并不对普通开发者开放。
+
+------------------------------------------------------
+
+右侧边栏的gradle工具栏，编译不同版本
+在app的build.gradle加入：
+   generateVersions(project)
+   createAllCopyTask(project)
+之后，右侧边栏的gradle工具栏就可以看到fix_copy等配置选项。
+
+
+在project_01的build.gradle加入，依赖另外一个gradle：
+apply from: '../as_config/public.gradle'
+
+public.gradle 导入了这两个文件来配置参数
+def files = ['lib_config.properties', 'local_config.properties']
+lib_config.properties中各种aar的路径的参数，例如ZQ_PUBLIC_LIB
+local_config.properties是输出路径。
+
+public.gradle上边的 createAllCopyTask和generateVersions这两个gradle函数就在这里写的。
+
+------------------------------------------------------
+
+carService_8321Mtk
+carServicePx5 与 MCU交互，android.car.server.mcu的包下：
+
+
+总体读取mcu指令和分发流程，以CmdMainHandler为例：
+McuCore.loopOnce -> McuCore.onMcuCmd -> McuCore.mMcuCmdHandler.dispatchRawCmd(cmd)
+-> McuCmdHandler.dispatchContentCmd：
+   这个方法有几行重要代码
+   int fun = cmd[McuDefine.CMD_POS_FUN] & 0xFF; 
+   CmdHandler handler = mHm.get(fun);
+   handler.handleCmd(fun, fun_sub, cmd);
+
+-> CmdMainHandler.onHandleCmd （两种分发方式：EventHub.sendEvent和mDataManager.setInt）
+   需要注意，不只是CmdMainHandler可以处理分发事件，
+   CmdOtherHandler，CmdBtHandler，CmdRadioHandler，CmdSettingHandler，CmdTvHandler，CmdVideoHandler
+************
+分发方式1：
+-> EventHub.sendEvent
+-> EventHub.sHandler.obtainMessage
+-> EventHub.EventHandler.handleMessage
+-> EventHub.notifyListener() notifyListener遍历sListenerList
+-> EventListener.onEvent()
+
+EventHub.registerEventListener 就是注册Event的地方，这里会把传进来的EventListener，add入sListenerList
+
+以AppManager为例子，AppManager.mEventReceiver会case一些枚举类型，
+如：EVENT_REQUEST_ENTER_APP是进入某个app，EVENT_REQUEST_EXIT_APP是退出某个app
+
+其他CmdHandler例如CmdRadioHandler、CmdBtHandler也会将信息转发给EventHub(调用sendEvent)
+
+还有一个信息发送类，EventSender，这个类也是将信息再次转发给EventHub(调用sendEvent)
+************
+分发方式2：
+-> DataManager.setInt
+-> DataManager.setValue
+-> DataManager.onDataChange
+-> DataManager.notifyDataChange通知更新
+-> 遍历 mDataObservers，子元素DataObserverItem.onDataChange()
+-> IDataObserver.onDataChange
+-> CallbackManager.onDataChange
+-> (ICarCallback)cbk.onCarCallback
+
+callback注册流程：
+1. 普通app通过aidl获取ICarService，实现一个回调接口并注册：ICarService.registerCallback
+2. 当走分发方式2时，所有的回调接口被通知数据更新。
+3. 普通app内要判断这个数据更新是不是 需要受理的类型。
+
+以carRadio和Launcher3两个app为例:
+
+carRadio的RadioApplication中就会创建RadioManager，RadioManager继承自CarBaseManager，
+CarBaseManager的构造方法中调用connectToCarService：
+mCarService = android.car.server.ICarService.Stub.asInterface(ServiceManager.getService("car"));
+有了(CarServiceMain)mCarService之后就注册：RadioManager的构造方法中注册，registerCallback()
+registerCallback()调到 mCallbackManager.register再到 CallbackList.register，
+最终把回调加入CallbackManager的CallbackList中，这里的ICarCallback对象就是RadioManager
+
+
+Launcher3的LauncherApplication中就会创建LauncherManager，LauncherManager继承自CarBaseManager，
+CarBaseManager的构造方法中调用connectToCarService：
+mCarService = android.car.server.ICarService.Stub.asInterface(ServiceManager.getService("car"));
+有了(CarServiceMain)mCarService之后就注册：LauncherManager的构造方法中注册，registerCallback
+registerCallback()调到 mCallbackManager.register再到 CallbackList.register，
+最终把回调加入CallbackManager的CallbackList中，这里的ICarCallback对象就是LauncherManager
+
+
+分发方式2，最终会走到CarBaseManager.onCarCallback，
+接着走到RadioManager的onCallback/onMcuKey等方法，
+或者LauncherManager的onCallback/onDataChange/onSourceChange等方法，
+这些方法都是从CarBaseManager继承下来的。
+
+------------------
+其他读取mcu指令和分发流程细节：
+
+MCU初始化：
+MCU的设备路径 挂载在：MainConfig.MCU_UART = "/dev/ttySAC2";
+初始化串口：McuCore.openUart-> mUart.open -> mPort = new SerialPort(...);
+初始化串口的操作就是 SerialPort中创建了File类，打开了/dev/ttySAC2这个路径，并取出一个输入流和一个输出流。
+输入流就是McuCore的mUartInput
+
+McuCmdHandler：
+McuCmdHandler有内部类CmdHandler和SparseArray<CmdHandler> mHm用来存放CmdHandler类型的数据集合。
+以下这几个类分别继承自内部类CmdHandler，并在McuCmdHandler中创建并加入mHm这个集合。
+CmdMainHandler;CmdRadioHandler;CmdBtHandler;CmdVideoHandler;
+CmdTvHandler;CmdSettingHandler;CmdOtherHandler;
+mHm的长度不止7个，因为key是命令，value是CmdHandler；
+例如在CmdMainHandler构造中，key：CMD_MAIN_SYS和CMD_MAIN_VOL都注册了，
+如果使用CMD_MAIN_SYS和CMD_MAIN_VOL作为key去 mHm中取值，取到的CmdHandler都是mCmdMainHandler
+
+取指令MCU流程：
+取指令流程在loopOnce方法内，将从输入流取出的byte[](字节数组)进行转化。
+
+DataManager.onDataChange还会做数据持久化
+saveValueToProvider 数据保存，以便下次读取
+
+------------------
+
+发送命令给MCU：
+在McuCore中完成对MCU设备的写入数据
+
+
+
+疑问：
+android_serialport_api. SerialPort.open() 是native方法，C源码在哪？
+
+
+------------------------------------------------------
+
+carService与 普通app的交互：
+以carService_PX5和carRadio交互为例，
+
+carService发送数据给carRadio：
+当 carService收到MCU的消息时，调用DataManager.notifyDataChange最终走到：(ICarCallback)cbk.onCarCallback
+接着可能调用到RadioManager的几个方法：onCallback/onSourceChange/onDataChange/onMcuKey
+
+
+carRadio发送数据给carService：
+以换下一个台为例：
+点击事件触发：case R.id.btn_next: mRadioManager.btnNEXT();
+-> CarBaseManager.requestMcuKey(C_KEY_NEXT), 
+   这里很关键，发给carService的type是1,what是3,键对值是"arg_int", 67 ( McuKeyDefine.C_KEY_NEXT)
+-> requestInt1 -> requestNamedInt1 -> request
+-> (CarServiceMain)mCarService.request
+-> mRequestManager.dispatchRequest  这里是 IRequestHandler MAIN_HANDLER处理，
+   requestMcuKey调用requestInt1时发的type是1即 ServiceDefine.PRO_TYPE_Main
+-> MAIN_HANDLER.onRequest
+   requestMcuKey调用requestInt1时发的what是3即 ServiceDefine.REQ_MAIN_McuKey
+-> mRequestHandler.sendMcuKey(mcuKey)
+-> EventSender.sendMcuKey(key) 这里会发EVENT_SEND_MCU_KEY给EventHub。
+-> EventHub.sendEvent(Event.obtain(what, arg1, arg2));
+-> sHandler.obtainMessage
+-> EventHub.EventHandler.handleMessage
+-> EventHub.notifyListener() notifyListener遍历sListenerList，
+   sListenerList列表是通过EventHub.registerEventListener方法加入子元素的
+   McuCore在初始化的时候就已经用他的变量：mMcuEventReceiver完成了注册
+-> EventListener.onEvent()
+
+最后真正处理这个事件的是McuEventReceiver
+-> case EVENT_SEND_MCU_KEY: mCmdSender.sendKey(event.arg1);
+-> McuCmdSender.sendKey -> sendCmd -> mMcuCore.postCmd
+-> McuCore.postRawData 
+-> mMcuWriteHandler.sendMessage(msg)
+-> McuCore.McuWriteHandler.handleMessage
+-> McuCore.writeRawData
+-> mUartOutput.write(data, offset, count); 到这里就结束了，已经开始往MCU设备写入数据
+
+------------------------------------------------------
+
+CarBaseManager.onCarCallback.onMainCallback (type, what, data)
+switch类型在 android.car.define.ServiceDefine 中定义，
+例如当数据改变时，CallbackManager.CallbackInfo.onDataChange() 传的是PRO_TYPE_Main 和 CBK_MAIN_DataChange
+
+------------------------------------------------------
+
+carCanBus，其实是有UI界面的app，接收来自carService的canBus消息，将车辆的变化展示给用户；
+用户操作UI界面，产生触点事件并发送相应的消息给carService
+其实carCanBus不会直接收到Canbus协议盒的数据，
+Canbus协议盒发送的数据经过了 MCU，carService(一个app)，最终到达carCanBus进行处理。
+carCanBus发给Canbus协议盒的数据也是，要经过carService，MCU，最终才发给Canbus协议盒
+
+初始化：
+CanbusManager继承自CarBaseManager
+CarBaseManager的构造方法中调用connectToCarService：
+mCarService = android.car.server.ICarService.Stub.asInterface(ServiceManager.getService("car"));
+有了(CarServiceMain)mCarService之后就注册：
+在CanbusManager的init方法中注册，registerCallback(this)
+registerCallback()调到 mCallbackManager.register再到 CallbackList.register，
+最终把回调加入CallbackManager的CallbackList中，这里的ICarCallback对象就是CanbusManager
+
+
+carService发消息给carCanBus：
+McuCore.loopOnce -> McuCore.onMcuCmd -> McuCore.mMcuCmdHandler.dispatchRawCmd(cmd)
+-> McuCmdHandler.dispatchContentCmd 
+-> CmdOtherHandler.onHandleCmd 这里是CmdOtherHandler来处理
+-> case CMD_MAIN_CANBUS:  // CMD_MAIN_CANBUS的值是0x60
+   return onHandleCanbusCmd(fun, fun_sub, bbw);
+   走两种分发方式：mCallbackManager.callbackByteArray1 或者 EventHub.sendEventOneObject
+-> mCallbackManager.callbackByteArray1
+-> CallbackManager.callback -> CallbackManager.doCallback
+-> mCallbackList.getBroadcastItem(i).onCarCallback
+-> CarBaseManager.onCarCallback 这里分两步分发，onMainCallback和onCallback
+   CarBaseManager.onMainCallback -> case 9: onCarKey -> CanbusManager.onCarKey -> mHandler.obtainMessage
+-> mHandler.handleMessage 到这里就根据命令不同转发到不同的方法
+-> 例如: onCanbusCmd，遍历 ArrayList<CanbusCallback> mCallbacks 并再次分发
+-> CanbusCallback.onCanbusCmd
+-> LiFanMain.onCanbusCmd
+
+
+carCanBus发消息给carService
+以LiFanMain.class(睿志诚2015款力帆720_820串口通讯协议)为例，
+-> 点击事件被触发：case R.id.ft_left_top_btn:
+-> LiFanMain：mCmdSender.sendCmd(0x89, 0x00)
+-> CanbusManager.sendCanbusCmd
+-> mHandler.handleMessage case:MSG_SEND_CANBUS_CMD
+-> CanbusManager.popSendCanbusCmd
+-> CanbusManager.doSendCanbusCmd
+-> CarBaseManager.request -> mCarService.request
+-> CarServiceMain.mRequestManager.dispatchRequest
+-> CANBUS_HANDLER.onRequest -> mRequestHandler.sendCanbusDataCmd
+-> mMcuCmdSender.sendCanbusDataCmd -> mMcuCmdSender.sendCmd
+-> mMcuCore.postCmd -> McuCore.postRawData -> McuCore.mMcuWriteHandler.sendMessage
+-> McuCore.writeRawData -> McuCore.mUartOutput.write
+
+
+
+
+其他细节：
+carService发到carCanBus之后，有两种接口：
+1. CarBaseManager的onCarCallback，数据的来源；
+2. CanbusCallback，继续往下分发到不同的canBus的UI代码的接口
+
+MaZiDa_RZC继承CanbusBaseWithAirRadar继承CanbusBase，
+CanbusBase的构造方法中获取到CanbusManager，这是与carService交互的基础。
+把CanbusCallback传入CanbusManager中，mCanbusManager.registerCanbusCallback(this)
+
+carService发消息给carCanBus，都是通过Callback，会调用到CanbusManager中的
+onCallback/onSourceChange/onSystemStateChange/onDataChange/onEnterApp/onExitApp/onClientRequest/onMcuKey/onCarKey等方法。
+CanbusManager遍历ArrayList<CanbusCallback> mCallbacks列表，调用CanbusCallback回调。
+
+android.car.app.canbus.manager.CanbusFactory 列表定义canbus类型，可以在工厂设置的can设置中看的
+
+------------------------------------------------------
+
+canBus协议开发：
+carCanbus项目下，根据pdf文档的canBus协议，将传过来的数据进行解析，展示界面变化给用户。
+
+开发流程：
+
+
+1. HanTengMain_RZC继承CanbusBaseWithAirRadar
+2. 三个枚举类型INT_ENUM，BOOL_ENUM，STR_ENUM
+
+3. CanbusState内部类继承CanbusStateBase，构造方法中，super将三个枚举类型作为参数
+super(INT_ENUM.class, BOOL_ENUM.class, STR_ENUM.class);
+
+4. CanbusStateBase中有数组TI[] mIntEnums，它的长度就是INT_ENUM这个枚举的长度
+
+5. 
+
+
+
+
+
+
+CanbusStateBase
+ci() 改变整型值
+cb() 改变布尔类型值
+cs() 改变字符串值
+i() 获取整型值
+b() 获取布尔类型值
+s() 获取字符串
+
+
+其他细节：
+Slave -> Host cabBus盒子发给本地ARM
+Host -> Slave 本地ARM发给cabBus盒子
+
+发送 dataType为 0x90，data0为 0x36,0x28,0x23,0x7F等信息，向cabBus盒子请求数据
+cabBus盒子会返回相应的信息，例如 发0x36(室外温度)，会有dataType为0x36的回调通知UI再次修改状态
+
+0x23 第七位 0 off；1 on
+0000000000111 7 左位移一位
+0000000001110 14 结果
+
+CanbusManager.init  指定加载某一个canBus类型
+
+
+消息分发,以BeiQi_EC180_Main_RZC.class(北汽电动车串口通信协议V1.01.000)为例：
+CanbusManager.onCallback -> CanbusManager.mHandler.obtainMessage(MSG_EVENT_CANBUS_CMD...)
+-> CanbusManager.onCanbusCmd 
+   遍历ArrayList<CanbusCallback> mCallbacks，mCallbacks在每一个CanbusBase的构造都会add进一个实例
+-> (CanbusCallback)cb.onCanbusCmd(cmd);
+-> (CmdDispatcher)mDispatcher.dispatch 在BeiQi_EC180_Main_RZC构造方法中会创建mDispatcher.setTarget(mCanbusState);
+-> 直接分发到CanbusState中有 @CanbusCmd注解的方法，CanbusState是BeiQi_EC180_Main_RZC的内部类, 
+   CanbusState是CanbusBase.CanbusStateBase的子类
+-> 例如 canBus传过来的数据是0x23，走有 @CanbusCmd注解的CanbusState.onAirInfo方法
+-> mUI.onAirInfoChanged 空调状态改变，修改UI
+-> 
+
+
+
+
+------------------------------------------------------
+
+project_butterKnife
+
+
+
+
+
+
+
+------------------------------------------------------
+
+
+
+
+

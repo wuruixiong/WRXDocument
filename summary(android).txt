@@ -18,7 +18,79 @@ ANRs (“Application Not Responding”)
 
 修改代码时，若想要获取之前view的配置，例如图片、颜色、字号等，可以调试，获取之前view的信息，通过view查找配置
 
-------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------
+
+Px （Pixel像素）
+也称为图像元素，是作为图像构成的基本单元，单个像素的大小并不固定，跟随屏幕大小和像素数量的关系变化
+（屏幕越大，像素越低，单个像素越大，反之亦然）。所以在使用像素作为设计单位时，在不同的设备上可能会有缩放或拉伸的情况。
+Resolution（分辨率）
+是指屏幕的垂直和水平方向的像素数量，如果分辨率是 1920*1080 ，那就是垂直方向有 1920 个像素，水平方向有 1080 个像素。
+
+Dpi（像素密度）
+是指屏幕上每英寸（1英寸 = 2.54 厘米）距离中有多少个像素点。
+如果屏幕为 320*240，屏幕长 2 英寸宽 1.5 英寸，Dpi = 320 / 2 = 240 / 1.5 = 160。
+
+Density（密度）
+这个是指屏幕上每平方英寸（2.54 ^ 2 平方厘米）中含有的像素点数量。
+density=dpi/160
+
+Dip / dp (设备独立像素)
+也可以叫做dp，长度单位，同一个单位在不同的设备上有不同的显示效果，具体效果根据设备的密度有关，详细的公式请看下面 。
+
+px = dp * (dpi / 160) = dp * density
+dp = px / density
+
+QVGA(320*240)分辨率
+如果屏幕为 320*240，屏幕长 2 英寸宽 1.5 英寸，Dpi = 320 / 2 = 240 / 1.5 = 160。
+wdp = 240/(160/160)   hdp = 320/(160/160)
+Dpi有160，那么1dp等于1px，所以这个尺寸下的height dp是320，width dp是240
+
+
+ 	一英寸有多少点	density分辨
+ldpi	120dpi		0.75
+mdpi	160dpi		1
+hdpi	240dpi		1.5
+xhdpi	320dpi		2
+
+
+这些术语都是指屏幕的分辨率。分辨率对应DPI
+ldpi  QVGA (240×320)  Quarter VGA，即：VGA的四分之一，分辨率为320×240，一般用于小屏手机 
+mdpi  HVGA (320×480)  Half-size VGA，即：VGA的一半，分辨率为480×320，
+hdpi  WVGA (480×800),FWVGA (480×854)  Wide Video Graphics Array，即：扩大的VGA，分辨率为800×480像素
+xhdpi  720P（1280*720）
+xxhdpi 1080p（1920*1080 ）
+xxxhdpi 4K（3840×2160）
+
+VGA：Video Graphics Array，即：显示绘图矩阵，相当于640×480 像素；
+WQVGA：Wide Quarter VGA，即：扩大的QVGA，分辨率比QVGA高，比VGA低，一般是：400×240，480×272；
+FWVGA：Full Wide VGA ，数码产品屏幕材质的一种，VGA的另一种形式，比WVGA分辨率高，别名 ： Full Wide VGA, ，其分辨 率为854×480象素(16:9)。
+
+
+代码：
+public void getScreenDensity_ByWindowManager(){  
+    DisplayMetrics mDisplayMetrics = new DisplayMetrics();//屏幕分辨率容器  
+    getWindowManager().getDefaultDisplay().getMetrics(mDisplayMetrics);  
+    int width = mDisplayMetrics.widthPixels;      // 像素宽度
+    int height = mDisplayMetrics.heightPixels;    // 像素高度
+    float density = mDisplayMetrics.density;	  // 获取屏幕密度density
+    int densityDpi = mDisplayMetrics.densityDpi;  // 获取dpi
+    Log.d(TAG,"Screen Ratio: ["+width+"x"+height+"],density="+density+",densityDpi="+densityDpi);  
+    Log.d(TAG,"Screen mDisplayMetrics: "+mDisplayMetrics);  
+}  
+
+
+屏幕为 640*480，长4英寸*宽3英寸，Dpi是160，density是1，height dp是640，width dp是480
+屏幕为 640*480，长2英寸*宽1.5英寸，Dpi=640/2=480/1.5=320，density=320/160=2，height dp是640/2=320，width dp是480/2=240
+也就是说，相同分辨率下，尺寸越小，屏幕越高清，Dpi和density越大，dp反而越小
+
+屏幕为 1280*960，长4英寸*宽3英寸，Dpi=320，density=2，height dp是640，width dp是480
+屏幕为 2560*1920，长4英寸*宽3英寸，Dpi=640，density=4，height dp是2560/4=640，width dp是1920/4=480
+对比640*480、1280*960、2560*1920，相同尺寸下(长4*宽3)，分辨率越大，屏幕越高清，Dpi和density越大，dp相等
+
+dpi与dp是不成比关系的，dp具体大小要结合，由 dpi的大小、px的大小 共同决定
+
+
+--------------------------------------------------------------
 
 listview继承自AbsListView，AbsListView中封装了对view的回收处理，使用setRecyclerListener对view被回收时做出处理
 
@@ -2438,18 +2510,45 @@ View中，执行顺序是 dispatchTouchEvent -> onTouchEvent
    
 4. 承接第3点，view的dispatchTouchEvent()比较简单，就是调用onTouchEvent()并返回布尔值。
 
+------------------------------------------------------------------------------------------------------------
 
+屏幕相关：
 
+android:screenOrientation，控制activity启动时方向
+unspecified，默认值，由系统决定，不同手机可能不一致
+landscape，强制横屏显示
+portrait，强制竖屏显
+behind，与前一个activity方向相同
+sensor，根据物理传感器方向转动，用户90度、180度、270度旋转手机方向，activity都更着变化
+sensorLandscape，横屏旋转，一般横屏游戏会这样设置
+sensorPortrait，竖屏旋转
+nosensor，旋转设备时候，界面不会跟着旋转。初始化界面方向由系统控制
+user，用户当前设置的方向
 
+android:configChanges属性，在Activity中添加，
+在当所指定属性(Configuration Changes)发生改变时，通知程序调用onConfigurationChanged()函数。
+设置方法：将下列字段用“|”符号分隔开，例如：“locale|navigation|orientation” 
 
-
-
-
-
-
-
-
-
+"density" 显示密度已更改-用户可能指定了不同的显示比例，或者现在可能会激活不同的显示。
+在API级别24中添加。
+“fontScale”字体缩放系数已更改 - 用户选择了新的全局字体大小。
+"keyboard"键盘类型已更改 - 例如，用户已插入外部键盘。
+"keyboardHidden"键盘辅助功能已更改 - 例如，用户已显示硬件键盘。
+“layoutDirection”布局方向已更改 - 例如，从左到右（LTR）更改为从右到左（RTL）。
+在API级别17中添加。
+"locale"语言环境已更改 - 用户选择了应显示文本的新语言。
+“mcc”IMSI移动国家代码（MCC）已更改 - 已检测到SIM并更新了MCC。
+“mnc”IMSI移动网络代码（MNC）已发生变化 - 已检测到SIM并更新了MNC。
+"navigation"导航类型（轨迹球/ dpad）已更改。 （这通常不会发生。）
+"orientation"屏幕方向已更改 - 用户旋转了设备。
+注意：如果您的应用程序的目标是Android 3.2（API级别13）或更高，那么您还应该声明“screenSize”配置，
+因为当设备在纵向和横向之间切换时它也会发生变化。
+“smallestScreenSize”物理屏幕尺寸已更改。
+无论方向如何，这代表大小的变化，所以只有在实际物理屏幕尺寸发生变化时才会改变，例如切换到外部显示器。
+对此配置的更改对应于最小宽度配置的更改。在API级别13中添加。
+"touchscreen"触摸屏已更改。 （这通常不会发生。）
+“uiMode”用户界面模式已更改 - 用户将设备放置在桌面或车载底座上，或者夜间模式已更改。
+有关不同UI模式的更多信息，请参阅UiModeManager。在API级别8中添加。
 
 
 
