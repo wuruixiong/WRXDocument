@@ -718,14 +718,34 @@ boolean c = rtClass.isAnnotationPresent(Person.class);
     }  
 }  
 
+-------------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
+    /**
+     * 文件转base64字符串
+     * @param file
+     * @return
+     */
+    public String fileToBase64(File file) {
+        String base64 = null;
+        InputStream in = null;
+        try {
+            in = new FileInputStream(file);
+            byte[] bytes = new byte[in.available()];
+            int length = in.read(bytes);
+            base64 = Base64.encodeToString(bytes, 0, length, Base64.DEFAULT);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return base64;
+    }
 
 
 

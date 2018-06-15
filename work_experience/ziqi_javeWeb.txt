@@ -10,22 +10,66 @@ https://mubu.com/doc/5PDHHtHNu
 框架选型，基于Spring Boot：
 表现层：Spring MVC
 业务层：Spring
-持久层：MyBatis
+持久层：
 
 构建工具选用 Maven
 (三个项目构建工具 Ant/Gradle/Maven)
 
+windows测试，其他设备连接本机服务器时，需要关闭防火墙。
+
 ------------------------------------------------------
+
+三个表：
+userinfo: 存储wifi的地址、名称、可注册数
+diviceinfo：存储注册了的设备信息
+btfile：存储注册了的设备的蓝牙注册文件
+
+客户端需要与Service交互：
+1. 获取蓝牙是否正常工作状态, 通过在carBTService中setprop解决
+2. setprop "ctl.restart", "bt_sdk"，重启蓝牙
+3. 获取蓝牙是否注册成功，setprop解决加发送广播解决
+
 
 第一步，Spring MVC构建 功能简单的表现层，返回 结构简单的get/post响应
 第二步，MongoDB数据库移植进项目中
+第三步，构建持久层，第一个持久层数据 userInfo  
+第四步，编写简单业务层：操作持久层，在表现层中返回响应
+
+查询接口编写
+测试Bean的List接口，上传文件内容BASE-64编码
+客户端蓝牙注册监听
 
 ----------
 
 
-第三步，构建持久层，第一个持久层数据 userInfo  
-第四步，编写简单业务层：操作持久层，在表现层中返回响应
-第五步，Docker服务器布署
+Docker服务器布署
+
+协商好查询、注册 等等连接后端的字段
+
+线程池处理多业务，加锁，防止重复消耗注册数
+所有的增减操作都要先生成一个唯一操作序列号, 再生成一个操作记录, 最后再更新数值
+
+将注册时的文件和 wifi名同时上传
+
+----------
+
+流程：
+1. 客户端请求注册，发送wifi信息给服务端
+2. 服务端检查wifi表，发出允许注册信息
+3. 客户端收到信息，设置bt_sdk并重启蓝牙，
+4. 客户端蓝牙注册监听到注册成功，客户端检查4个蓝牙注册文件，客户端将四个文件发给服务端(文件读取并base64编码)
+5. 服务端接收4个注册文件并存储到数据库中
+
+------------------------------------------------------
+
+C/S 通信，全部使用post请求，json提交，Content-Type : application/json ,
+
+字段：
+1. 查询：chipid
+
+2. 注册：chipid，wifi_mac_address，wifi_name，device_version
+
+3. 注册文件字段，文件1： ，文件2： ，文件3： ，文件4：
 
 
 
@@ -80,15 +124,17 @@ public class GreetingController {
 ------------------------------------------------------
 
 持久层：
-安装MongoDB，启动MongoDB服务。
+准备工作分三步：
+第一步：安装MongoDB，启动MongoDB服务。
 
-pom.xml添加mongodb依赖：spring-boot-starter-data-mongodb，
+第二步：pom.xml添加mongodb依赖库：spring-boot-starter-data-mongodb，
 持久层用mongodb的依赖库实现。
 
-application.properties，配置连接数据库：
+第三步：application.properties，配置连接数据库：
 spring.data.mongodb.uri=mongodb://localhost:27017/runoob
 runoob是数据库名称，27017是mongodb服务的端口
 
+代码开发：
 模型：
 public class Customer {
     @Id
@@ -106,6 +152,7 @@ DAO：
 public interface CustomerRepository extends MongoRepository<Customer, String> {
     public Customer findByFirstName(String firstName);
     public List<Customer> findByLastName(String lastName);
+    // UserInfo findByUsernameAndPassword(String name, String pw);
 }
 
 入口执行：
@@ -145,18 +192,11 @@ runoob
 ApplicationRunner
 CommandLineRunner
 
+db.idAndFiles.drop()
+db.deviceInfo.drop()
+db.userInfo.find()
 
-
-
-
-
-
-
-
-
-
-
-
+{"wifi_mac_address" : "60:45:cb:b0:a3:38", "wifi_name" : "ZIQI_WORK", "remain_count" : "200", "_class" : "ziqi.carregi.model.UserInfo" }
 
 
 ------------------------------------------------------
@@ -164,7 +204,7 @@ CommandLineRunner
 MongoDB基于NoSQL，非关系型数据库，
 特点是数据随意组合，键值对，扩展方便，结构类似于JSON。
 
-MongoDB使用(安装完成 并配置环境变量)
+MongoDB使用(需要安装并配置环境变量)
 
 SQL术语/概念	MongoDB术语/概念	解释/说明
 database	database		数据库
@@ -184,7 +224,13 @@ primary key	primary key		主键,MongoDB自动将_id字段设置为主键
 2. 执行：mongod -dbpath "E:\Work_App\MongoDB\Data\db" 或者 mongod --dbpath ./
 3. 2步的命令是 将mongodb的数据库文件创建到E:\Work_App\MongoDB\Data\db
    并且开启MongoDB服务
-4. ctrl+C 键可以退出
+4. 在使用MongoDB的过程中，需要一直保持MongoDB服务开启状态，
+   不使用时，ctrl+C 键可以退出
+
+（本机环境：
+cd E:\Develop\dbData
+mongod -dbpath ./
+）
 
 -----------------
 
@@ -212,7 +258,8 @@ primary key	primary key		主键,MongoDB自动将_id字段设置为主键
 	例如：db.createCollection("mycol",{capped:true,autoIndexId:true,size:6142800,max:10000})
 	db.createCollection("runcoll")
 2. show collections 显示当前数据库集合
-3. db.collection.drop() 删除集合
+3. db.collectionName.find()  查看collectionName这个集合 所有的数据
+4. db.collection.drop() 删除集合
        例如 db.mycol.drop()
 
 -----------------
@@ -314,7 +361,7 @@ query ：可选，使用查询操作符指定查询条件
 projection ：可选，使用投影操作符指定返回的键。查询时返回文档中所有键值， 只需省略该参数即可（默认省略）。
 
 如果你需要以易读的方式来读取数据，可以使用 pretty() 方法，语法格式如下：
->db.col.find().pretty()
+> db.col.find().pretty()
 查询了集合 col 中的数据：
 > db.col.find().pretty()
 
@@ -350,12 +397,27 @@ POJO（Plain Ordinary Java Object）简单的Java对象，实际就是普通JavaBeans。
 贫血的业务对象POJO，业务对象用POJO表示，这些POJO只有属性，没有方法，因此称为贫血的领域对象。
 
 
+------------------------------------------------------
 
+多线程高并发，数据正确性
 
+数据不一致的原因和影响：
+脏数据：
+脏读就是指当一个事务正在访问数据，并且对数据进行了修改，而这种修改还没有提交到数据库中，
+这时，另外一个事务也访问这个数据，然后使用了这个数据。
+因为这个数据是还没有提交的数据，那么另外一个事务读到的这个数据是脏数据(Dirty Data)，
+依据脏数据所做的操作可能是不正确的。
+读"脏"数据是指事务T1修改某一数据,并将其写回磁盘,事务T2读取同一数据后,T1由于某种原因被撤消,
+这时T1已修改过的数据恢复原值,T2读到的数据就与数据库中的数据不一致,则T2读到的数据就为"脏"数据,即不正确的数据.
 
+不可重复读
+指在一个事务内，多次读同一数据。在这个事务还没有结束时，另外一个事务也访问该同一数据。
+那么，在第一个事务中的两次读数据之间，由于第二个事务的修改，那么第一个事务两次读到的数据可能是不一样的。
+这样就发生了在一个事务内两次读到的数据是不一样的，因此称为是不可重复读。
 
-
-
+丢失修改
+两个事务T1和T2读入同一个数据并修改，T2提交的结果破坏了T1提交的结果，导致了T1的修改被丢失。
+典型例子：买飞机票或者火车票的例子。
 
 
 

@@ -2551,9 +2551,22 @@ android:configChanges属性，在Activity中添加，
 有关不同UI模式的更多信息，请参阅UiModeManager。在API级别8中添加。
 
 
+------------------------------------------------------------------------------------------------------------
 
+file转string，UTF-8编码
 
+String chipId = "";
+// chipId = FileUtils.readTextFile(new File("/proc/chipid"), 0, null);
 
+InputStream inputStream = new FileInputStream(new File("/proc/chipid"));
+ByteArrayOutputStream outStream=new ByteArrayOutputStream();
+byte[] buffer =new byte[1024];
+int len=0;
+while((len=inputStream.read(buffer))!=-1){//循环读取数据并且将数据写入到缓存输出流中
+    outStream.write(buffer, 0, len);
+}
+chipId = new String(outStream.toByteArray(), "UTF-8");
+chipId = StringUtils.trimAll(chipId);
 
 
 
