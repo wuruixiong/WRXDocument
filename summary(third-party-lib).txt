@@ -336,6 +336,7 @@ App应用程序通过 Retrofit 请求网络，实际上是使用 Retrofit 接口
 
 
 简单获取json实例：
+0. 导入依赖 com.squareup.retrofit2:converter-gson
 1. 创建用gson format 创建json解析类：JsonItem
 2. 创建接口
 public interface GetCallInterface {
@@ -369,6 +370,83 @@ public interface GetCallInterface {
 4. 值得注意的是 url是分两段拼接的： http://10.0.160.223:8080/MyWebTest/ReturnServlet
 
 5. call.cancel() 终止正在进行的请求
+
+--------------------
+
+post表单，获取string类型的response 实例：
+1. 导入依赖库：com.squareup.retrofit2:converter-scalars
+2. 添加三个方法：
+    public interface postGetIsRegisterInterface {
+        @FormUrlEncoded
+        @POST("index/testPost")
+        Call<String> testLogin(@Field("username") String username, @Field("password") String password);
+    }
+    private void isRegister() {
+        postGetIsRegisterInterface request = getRetrofit().create(postGetIsRegisterInterface.class);
+        Call<String> call = request.testLogin("wrx", "123456");
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                mTextView.setText(response.body());
+            }
+            @Override
+            public void onFailure(Call<String> call, Throwable throwable) {
+                System.out.println("请求失败");
+                System.out.println(throwable.getMessage());
+            }
+        });
+    }
+    private Retrofit mRetrofit;
+    public static final String URL = "http://192.168.18.102:8080";
+    private Retrofit getRetrofit() {
+        if (mRetrofit == null) {
+            mRetrofit = new Retrofit.Builder()
+                    .baseUrl(URL)
+                    .addConverterFactory(ScalarsConverterFactory.create())
+                    .build();
+        }
+        return mRetrofit;
+    }
+3. 最后调用isRegister()，从服务器获取信息
+
+--------------------
+
+post json，返回json实例：
+调用isRegister()方法
+
+    public interface postGetIsRegisterInterface {
+        @POST("query/isRegister")
+        Call<JsonItem> createTask(@Body UserInfo task);
+    }
+    private void isRegister() {
+        UserInfo userInfo = new UserInfo("wrx", "123456", "123456", "456789");
+        postGetIsRegisterInterface request = getRetrofit().create(postGetIsRegisterInterface.class);
+        Call<JsonItem> call = request.createTask(userInfo);
+        call.enqueue(new Callback<JsonItem>() {
+            @Override
+            public void onResponse(Call<JsonItem> call, Response<JsonItem> response) {
+                JsonItem jsonItem = response.body();
+                mTextView.setText(jsonItem.getStatus());
+            }
+            @Override
+            public void onFailure(Call<JsonItem> call, Throwable throwable) {
+                System.out.println("请求失败");
+                System.out.println(throwable.getMessage());
+            }
+        });
+    }
+
+    private Retrofit mRetrofit;
+    public static final String URL = "http://192.168.18.102:8080";
+    private Retrofit getRetrofit() {
+        if (mRetrofit == null) {
+            mRetrofit = new Retrofit.Builder().baseUrl(URL) // 定义访问的主机地址
+                    .addConverterFactory(GsonConverterFactory.create())  //解析方法
+                    .build();
+        }
+        return mRetrofit;
+    }
+
 
 
 --------------------

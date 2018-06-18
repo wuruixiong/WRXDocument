@@ -117,6 +117,13 @@ adb pull /data/app/com.mms.emojiplugin.twemoji-1/base.apk ./com.mms.emojiplugin.
 
 ------------------
 
+在写代码时，会出现由于权限问题，dirOne.listFiles()为0的问题
+
+adb shell下，设置所有用户都有 读、写、执行的 ./Blink/ 这个目录的权限
+chmod 777 ./Blink/
+
+------------------
+
 有时需要将data/data下的文件导出，由于没有权限无法导出，
 方法一:使用cp 命令将data/data下的文件复制到sdcard上，再使用pull命令导出
 方法二:使用 豌豆荚 导出，如果不能导出，使用 豌豆荚 root ，再导出
