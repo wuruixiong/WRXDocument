@@ -19,10 +19,15 @@ windows测试，其他设备连接本机服务器时，需要关闭防火墙。
 
 ------------------------------------------------------
 
-三个表：
-userinfo: 存储wifi的地址、名称、可注册数
-diviceinfo：存储注册了的设备信息
-btfile：存储注册了的设备的蓝牙注册文件
+5个表：
+userInfo  用户信息，目前只有一个用户，管理员。有添加wifi的权限
+authInfo   认证信息：wifi名称，wifi地址，remain_count允许注册数
+authLog   认证日志：乐观锁机制，记录authInfo的每一条增减操作
+btRegInfo  设备的蓝牙注册信息(蓝牙注册文件暂时不放这里，以后再整合)
+btFiles  存储已经注册了的设备的蓝牙注册文件
+
+
+C/S 通信，全部使用post请求，json提交，Content-Type : application/json ,
 
 客户端需要与Service交互：
 1. 获取蓝牙是否正常工作状态, 通过在carBTService中setprop解决
@@ -38,18 +43,21 @@ btfile：存储注册了的设备的蓝牙注册文件
 查询接口编写
 测试Bean的List接口，上传文件内容BASE-64编码
 客户端蓝牙注册监听
+添加管理员表，添加post接口，管理员功能表
+将注册时的文件和 wifi名同时上传
+协商好查询、注册 等等连接后端的字段
+
+线程池处理多业务，加锁，防止重复消耗注册数
+所有的增减操作都要先生成一个唯一操作序列号, 再生成一个操作记录, 最后再更新数值
 
 ----------
 
 
 Docker服务器布署
 
-协商好查询、注册 等等连接后端的字段
+测试：在Windows上下载docker，把两个镜像发布上去，一个MongoDB，一个javaWeb
+紫旗车机服务发布到互联网上
 
-线程池处理多业务，加锁，防止重复消耗注册数
-所有的增减操作都要先生成一个唯一操作序列号, 再生成一个操作记录, 最后再更新数值
-
-将注册时的文件和 wifi名同时上传
 
 ----------
 
@@ -60,20 +68,40 @@ Docker服务器布署
 4. 客户端蓝牙注册监听到注册成功，客户端检查4个蓝牙注册文件，客户端将四个文件发给服务端(文件读取并base64编码)
 5. 服务端接收4个注册文件并存储到数据库中
 
+乐观锁，防止脏读后数据的提交，AuthLog记录操作和版本号，提交版本必须大于记录当前版本才能执行更新
+有一个字段version，当前线程读取version并赋值给 v1并v1自加一，并对数据进行操作，
+接着在提交修改之后数据时，再次取出version并赋值给v2变量，当v1大于v2时允许此次提交。
+测v1小于或等于v2时丢弃此次数据更新，返回错误提示。
+AuthLog记录操作是对authInfo的remain_count字段进行修改的记录表，只有加或者减两种操作，减只能减1，加可以任意正整数
+
+持久层，数据库操作时，需要注意的问题：
+插入数据时，如果有唯一取值，例如主键，需要注意 唯一性冲突问题。
+更新数据时，需要注意一致性问题。
+
+----------
+
+悲观锁，简单的理解就是把需要的数据全部加锁，在事务提交之前，这些数据全部不可读取和修改。
+select * from user where uid=1 for update;
+update user  set name='bac'  where uid=1;
+这样，uid为1的这行记录，就被锁住，在事务提交之前，他不可被其他事务读取和修改。
+select... for update锁表
+
+乐观锁
+select uid,name,version from user where uid=1;
+假设本次查询version=1，在更新操作时，
+update user set name='abc', version=version+1 where uid=1 and version=1
+这样，当其他事务在本次事务提交之前更新了，version就会+1，就不是刚才查询到的1，本次update 就失败。
+
 ------------------------------------------------------
 
-C/S 通信，全部使用post请求，json提交，Content-Type : application/json ,
-
-字段：
-1. 查询：chipid
-
-2. 注册：chipid，wifi_mac_address，wifi_name，device_version
-
-3. 注册文件字段，文件1： ，文件2： ，文件3： ，文件4：
-
-
+加了 @RequestMapping注解的方法可以响应来自 客户端访问某一个url的响应。
+例如有多台设备同时访问这一个url， 即同时访问同一个 @RequestMapping注解的方法，
+此时，启动不同的多条子线程来响应每一个客户端的访问，每一个子线程负责响应一个设备的访问。
+这些子线程可以被重复使用。
 
 ------------------------------------------------------
+
+注解相关：
 
 @RestController
 
@@ -132,7 +160,15 @@ public class GreetingController {
 
 第三步：application.properties，配置连接数据库：
 spring.data.mongodb.uri=mongodb://localhost:27017/runoob
-runoob是数据库名称，27017是mongodb服务的端口
+runoob是数据库名称（不需要事前创建好数据库，MongoDB会自动创建好没有的数据库），27017是mongodb服务的端口
+注意：//localhost:27017/runoob 走的都是 MongoDB服务默认配置，如果MongoDB服务那边不是默认的，
+按照MongoDB服务的配置修改连接信息。
+
+org.springframework.boot.autoconfigure.mongo提供了对mongoDB连接字符串的配置支持。我们对指定属性进行配置即可。 
+2.4以上版本使用如下连接配置：
+spring.data.mongodb.uri=mongodb://root(userName):root(password)@localhost(ip地址):27017(端口号)/gis(collections/数据库)
+
+
 
 代码开发：
 模型：
@@ -182,9 +218,92 @@ runoob
 { "_id" : ObjectId("5b1b78be44fbd50de4b38b3d"), "firstName" : "Alice", "lastName" : "Smith", "_class" : "ziqi.carregi.dao.Customer" }
 { "_id" : ObjectId("5b1b78be44fbd50de4b38b3e"), "firstName" : "Bob", "lastName" : "Smith", "_class" : "ziqi.carregi.dao.Customer" }
 
+------------------------------------------------------
+
+SpringBoot的mongodb框架（Spring Data for MongoDB）：spring-boot-starter-data-mongodb
+可以在pom.xml加入依赖。
+进一步理解这个框架：
+接口MongoRepository的实现类都有save这个方法。
+MongoTemplate也有这个方法，
+template.save()同时具有update和insert两种功能，
+
+当主键重复时，update操作
+当没有这一个主键时，insert操作
+
+例如：
+@Document
+public class TestObj {
+    @Id
+    String id;
+    String firstname;
+    String lastname;
+    @Version
+    Long version;
+    // 一大堆get()和set()
+}
+public interface TestObjRepository extends MongoRepository<TestObj, String> {
+    TestObj getTestObjById (String id);
+}
+
+调用之前先创建两个DAO，再往数据库中存一行数据
+@Autowired
+private TestObjRepository template;
+@Autowired
+private MongoTemplate mongoTemplate;
+
+TestObj t = new TestObj("Daenerys");
+t.setId("123456");
+template.save(t);
 
 
+(1)更新，如果主键与之前的某一行相同，update操作：
+TestObj daenerys = template.getTestObjById("123456");
+daenerys.setLastname("Targaryen");
+template.save(daenerys);
 
+(2)插入，如果主键没有与之前的某一行相同，insert操作：
+TestObj t2 = new TestObj("Daenerys");
+t2.setId("654321");
+template.save(t2);
+
+----------------
+
+使用乐观锁Optimistic Lock, 
+
+TestObj只需要加上就可以
+@Version
+Long version;
+
+普通调用，取到daenerys，在save()进去时version会自加一，不需要再额外写入代码：
+TestObj daenerys = template.getTestObjById("123456");
+template.save(daenerys); 
+
+调用（乐观锁产生作用，抛出乐观锁失效异常）：
+TestObj tmp = template.getTestObjById("123456");
+TestObj daenerys = template.getTestObjById("123456");
+template.save(tmp);
+template.save(daenerys); // throws OptimisticLockingFailureException, 这里会导致乐观锁Exception，程序崩溃
+
+sava两次调用：
+TestObj tmp = template.getTestObjById("123456");
+template.save(tmp);
+template.save(tmp);
+这里不会有异常，tmp被save()进去时，tmp对象里面的version会被加1，再次save()进去时会再次加一
+假设tmp里的version未设置时为1，第一次save时version为2，第二次save时version为3，
+
+save调用时，只需要满足new version >= old version就可以，
+数据库和对象的new version都会自加一
+
+
+使用mongoTemplate的update，没测过：
+
+
+----------------
+
+注意：
+SpringBoot+MongoDB 实现乐观锁 不需要加入Spring-data-JPA这个框架，这是给SQL用的。
+目前JPA的主要实现有Hibernate、EclipseLink、OpenJPA等。
+这些都是封装了JDBC，实现了ORM框架的 javaWeb框架。
 
 ------------------------------------------------------
 
@@ -197,6 +316,11 @@ db.deviceInfo.drop()
 db.userInfo.find()
 
 {"wifi_mac_address" : "60:45:cb:b0:a3:38", "wifi_name" : "ZIQI_WORK", "remain_count" : "200", "_class" : "ziqi.carregi.model.UserInfo" }
+
+use runoob
+db.btRegInfo.drop()
+db.idAndFiles.drop()
+db.authInfo.drop()
 
 
 ------------------------------------------------------
@@ -219,11 +343,18 @@ primary key	primary key		主键,MongoDB自动将_id字段设置为主键
 
 -----------------
 
-启动MongoDB：
+启动MongoDB服务：
 1. 打开一个终端, cd进入 E:\Work_App\MongoDB\bin
-2. 执行：mongod -dbpath "E:\Work_App\MongoDB\Data\db" 或者 mongod --dbpath ./
+
+2. 执行方式1，默认方式执行，默认情况下的 ip和端口 127.0.0.1:27017：
+   mongod -dbpath "E:\Work_App\MongoDB\Data\db" 或者 mongod --dbpath ./
+   
+   执行方式2，加入ip地址，这个IP地址是本机ip地址，
+   这样其他设备就可以通过这个ip地址访问本机的MongoDB：mongod -dbpath ./ --bind_ip 192.168.18.102
+   
 3. 2步的命令是 将mongodb的数据库文件创建到E:\Work_App\MongoDB\Data\db
    并且开启MongoDB服务
+
 4. 在使用MongoDB的过程中，需要一直保持MongoDB服务开启状态，
    不使用时，ctrl+C 键可以退出
 
@@ -365,6 +496,191 @@ projection ：可选，使用投影操作符指定返回的键。查询时返回文档中所有键值， 只需省
 查询了集合 col 中的数据：
 > db.col.find().pretty()
 
+------------------------------------------------------
+
+docker
+官网：https://www.docker.com/
+Docker Hub：https://hub.docker.com/
+
+windows ：
+下载DockerToolBox：https://docs.docker.com/toolbox/overview/#whats-in-the-box
+或者直接下载(Docker for Windows Installer)：https://download.docker.com/
+官方get start教程：https://docs.docker.com/get-started/ ；https://docs.docker.com/docker-for-windows/
+
+
+DockerToolBox下载完直接安装，安装完成之后，命令行测试安装情况：
+docker --version
+docker version
+以上两条命令都可以，有打印信息输出就表示安装成功
+安装完成之后，桌面有三个快捷方式图标
+Oracle VM VirtualBox
+Docker Quickstart Terminal
+Kitematic (Alpha)
+
+点击Docker Quickstart Terminal，快速开始，会发现找不到bash对话框弹出
+如果之前已经安装了git，需要右键-属性，将以下快捷方式指向修改为当前git-bash的路径
+"C:\Program Files\Git\bin\bash.exe" -> D:\Git\bin\bash.exe
+
+在$后输入各种docker命令就可以使用docker了，不需要像ubuntu中那样使用sudo！ 
+查看docker的版本信息
+docker info
+
+-------------------
+查看当前所有的运行中的进程（容器）
+docker ps
+
+关闭一个容器，ID是容器的ID
+docker stop ID
+
+删除镜像image
+docker rmi <image id>
+
+-------------------
+
+测试Docker安装
+通过运行简单的Docker镜像hello-world来测试您的安装是否工作正常：
+docker run hello-world
+注意：如果是第一次运行hello-world镜像，那么这个镜像是没有的，
+接着会从DockerHub公共镜像源 下载hello-world镜像并执行
+
+命令查看镜像(都可以单独使用)：
+docker image
+docker image ls 
+docker container ls --all
+结果，可以看到已经有一个名为hello-world的镜像：
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+hello-world         latest              e38bc07ac18e        2 months ago        1.85kB
+
+REPOSITORY：表示镜像的仓库源
+TAG：镜像的标签
+IMAGE ID：镜像ID
+CREATED：镜像创建时间
+SIZE：镜像大小
+
+-------------------
+
+同一仓库源可以有多个 TAG，代表这个仓库源的不同个版本，如ubuntu仓库源里，
+有15.10、14.04等多个不同的版本，我们使用 REPOSITORY:TAG 来定义不同的镜像。
+所以，我们如果要使用版本为15.10的ubuntu系统镜像来运行容器时，命令如下：
+runoob@runoob:~$ docker run -t -i ubuntu:15.10 /bin/bash 
+root@d77ccb2e5cca:/#
+
+如果要使用版本为14.04的ubuntu系统镜像来运行容器时，命令如下：
+runoob@runoob:~$ docker run -t -i ubuntu:14.04 /bin/bash 
+root@39e968165990:/# 
+
+如果你不指定一个镜像的版本标签，例如你只使用 ubuntu，docker 将默认使用 ubuntu:latest (最新)镜像。
+
+-------------------
+
+当我们在本地主机上使用一个不存在的镜像时 Docker 就会自动下载这个镜像。
+如果我们想预先下载这个镜像，我们可以使用 docker pull 命令来下载它。
+Crunoob@runoob:~$ docker pull ubuntu:13.10
+
+-------------------
+
+查找镜像
+我们可以从 Docker Hub 网站来搜索镜像，Docker Hub 网址为： https://hub.docker.com/
+我们也可以使用 docker search 命令来搜索镜像。
+比如我们需要一个httpd的镜像来作为我们的web服务。
+我们可以通过 docker search 命令搜索 httpd 来寻找适合我们的镜像。
+runoob@runoob:~$  docker search httpd
+
+NAME:镜像仓库源的名称
+DESCRIPTION:镜像的描述
+OFFICIAL:是否docker官方发布
+
+-------------------
+
+创建镜像
+当我们从docker镜像仓库中下载的镜像不能满足我们的需求时，我们可以通过以下两种方式对镜像进行更改。
+1.从已经创建的容器中更新镜像，并且提交这个镜像
+2.使用 Dockerfile 指令来创建一个新的镜像
+
+-------------------
+
+容器和镜像：
+镜像就是静态文件，容器就是运行镜像之后的程序，
+镜像中包含了启动一个容器所需的所有文件。
+
+-------------------
+
+springBoot创建镜像文件，已有一个SpringBoot项目，基于Maven，
+项目路径：E:\Develop\ZQCarRegiService\
+项目的名称是：carregi
+运行的app是: ziqi.carregi.CarregiApplication
+
+1. 在pom.xml再加入两个配置：
+    <properties>
+	...
+        <docker.image.prefix>springio</docker.image.prefix>
+    </properties>
+    
+    <build>
+        <plugins>
+	    ...
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>1.3.6</version>
+                <configuration>
+                    <repository>${docker.image.prefix}/${project.artifactId}</repository>
+                    <buildArgs>
+                        <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
+                    </buildArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+2. 项目的根目录加入文件 Dockerfile，并配置该文件：
+FROM openjdk:8-jdk-alpine
+VOLUME /tmp
+ARG JAR_FILE
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+
+3. build镜像，项目根目录下，启动终端并执行命令：
+./mvnw install dockerfile:build
+
+Windows下需要安装maven并配置好路径并执行：
+mvnw install dockerfile:build   // Windows执行不加./
+
+命令走完了之后，可以看到输出文件信息：
+E:\Develop\ZQCarRegiService\target\carregi-0.0.1-SNAPSHOT-docker-info.jar
+
+4. push到 dockerHub，
+将<properties>的springio替换成自己的dockerHub用户名。
+pom.xml再加入配置：
+<executions>
+	<execution>
+		<id>default</id>
+		<phase>install</phase>
+		<goals>
+			<goal>build</goal>
+			<goal>push</goal>
+		</goals>
+	</execution>
+</executions>
+
+根目录下终端执行命令：
+./mvnw dockerfile:push
+
+5. 运行镜像：
+打开Docker Quickstart Terminal
+docker image ls 可以看到已经生成了一个镜像 springio/carregi 
+这个镜像是第(3)步时生成的，springio是在(1)步骤时pom.xml中配置的，
+springio指的是用户名，想要传到dockerHub必须替换成dockerHub上自己的用户名
+运行这个镜像：docker run -p 8080:8080 -t springio/carregi
+运行完之后，在http://localhost:8080 下可以访问这个app
+
+如果是在Windows系统下，由于docker是运行在虚拟机 Oracle VM VirtualBox上的。
+所以http://localhost:8080是无法访问。这时打开VirtualBox，可以看到有一个default的虚拟机正在运行。
+查找一下这个 default虚拟机的IP地址，IP地址+8080端口可以访问这个web app
+
+6. 加入MongoDB
+docker pull mongo:3.6.5
+3.6.5是版本号，版本号可以从官网找：https://hub.docker.com/r/library/mongo/
 
 
 
@@ -419,8 +735,18 @@ POJO（Plain Ordinary Java Object）简单的Java对象，实际就是普通JavaBeans。
 两个事务T1和T2读入同一个数据并修改，T2提交的结果破坏了T1提交的结果，导致了T1的修改被丢失。
 典型例子：买飞机票或者火车票的例子。
 
+线程安全
+线程安全是多线程编程时的计算机程序代码中的一个概念。
+在拥有共享数据的多条线程并行执行的程序中，
+线程安全的代码会通过同步机制保证各个线程都可以正常且正确的执行，不会出现数据污染等意外情况。
 
-
+如果你的代码所在的进程中有多个线程在同时运行，而这些线程可能会同时运行这段代码。
+如果每次运行结果和单线程运行的结果是一样的，而且其他的变量的值也和预期的是一样的，就是线程安全的。
+或者说:一个类或者程序所提供的接口对于线程来说是原子操作或者多个线程之间的切换不会导致该接口的执行结果存在二义性,
+也就是说我们不用考虑同步的问题。
+线程安全问题都是由全局变量及静态变量引起的。
+若每个线程中对全局变量、静态变量只有读操作，而无写操作，一般来说，这个全局变量是线程安全的；
+若有多个线程同时执行写操作，一般都需要考虑线程同步，否则的话就可能影响线程安全。
 
 
 
