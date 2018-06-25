@@ -189,7 +189,7 @@ SELECT Company, OrderNumber FROM Orders ORDER BY Company DESC, OrderNumber ASC
 
 SQLite 命令：
 
-创建数据库：
+创建或者使用数据库：
 sqlite3 DatabaseName.db
 
 
@@ -204,6 +204,11 @@ sqlite3 DatabaseName.db
 
 
 
+查看 表polls_question 的所有数据
+select * from polls_question;
+
+注意：在sqlite3 DatabaseName.db之后，SQLite的命令提示符下，既可以用 一个. 加上具体命令语句 的形势操作数据库，
+也可以使用SQL语言去操作数据库，区别是SQL语言要 以分号;结尾
 
 
 
