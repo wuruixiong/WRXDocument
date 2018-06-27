@@ -829,7 +829,7 @@ docker login -u 用户名 -p 密码
 把latest，id为5235feabef5f的carregi打一个tag，版本打为1.0.0
 docker tag 5235feabef5f 2881486114/carregi:1.0.0
 push到dockerHub
-docker push 2881486114/carregi:1.0.0 
+docker push 2881486114/carregi:1.0.0
 
 docker logout //登出命令
 
