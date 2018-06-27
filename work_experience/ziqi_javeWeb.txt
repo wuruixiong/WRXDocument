@@ -168,7 +168,22 @@ org.springframework.boot.autoconfigure.mongoÌá¹©ÁË¶ÔmongoDBÁ¬½Ó×Ö·û´®µÄÅäÖÃÖ§³Ö¡
 2.4ÒÔÉÏ°æ±¾Ê¹ÓÃÈçÏÂÁ¬½ÓÅäÖÃ£º
 spring.data.mongodb.uri=mongodb://root(userName):root(password)@localhost(ipµØÖ·):27017(¶Ë¿ÚºÅ)/gis(collections/Êı¾İ¿â)
 
+---------------
 
+Ò»Ğ©¾­Ñé£º
+springbootÄÚÖÃÁËmongoDBÇı¶¯£¬Ä¬ÈÏÅäÖÃlocalhost:27017£¬
+Èç¹ûÖ»ÊÇ±¾»úÔËĞĞmongodb·şÎñ£¬ÆäÊµÒ²²»ĞèÒªÔÚapplication.propertiesÖĞÅäÖÃmongodb
+Èç¹ûÊ¹ÓÃÁËmongodb×¢½âµÄÏà¹Ø´úÂë£¬¶ømongodbÓÖÃ»ÓĞÆô¶¯·şÎñ£¬ÄÇÃ´webApp»áÆô¶¯Ê§°Ü²¢ÇÒ±¨´í£¬¹Ù·½Ô­ÎÄµµ:
+To access Mongo databases, you can inject an auto-configured org.springframework.data.mongodb.MongoDbFactory.
+By default, the instance tries to connect to a MongoDB server at mongodb://localhost/test.
+
+¹Ù·½»ù´¡½Ì³Ì£ºhttps://spring.io/guides/gs/accessing-data-mongodb/
+¹Ù·½ÎÄµµ£ºhttps://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-mongodb
+¸ù¾İÕâ¸ö½Ì³Ì£¬ÊÇÃ»ÓĞÔÚapplication.propertiesÖĞÅäÖÃmongodbµÄ¡£
+ÁªµÄÊÇÄ¬ÈÏÅäÖÃ¡£
+
+
+---------------
 
 ´úÂë¿ª·¢£º
 Ä£ĞÍ£º
@@ -351,6 +366,8 @@ primary key	primary key		Ö÷¼ü,MongoDB×Ô¶¯½«_id×Ö¶ÎÉèÖÃÎªÖ÷¼ü
    
    Ö´ĞĞ·½Ê½2£¬¼ÓÈëipµØÖ·£¬Õâ¸öIPµØÖ·ÊÇ±¾»úipµØÖ·£¬
    ÕâÑùÆäËûÉè±¸¾Í¿ÉÒÔÍ¨¹ıÕâ¸öipµØÖ··ÃÎÊ±¾»úµÄMongoDB£ºmongod -dbpath ./ --bind_ip 192.168.18.102
+
+   Ö´ĞĞ·½Ê½3£¬¿ªÆôÑéÖ¤£¬192.168.18.102ÊÇ±¾»úIP£ºmongod -dbpath ./ --bind_ip 192.168.18.102 --auth
    
 3. 2²½µÄÃüÁîÊÇ ½«mongodbµÄÊı¾İ¿âÎÄ¼ş´´½¨µ½E:\Work_App\MongoDB\Data\db
    ²¢ÇÒ¿ªÆôMongoDB·şÎñ
@@ -474,7 +491,7 @@ spring.data.mongodb.uri=mongodb://zquser1:zq123456@localhost:27017/zqregi
 	ÍùrunoobÊı¾İ¿â²åÈëÊı¾İ£¬Èç¹ûÖ®Ç°runoob²»´æÔÚ£¬ÕâÀï»áÕæÕıµÄ´´½¨Ò»¸öÊı¾İ¿âÎÄ¼ş
 	Ã»ÓĞ¼¯ºÏÒ²¿ÉÒÔ²åÈëÊı¾İ
 6. db.runoob.find()  ²é¿´runoobÊı¾İ
-7. db.dropDatabase() É¾³ıµ±Ç°Êı¾İ¿â£¬µ±Ç°ÊÇrunoob£¬ËùÒÔrunoob»á±»É¾³ı
+7. db.dropDatabase() É¾³ıÊı¾İ¿âÃüÁî£¬É¾³ıµ±Ç°Êı¾İ¿â£¬µ±Ç°ÊÇrunoob£¬ËùÒÔrunoob»á±»É¾³ı
 8. ctrl+C ¼ü¿ÉÒÔÍË³ö
 
 -----------------
@@ -782,6 +799,10 @@ mvnw install dockerfile:build   // WindowsÖ´ĞĞ²»¼Ó./
 ÃüÁî×ßÍêÁËÖ®ºó£¬¿ÉÒÔ¿´µ½Êä³öÎÄ¼şĞÅÏ¢£º
 E:\Develop\ZQCarRegiService\target\carregi-0.0.1-SNAPSHOT-docker-info.jar
 
+×¢Òâ£¬ÕâÌõ±àÒëÃüÁîºÜ¿Ó£¬»áÅÜÆğtest.ziqi.carregiÏÂÃæµÄ²âÊÔÎÄ¼ş£¬
+Èç¹ûÕâÊ± mongodb·şÎñÃ»¿ª£¬»òÕßÊÇÑéÖ¤ÓÃ»§Ãû¡¢ÃÜÂë´íÎó¾Í»á±¨´í£¬µ¼ÖÂ±àÒëÊ§°Ü¡£
+ÕâÀï½«test.ziqi.carregiÏÂµÄ @Test ²âÊÔ×¢½â×¢ÊÍµô£¬ÔÙÖ´ĞĞdockerfile:build
+
 4. pushµ½ dockerHub£¬
 4.1 Ê¹ÓÃmvnw½øĞĞpush
 ½«<properties>µÄspringioÌæ»»³É×Ô¼ºµÄdockerHubÓÃ»§Ãû¡£
@@ -856,7 +877,9 @@ docker run -p 27017:27017 -v $PWD/db:/data/db -d mongo:3.6.5
 ÒÔÉÏÄÇĞ©ÃüÁî¶¼»áÄ¬ÈÏÆô¶¯mongod·şÎñ£¬
 docker run --name mongodb_zqregi -p 27017:27017 -td mongo:3.6.5  //Æô¶¯mongod·şÎñ
 docker run --name mongodb_zqregi -p 27017:27017 -td mongo:3.6.5 bash  //²»»áÆô¶¯mongod·şÎñ
-docker run --name mongodb_zqregi -p 27017:27017 -td mongo:3.6.5 --auth  //Æô¶¯mongod·şÎñ¼ÓÑéÖ¤ĞÅÏ¢
+
+×îÖÕÑ¡Ôñ£¬Æô¶¯mongod·şÎñ¼ÓÑéÖ¤ĞÅÏ¢
+docker run --name mongodb_zqregi -p 27017:27017 -td mongo:3.6.5 --auth 
 
 
 3. 
@@ -906,6 +929,7 @@ docker run --name mongodb_zqregi -p 27017:27017 -td mongo:3.6.5
 docker exec -it mongodb_zqregi mongo
 
 
+
 WindowsÏÂ×îÖÕÑ¡Ôñ·½°¸, ¼ÓÑéÖ¤µÄ·şÎñ£¬¼ÙÉèÒÑ¾­°²×°ºÃÁË¾µÏñ
 ×¢Òâ£¬²»Í¬Éè±¸ÏÂ£¬IPµØÖ·¿ÉÄÜ²»Í¬£¬192.168.99.100£º
 SpringBootºó¶Ëapplication.properties£º
@@ -914,22 +938,25 @@ spring.data.mongodb.uri=mongodb://zquser1:zq123456@localhost:27017/zqregi
 Docker Quickstart TerminalÖÕ¶ËÏÂ£º
 docker run --name mongodb_zqregi -p 27017:27017 -td mongo:3.6.5 --auth
 
-½øÈëMongoDB¿ØÖÆÌ¨
+¼Óadmin²ÎÊı½øÈëMongoDB¿ØÖÆÌ¨£¬´´½¨³¬¼¶ÓÃ»§
 docker exec -it mongodb_zqregi mongo admin
 use admin
-db.createUser({user:'root',pwd:'123456',roles:[{ "role" : "root", "db" : "admin" }]})
+db.createUser({user:'zqroot',pwd:'zq852637',roles:[{ "role" : "root", "db" : "admin" }]})
 
-cmdÖÕ¶ËÏÂ£¬Á¬½ÓºÍ´´½¨£º
+cmdÖÕ¶ËÏÂ£¬Á¬½Ó¡¢ÑéÖ¤¹ÜÀíÔ±ÕËºÅÃÜÂë¡¢´´½¨ÆÕÍ¨ÓÃ»§£º
 mongo 192.168.99.100:27017
 use admin
-db.auth('root','123456')
+db.auth('zqroot','zq852637')
 ½Ó×Å´´½¨zqregiÊı¾İ¿âµÄÓÃ»§£º
 use zqregi
 db.createUser({user:'zquser1',pwd:'zq123456',roles:[{ "role" : "readWrite", "db" : "zqregi" }]})
 
 ×îºóÅÜÆğ web¾µÏñ
 docker run -p 8080:8080 -t springio/carregi
+´ø»·¾³±äÁ¿²ÎÊı£¬ÅäºÏwebÀïÃæµÄspring.data.mongodb.uri
+docker run -p 8080:8080 -t -e MONGODB_USER=zquser1,mongodb_pwd=zq123456,mongodb_host=192.168.99.100,MONGODB_PORT=27017,MONGODB_DB=zqregi 2881486114/carregi:1.0.1
 
+docker run -p 8080:8080 -t -e ZR_USER=zquser1 -e ZR_PW=zq123456 -e ZR_HOST=192.168.99.100 -e ZR_PORT=27017 -e ZR_DB=zqregi 2881486114/carregi:1.0.1
 
 
 
@@ -961,6 +988,23 @@ JDBCÊÇÖ±½Ó²Ù×÷Êı¾İ¿âµÄjava´úÂë¡£
 
 POJO£¨Plain Ordinary Java Object£©¼òµ¥µÄJava¶ÔÏó£¬Êµ¼Ê¾ÍÊÇÆÕÍ¨JavaBeans¡£
 Æ¶ÑªµÄÒµÎñ¶ÔÏóPOJO£¬ÒµÎñ¶ÔÏóÓÃPOJO±íÊ¾£¬ÕâĞ©POJOÖ»ÓĞÊôĞÔ£¬Ã»ÓĞ·½·¨£¬Òò´Ë³ÆÎªÆ¶ÑªµÄÁìÓò¶ÔÏó¡£
+
+
+------------------------------------------------------
+
+SpringBoot&Java ºÍ ²Ù×÷ÏµÍ³(Windows&Linux) µÄclasspathÊÇ²»Ò»ÑùµÄ¸ÅÄî¡£
+
+SpringBoot&JavaÖĞ£¬classpath
+Ê×ÏÈ classpathÊÇÖ¸±àÒë¹ıºóµÄµÄclassesÄ¿Â¼
+¶ÔÓÚmavenµÄËùÓĞÏîÄ¿, ÅäÖÃÎÄ¼şÒ»°ã·ÅÔÚresourcesÄ¿Â¼ÏÂ, µ±±àÒëÖ®ºó»á×Ô¶¯¸´ÖÆµ½classesÄ¿Â¼ÏÂ
+Ò²¾ÍÊÇËµ£¬ÏîÄ¿ÖĞµÄapplication.properties,banner.txtµÈµÈÕâĞ©£¬µ±±àÒëÖ®ºó¶¼»á ±»¸´ÖÆµ½ ÏîÄ¿¸ùÄ¿Â¼/target/classes ÏÂ¡£
+
+·ÇmavenµÄËùÓĞÏîÄ¿, Ò»°ã·ÅÔÚsrcÄ¿Â¼ÏÂ, ±àÒëÖ®ºóÒ²»á×Ô¶¯¸´ÖÆµ½classesÄ¿Â¼ÏÂÃæ.
+ËùÓĞµÄweb-appÏîÄ¿, ÀıÈçweb.xml, springµÄÅäÖÃÎÄ¼şµÈµÈ,ÊÇ·ÅÔÚwebapp/WEB-INFÏÂÃæµÄ,
+Èç¹ûÏëÒªÒıÓÃresources»òÕßsrcÄ¿Â¼ÏÂµÄÅäÖÃÎÄ¼ş, ¾ÍÔÚÔÚÅäÖÃÎÄ¼şµÄÂ·¾¶Ç°¼ÓÉÏclasspath¡£
+ 
+ÀıÈçÏÂÃæ×¢½â£¬ÆäÊµ¾ÍÊÇ¼ÓÔØ ÏîÄ¿¸ùÄ¿Â¼/resources/application.properties £º
+@PropertySource(value = {"classpath:application.properties"},encoding="utf-8")
 
 
 ------------------------------------------------------
