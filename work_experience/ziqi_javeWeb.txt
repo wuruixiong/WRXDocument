@@ -806,19 +806,43 @@ E:\Develop\ZQCarRegiService\target\carregi-0.0.1-SNAPSHOT-docker-info.jar
 4. push到 dockerHub，
 4.1 使用mvnw进行push
 将<properties>的springio替换成自己的dockerHub用户名。
-pom.xml再加入配置：
-<executions>
-	<execution>
-		<id>default</id>
-		<phase>install</phase>
-		<goals>
-			<goal>build</goal>
-			<goal>push</goal>
-		</goals>
-	</execution>
-</executions>
+pom.xml再加入配置<executions>标签：
+<build>
+        <plugins>
+	    <plugin>
+                <groupId>org.springframework.boot</groupId>
+		...
+            </plugin>
+
+	    <plugin>
+		
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>push</goal>
+                        </goals>
+                    </execution>
+                </executions>
+	
+		<artifactId>dockerfile-maven-plugin</artifactId>
+		...
+		<configuration>
+		...
+                </configuration>
+	    </plugin>
+        </plugins>
+    </build>
 根目录下终端执行命令：
 ./mvnw dockerfile:push
+
+实测过，push之前先在docker终端那边登录，不然会报错
+当加入execution标签之后，就能dockerfile:push到dockerHub，
+当execution标签之后，执行mvnw install dockerfile:build 也会走push到dockerHub的操作，
+如果此时没有登录会报错，不过docker依旧会生成一个镜像
+
 
 4.2 使用docker命令push：
 将<properties>的springio替换成自己的dockerHub用户名
@@ -832,6 +856,9 @@ push到dockerHub
 docker push 2881486114/carregi:1.0.0
 
 docker logout //登出命令
+
+注意，docker login -u -p 会有打印信息，表示这种登录方式不安全
+最好是只执行docker login命令(不带参数)，接下来会再输入用户名和密码
 
 
 
@@ -908,7 +935,7 @@ mongo
 admin   0.000GB
 接着创建 admin数据库超级用户：
 use admin
-db.createUser({user:'root',pwd:'123456',roles:[{ "role" : "root", "db" : "admin" }]})
+db.createUser({user:'zqroot',pwd:'zq852637',roles:[{ "role" : "root", "db" : "admin" }]})
 验证
 db.auth('root','123456')
 
@@ -957,6 +984,71 @@ docker run -p 8080:8080 -t springio/carregi
 docker run -p 8080:8080 -t -e MONGODB_USER=zquser1,mongodb_pwd=zq123456,mongodb_host=192.168.99.100,MONGODB_PORT=27017,MONGODB_DB=zqregi 2881486114/carregi:1.0.1
 
 docker run -p 8080:8080 -t -e ZR_USER=zquser1 -e ZR_PW=zq123456 -e ZR_HOST=192.168.99.100 -e ZR_PORT=27017 -e ZR_DB=zqregi 2881486114/carregi:1.0.1
+
+------------------------------------------------------
+
+Windows SSH远程连接 Ubuntu设备
+并安装docker，配置MongoDB和JavaWeb
+
+xshell 直接远程SSH连接，连接完了之后就可以操作Ubuntu设备的终端。
+按照官方教程 https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1
+下的Install using the repository进行命令行安装。
+
+所有的命令都要加上sudo，例如:
+sudo docker image ls
+
+安装mongoDB
+sudo docker pull mongo:3.6.5
+
+跑起加了验证的MongoDB服务
+sudo docker run --name mongodb_zqregi -p 27017:27017 -td mongo:3.6.5 --auth
+sudo docker run --name mongodb_zqregi -p 27017:27017 -td mongo:3.6.5 --bind_ip 10.104.157.32 --auth
+
+将底层主机系统的 根目录下的/ziqidb/mongodb目录 挂载到容器内的/data/db
+sudo docker run --name mongodb_zqregi -p 27017:27017 -v /ziqidb/mongodb:/data/db -td mongo:3.6.5 --auth
+注意：这里 数据的存储不能依赖mongodb容器，要将docker的MongoDB的数据库 存储到外部主机的目录中
+具体资料可以到docker的 MongoDB镜像 文档查看。https://hub.docker.com/_/mongo/
+
+跑起mongoDB服务之后，加admin参数进入MongoDB控制台，创建超级用户
+sudo docker exec -it mongodb_zqregi mongo admin
+use admin
+db.createUser({user:'zqroot',pwd:'zq852637',roles:[{ "role" : "root", "db" : "admin" }]})
+
+exit退出，接着再进去，这次不加admin参数
+sudo docker exec -it mongodb_zqregi mongo
+use admin
+db.auth('zqroot','zq852637')
+接着创建zqregi数据库的用户：
+use zqregi
+db.createUser({user:'zquser1',pwd:'zq123456',roles:[{ "role" : "readWrite", "db" : "zqregi" }]})
+
+注意，也可以在 其他设备的终端下，远程进入MongoDB控制台，
+在Windows下连接远程MongoDB服务，打开cmd终端执行命令，
+进入之后还是要去admin下进行auth命令验证用户的，不然没有权限是看不了数据的：
+mongo cloud.ziqidesigns.com:27017    // cloud.ziqidesigns.com是远程设备的域名
+
+---------------------
+
+配置javaweb app：2881486114/carregi
+xshell SSH连接 远程ubuntu设备，ubuntu终端登录dockerHub用户之后，执行docker pull命令，下载docker镜像。
+
+跑起
+sudo docker run -p 8080:8080 -t -e ZR_USER=zquser1 -e ZR_PW=zq123456 -e ZR_HOST=172.17.0.1 -e ZR_PORT=27017 -e ZR_DB=zqregi 2881486114/carregi:1.0.2
+注意：ZR_HOST=172.17.0.1 是本机环境下的docker环境的IP，不同设备可能不同。
+使用ifconfig查看docker环境的IP：
+/$ ifconfig
+docker0   Link encap:Ethernet  HWaddr 02:42:c7:08:61:43  
+          inet addr:172.17.0.1  Bcast:172.17.255.255  Mask:255.255.0.0
+
+访问index，查看服务是否已经跑起。
+http://cloud.ziqidesigns.com:8080/index
+
+
+先为车机服务注册一个紫旗公司的用户
+sudo docker exec -it mongodb_zqregi mongo
+use zqregi
+db.auth('zquser1','zq123456')
+db.userInfo.insert({ "_id" : "ziqiCom", "password" : "zq917523", "_class" : "ziqi.carregi.model.UserInfo" })
 
 
 

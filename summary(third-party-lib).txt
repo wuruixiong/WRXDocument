@@ -749,7 +749,76 @@ range发射从n到m的整数序列，repeat可以指定重复次数，以上发�
 -------------------------------------------------------------------------------------
 
 
-rxAndroid 
+rxAndroid + Retrofit
+
+Retrofit 有一个封装了Rxjava的库，
+要使用rxAndroid + Retrofit进行网络请求，需要在gradle先导入库：
+implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
+
+(1) 创建mRetrofit对象，主要是加上了RxJava2CallAdapterFactory。
+    private Retrofit mRetrofit;
+    public static final String URL = "http://cloud.ziqidesigns.com:8080";
+    private Retrofit getRetrofit() {
+        if (mRetrofit == null) {
+            mRetrofit = new Retrofit.Builder().baseUrl(URL) // 定义访问的主机地址
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create())  //解析方法
+                    .build();
+        }
+        return mRetrofit;
+    }
+
+(2) 声明接口：
+    public interface IsRegisterInterface {
+        @POST("query/isRegister")
+        Observable<JsonStatus> createTask(@Body BtRegInfo task);
+    }
+
+(3) 创建方法，其中最主要是创建了观察者和被观察者。
+BtRegInfo是一个javaBean，以json的形式post到后端，
+JsonStatus也是一个javaBean，是从后端拿到的返回数据。
+
+    private void isRegister(String chipid) {
+        BtRegInfo btRegInfo = new BtRegInfo();
+        btRegInfo.setChipid(chipid);
+        IsRegisterInterface request = getRetrofit().create(IsRegisterInterface.class);
+        Observable<JsonStatus> observable = request.createTask(btRegInfo);
+        observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<JsonStatus>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                    }
+                    @Override
+                    public void onNext(JsonStatus jsonStatus) {
+                        if (jsonStatus != null) {
+                            mTextView.setText(jsonStatus.getMessage());
+                        } else {
+                            mTextView.setText("网络请求失败");
+                        }
+                    }
+                    @Override
+                    public void onError(Throwable throwable) {
+                        mTextView.setText("网络请求失败:"+throwable.getMessage());
+                    }
+                    @Override
+                    public void onComplete() {
+                    }
+                });
+    }
+
+
+(4) 调用：isRegister("123456");
+如果能够成功从后端拿到数据(状态码200)，会调用到onNext()这个接口方法，
+如果返回失败，例如请求超时，路径错误等等，会调用到onError()这个接口方法，
+Schedulers.io()是IO操作请使用Schedulers.io()子线程，
+subscribeOn(Schedulers.io())表示在Schedulers.io()子线程中执行网络操作
+AndroidSchedulers.mainThread()是主线程
+observeOn(AndroidSchedulers.mainThread())表示回调是走主线程
+
+observable 被观察者
+observe 观察者
+subscribe 订阅
 
 
 
