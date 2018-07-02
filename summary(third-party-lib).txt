@@ -537,6 +537,53 @@ headers.put("Accept","text/plain");
 headers.put("Accept-Charset", "utf-8");
 
 
+----------------------------
+
+Retrofit2的同步和异步
+
+    public interface GetUserService {
+        @GET("users/{user}")
+        Call<UserBean> getUser(@Path("user") String user);
+    }
+    Retrofit retrofit = new Retrofit.Builder().baseUrl("https://api.github.com/") // 定义访问的主机地址
+            .addConverterFactory(GsonConverterFactory.create())  //解析方法
+            .build();
+    GetUserService getUserService = retrofit.create(GetUserService.class);
+    class UserBean {
+        private String login;
+        private int id;
+	......
+    }
+
+    // 调用方法
+    private void testSyncAndAsync () {
+        // 异步调用
+        Call<UserBean> asyncCall = getUserService.getUser("123456");
+        asyncCall.enqueue(new Callback<UserBean>() {
+            @Override
+            public void onResponse(Call<UserBean> call, Response<UserBean> response) {
+	        // 这个回调产生在主线程
+                UserBean userBean = response.body();
+                Log.e("userBean", "async:" + userBean.getId() + "");
+            }
+            @Override
+            public void onFailure(Call<UserBean> call, Throwable t) {
+            }
+        });
+
+	// 同步调用，因为不允许在主线程进行网络请求，所以只能在子线程里同步调用
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Call<UserBean> syncCall = getUserService.getUser("654321");
+                    UserBean userBean = syncCall.execute().body();
+                    Log.e("userBean", "sync:" +userBean.getId() + "");
+                } catch (Exception e) {
+                }
+            }
+        }).start();
+    }
 
 ----------------------------
 
@@ -819,6 +866,171 @@ observeOn(AndroidSchedulers.mainThread())表示回调是走主线程
 observable 被观察者
 observe 观察者
 subscribe 订阅
+
+-------------------------
+
+双任务嵌套，先readFileObv加载文件内容，再IsRegisterInterface上传加载内容，最后拿到是否注册的响应
+
+    public void isRegister() {
+        Observable readFileObv = getReadIdFileObservable();
+        // 先从文件中读取 chipid
+        readFileObv
+                .subscribeOn(Schedulers.io())  //事件产生在io线程
+                .flatMap(
+                        new Function<String, Observable<JsonStatus>>() {
+                            @Override
+                            public Observable<JsonStatus> apply(String s) throws Exception {
+                                // 嵌套 网络请求被观察者，将chipid等信息上传，获取是否注册的信息
+                                BtRegInfo btRegInfo = new BtRegInfo();
+                                btRegInfo.setChipid(s);
+                                IsRegisterInterface request = getRetrofit().create(IsRegisterInterface.class);
+                                Observable<JsonStatus> netIsRegisterObv =  request.createTask(btRegInfo);
+                                return netIsRegisterObv;
+                            }
+                        }
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<JsonStatus>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+            }
+            @Override
+            public void onNext(JsonStatus o) {
+                mTextView.setText(o.getMessage());
+            }
+            @Override
+            public void onError(Throwable e) {
+            }
+            @Override
+            public void onComplete() {
+            }
+        });
+    }
+
+    private Observable getReadIdFileObservable () {
+        Observable observable = Observable.create(new ObservableOnSubscribe() {
+            @Override
+            public void subscribe(ObservableEmitter emitter) throws Exception {
+                String chipId = "";
+                chipId = FileUtils.readTextFile(new File("/pr/id"), 0, null);
+                chipId = StringUtils.trimAll(chipId);
+                emitter.onNext(chipId);
+                emitter.onComplete();
+            }
+        });
+        return observable;
+    }
+
+    public interface IsRegisterInterface {
+        @POST("qqqq/isRegi")
+        Observable<JsonStatus> createTask(@Body BtRegInfo task);
+    }
+
+    private Retrofit mRetrofit;
+    // public static final String URL = "http://192.168.18.102:8080";
+    public static final String URL = "http://xxx.xxxxx.com:8080";
+    private Retrofit getRetrofit() {
+        if (mRetrofit == null) {
+            mRetrofit = new Retrofit.Builder().baseUrl(URL) // 定义访问的主机地址
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create())  //解析方法
+                    .build();
+        }
+        return mRetrofit;
+    }
+
+-------------------------
+
+Retrofit2 + RXjava2 子线程中同步调用 多次网络请求 和 多次磁盘读写任务
+
+    public interface GetUserService {
+        @GET("users/{user}")
+        Call<UserBean> getUser(@Path("user") String user);
+    }
+    public interface GetOrgsService {
+        @GET("orgs/{org}")
+        Call<OrgBean> getOrg(@Path("org") String org);
+    }
+    Retrofit retrofit = new Retrofit.Builder().baseUrl("https://api.github.com/") // 定义访问的主机地址
+            .addConverterFactory(GsonConverterFactory.create())  //解析方法
+            .build();
+    GetUserService getUserService = retrofit.create(GetUserService.class);
+    GetOrgsService getOrgsService = retrofit.create(GetOrgsService.class);
+    class UserBean {
+        private String login;
+        private int id;
+	......
+    }
+    class OrgBean {
+        private String login;
+        private int id;
+	......
+    }
+
+    private void testSyncAndAsync () {
+        Observable observable = Observable.create(new ObservableOnSubscribe() {
+            @Override
+            public void subscribe(ObservableEmitter emitter) throws Exception {
+
+                try {
+                    Call<OrgBean> syncCall = getOrgsService.getOrg("github");
+                    OrgBean orgBean = syncCall.execute().body();
+                    emitter.onNext(orgBean.getLogin() + "");
+                } catch (Exception e) {
+                }
+
+                String chipId = FileUtils.readTextFile(new File("/proc/chipid"), 0, null);
+                emitter.onNext(chipId);
+
+                try {
+                    Call<UserBean> syncCall = getUserService.getUser("123456789");
+                    UserBean userBean = syncCall.execute().body();
+                    emitter.onNext(userBean.getLogin() + "");
+                } catch (Exception e) {
+                }
+
+                String chipId2 = FileUtils.readTextFile(new File("/proc/chipid"), 0, null);
+                emitter.onNext(chipId2);
+
+                try {
+                    Call<OrgBean> syncCall = getOrgsService.getOrg("git");
+                    OrgBean orgBean = syncCall.execute().body();
+                    emitter.onNext(orgBean.getLogin() + "");
+                } catch (Exception e) {
+                }
+
+                emitter.onComplete();
+            }
+        });
+        Observer<String> observer = new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+            }
+            @Override
+            public void onNext(String s) {
+                Log.e("onNext", s);
+            }
+            @Override
+            public void onError(Throwable e) {
+            }
+            @Override
+            public void onComplete() {
+            }
+        };
+        observable
+                .subscribeOn(Schedulers.io())  // io子线程生产任务
+                .observeOn(AndroidSchedulers.mainThread()) // mian线程监听
+                .subscribe(observer);
+    }
+
+
+
+
+
+
+
+
+
 
 
 
