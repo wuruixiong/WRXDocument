@@ -1,4 +1,4 @@
-
+S
 Gson
 
 //把ArrayList<String>转成 json字符串
@@ -537,6 +537,53 @@ headers.put("Accept","text/plain");
 headers.put("Accept-Charset", "utf-8");
 
 
+----------------------------
+
+Retrofit2的同步和异步
+
+    public interface GetUserService {
+        @GET("users/{user}")
+        Call<UserBean> getUser(@Path("user") String user);
+    }
+    Retrofit retrofit = new Retrofit.Builder().baseUrl("https://api.github.com/") // 定义访问的主机地址
+            .addConverterFactory(GsonConverterFactory.create())  //解析方法
+            .build();
+    GetUserService getUserService = retrofit.create(GetUserService.class);
+    class UserBean {
+        private String login;
+        private int id;
+	......
+    }
+
+    // 调用方法
+    private void testSyncAndAsync () {
+        // 异步调用
+        Call<UserBean> asyncCall = getUserService.getUser("123456");
+        asyncCall.enqueue(new Callback<UserBean>() {
+            @Override
+            public void onResponse(Call<UserBean> call, Response<UserBean> response) {
+	        // 这个回调产生在主线程
+                UserBean userBean = response.body();
+                Log.e("userBean", "async:" + userBean.getId() + "");
+            }
+            @Override
+            public void onFailure(Call<UserBean> call, Throwable t) {
+            }
+        });
+
+	// 同步调用，因为不允许在主线程进行网络请求，所以只能在子线程里同步调用
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Call<UserBean> syncCall = getUserService.getUser("654321");
+                    UserBean userBean = syncCall.execute().body();
+                    Log.e("userBean", "sync:" +userBean.getId() + "");
+                } catch (Exception e) {
+                }
+            }
+        }).start();
+    }
 
 ----------------------------
 
@@ -631,6 +678,33 @@ private void startBackLooperObservable() {
                 });
     }
 
+------------------------------
+
+通过from创建Observable：
+//Teacher为一个数据Bean，包含姓名，年龄，住址三个字段
+List<Teacher> teachers = new ArrayList<>();
+for (int i = 0; i < 4; i++) {
+    teachers.add(new Teacher("name" + i, i, "place" + i));
+}
+//from方法支持继承了Interable接口的参数，所以常用的数据结构(Map、List..)都可以转换
+Observable fromObservale = Observable.from(teachers);
+fromObservale.subscribe(new Subscriber<Teacher>() {
+    @Override
+    public void onCompleted() {
+	Log.i(TAG, "from(teachers)  onCompleted");
+    }
+
+    @Override
+    public void onError(Throwable e) {
+	Log.e(TAG, "from(teachers)  " + e.getMessage());
+    }
+
+    @Override
+    public void onNext(Teacher teacher) {
+	//依次接收到teachers中的对象
+	Log.d(TAG, "from(teachers)  onNext:" + teacher.toString());
+    }
+});
 
 
 ------------------------------
@@ -673,6 +747,323 @@ https://api.github.com/
   "user_search_url": "https://api.github.com/search/users?q={query}{&page,per_page,sort,order}"
 }
 
+
+------------------------------
+
+通过just创建Observable：　　
+//Just类似于From，但是From会将数组或Iterable的元素具取出然后逐个发射，而Just只是简单的原样发射，将数组或Iterable当做单个数据。
+//Just接受一至九个参数，返回一个按参数列表顺序发射这些数据的Observable
+Observable justObservable = Observable.just(1, "someThing", false, 3.256f, new Teacher("Jhon", 25, "NewYork"));
+justObservable.subscribe(new Subscriber() {
+    @Override
+    public void onCompleted() {
+        Log.i(TAG, "just(...)  onCompleted");
+    }
+
+    @Override
+    public void onError(Throwable e) {
+        Log.d(TAG, "just(...)  onError:" + e.getMessage());
+    }
+
+    @Override
+    public void onNext(Object o) {
+        Log.d(TAG, "just(...)  onNext:" + o.toString());
+    }
+});
+
+------------------------------
+
+通过timer创建Observable：　　
+//timer()创建一个Observable，它在一个给定的延迟后发射一个特殊的值 设定执行方法在UI线程执行
+//延时两秒后发射值
+//实测 延时2s后发送了一个0
+Observable timerObservable = Observable.timer(2, TimeUnit.SECONDS, AndroidSchedulers.mainThread());
+   timerObservable.subscribe(
+           new Subscriber() {
+               @Override
+               public void onCompleted() {
+                   Log.i(TAG, "timer(...)  onCompleted");
+                   refreshStr("timer(...)  onCompleted\n");
+               }
+
+               @Override
+               public void onError(Throwable e) {
+                   Log.e(TAG, "timer(...)  onError:" + e.getMessage());
+                   refreshStr("timer(...)  onError:" + e.getMessage());
+               }
+
+               @Override
+               public void onNext(Object o) {
+                   Log.d(TAG, "timer(...)  onNext:" + o.toString());
+                   refreshStr("timerObservable 延时两秒触发 发送值：" + o.toString());
+               }
+           }
+   );
+//timer有定时的作用，延时发送一个值０。 
+
+------------------------------
+
+通过range创建Observable(这里叠加使用一个repeat方法)：　　
+
+//range 发射从n到m的整数序列 可以指定Scheduler设置执行方法运行的线程
+//repeat方法可以指定重复触发的次数
+Observable rangeObservable = Observable.range(3, 7).repeat(2);
+rangeObservable.subscribe(
+//在不写观察者的情况下，可以使用Action1和Action0这两个接口来实现不完整定义的回调； 参见：ActionSubscriber
+//Action1<T>可以代替实现onNext(); Action1<Throwable>可以代替实现onError(); Action0可以代替实现onConplete()
+        new Action1() {
+            @Override
+            public void call(Object o) {
+                Log.e(TAG, "range(3, 7).repeat(2)  onNext:"+o.toString());
+            }
+        },
+        new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                Log.e(TAG, "range(3, 7).repeat(2)  "+throwable.getMessage());
+            }
+        },
+        new Action0() {
+            @Override
+            public void call() {
+                Log.i(TAG, "range(3, 7).repeat(2)  onCompleted");
+            }
+        });
+
+range发射从n到m的整数序列，repeat可以指定重复次数，以上发射的次序为：3，4，5，6，7，3，4，5，6，7。
+这里用到的Action0和Action1是两个可以替代Subscriber的接口，具体可以参见相关文档和源码实现，这里不深入介绍。 
+其他还有Interval、Defer、Start等方法就不一一介绍了。
+
+
+-------------------------------------------------------------------------------------
+
+
+rxAndroid + Retrofit
+
+Retrofit 有一个封装了Rxjava的库，
+要使用rxAndroid + Retrofit进行网络请求，需要在gradle先导入库：
+implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
+
+(1) 创建mRetrofit对象，主要是加上了RxJava2CallAdapterFactory。
+    private Retrofit mRetrofit;
+    public static final String URL = "http://cloud.ziqidesigns.com:8080";
+    private Retrofit getRetrofit() {
+        if (mRetrofit == null) {
+            mRetrofit = new Retrofit.Builder().baseUrl(URL) // 定义访问的主机地址
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create())  //解析方法
+                    .build();
+        }
+        return mRetrofit;
+    }
+
+(2) 声明接口：
+    public interface IsRegisterInterface {
+        @POST("query/isRegister")
+        Observable<JsonStatus> createTask(@Body BtRegInfo task);
+    }
+
+(3) 创建方法，其中最主要是创建了观察者和被观察者。
+BtRegInfo是一个javaBean，以json的形式post到后端，
+JsonStatus也是一个javaBean，是从后端拿到的返回数据。
+
+    private void isRegister(String chipid) {
+        BtRegInfo btRegInfo = new BtRegInfo();
+        btRegInfo.setChipid(chipid);
+        IsRegisterInterface request = getRetrofit().create(IsRegisterInterface.class);
+        Observable<JsonStatus> observable = request.createTask(btRegInfo);
+        observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<JsonStatus>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                    }
+                    @Override
+                    public void onNext(JsonStatus jsonStatus) {
+                        if (jsonStatus != null) {
+                            mTextView.setText(jsonStatus.getMessage());
+                        } else {
+                            mTextView.setText("网络请求失败");
+                        }
+                    }
+                    @Override
+                    public void onError(Throwable throwable) {
+                        mTextView.setText("网络请求失败:"+throwable.getMessage());
+                    }
+                    @Override
+                    public void onComplete() {
+                    }
+                });
+    }
+
+
+(4) 调用：isRegister("123456");
+如果能够成功从后端拿到数据(状态码200)，会调用到onNext()这个接口方法，
+如果返回失败，例如请求超时，路径错误等等，会调用到onError()这个接口方法，
+Schedulers.io()是IO操作请使用Schedulers.io()子线程，
+subscribeOn(Schedulers.io())表示在Schedulers.io()子线程中执行网络操作
+AndroidSchedulers.mainThread()是主线程
+observeOn(AndroidSchedulers.mainThread())表示回调是走主线程
+
+observable 被观察者
+observe 观察者
+subscribe 订阅
+
+-------------------------
+
+双任务嵌套，先readFileObv加载文件内容，再IsRegisterInterface上传加载内容，最后拿到是否注册的响应
+
+    public void isRegister() {
+        Observable readFileObv = getReadIdFileObservable();
+        // 先从文件中读取 chipid
+        readFileObv
+                .subscribeOn(Schedulers.io())  //事件产生在io线程
+                .flatMap(
+                        new Function<String, Observable<JsonStatus>>() {
+                            @Override
+                            public Observable<JsonStatus> apply(String s) throws Exception {
+                                // 嵌套 网络请求被观察者，将chipid等信息上传，获取是否注册的信息
+                                BtRegInfo btRegInfo = new BtRegInfo();
+                                btRegInfo.setChipid(s);
+                                IsRegisterInterface request = getRetrofit().create(IsRegisterInterface.class);
+                                Observable<JsonStatus> netIsRegisterObv =  request.createTask(btRegInfo);
+                                return netIsRegisterObv;
+                            }
+                        }
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<JsonStatus>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+            }
+            @Override
+            public void onNext(JsonStatus o) {
+                mTextView.setText(o.getMessage());
+            }
+            @Override
+            public void onError(Throwable e) {
+            }
+            @Override
+            public void onComplete() {
+            }
+        });
+    }
+
+    private Observable getReadIdFileObservable () {
+        Observable observable = Observable.create(new ObservableOnSubscribe() {
+            @Override
+            public void subscribe(ObservableEmitter emitter) throws Exception {
+                String chipId = "";
+                chipId = FileUtils.readTextFile(new File("/pr/id"), 0, null);
+                chipId = StringUtils.trimAll(chipId);
+                emitter.onNext(chipId);
+                emitter.onComplete();
+            }
+        });
+        return observable;
+    }
+
+    public interface IsRegisterInterface {
+        @POST("qqqq/isRegi")
+        Observable<JsonStatus> createTask(@Body BtRegInfo task);
+    }
+
+    private Retrofit mRetrofit;
+    // public static final String URL = "http://192.168.18.102:8080";
+    public static final String URL = "http://xxx.xxxxx.com:8080";
+    private Retrofit getRetrofit() {
+        if (mRetrofit == null) {
+            mRetrofit = new Retrofit.Builder().baseUrl(URL) // 定义访问的主机地址
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create())  //解析方法
+                    .build();
+        }
+        return mRetrofit;
+    }
+
+-------------------------
+
+Retrofit2 + RXjava2 子线程中同步调用 多次网络请求 和 多次磁盘读写任务
+
+    public interface GetUserService {
+        @GET("users/{user}")
+        Call<UserBean> getUser(@Path("user") String user);
+    }
+    public interface GetOrgsService {
+        @GET("orgs/{org}")
+        Call<OrgBean> getOrg(@Path("org") String org);
+    }
+    Retrofit retrofit = new Retrofit.Builder().baseUrl("https://api.github.com/") // 定义访问的主机地址
+            .addConverterFactory(GsonConverterFactory.create())  //解析方法
+            .build();
+    GetUserService getUserService = retrofit.create(GetUserService.class);
+    GetOrgsService getOrgsService = retrofit.create(GetOrgsService.class);
+    class UserBean {
+        private String login;
+        private int id;
+	......
+    }
+    class OrgBean {
+        private String login;
+        private int id;
+	......
+    }
+
+    private void testSyncAndAsync () {
+        Observable observable = Observable.create(new ObservableOnSubscribe() {
+            @Override
+            public void subscribe(ObservableEmitter emitter) throws Exception {
+
+                try {
+                    Call<OrgBean> syncCall = getOrgsService.getOrg("github");
+                    OrgBean orgBean = syncCall.execute().body();
+                    emitter.onNext(orgBean.getLogin() + "");
+                } catch (Exception e) {
+                }
+
+                String chipId = FileUtils.readTextFile(new File("/proc/chipid"), 0, null);
+                emitter.onNext(chipId);
+
+                try {
+                    Call<UserBean> syncCall = getUserService.getUser("123456789");
+                    UserBean userBean = syncCall.execute().body();
+                    emitter.onNext(userBean.getLogin() + "");
+                } catch (Exception e) {
+                }
+
+                String chipId2 = FileUtils.readTextFile(new File("/proc/chipid"), 0, null);
+                emitter.onNext(chipId2);
+
+                try {
+                    Call<OrgBean> syncCall = getOrgsService.getOrg("git");
+                    OrgBean orgBean = syncCall.execute().body();
+                    emitter.onNext(orgBean.getLogin() + "");
+                } catch (Exception e) {
+                }
+
+                emitter.onComplete();
+            }
+        });
+        Observer<String> observer = new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+            }
+            @Override
+            public void onNext(String s) {
+                Log.e("onNext", s);
+            }
+            @Override
+            public void onError(Throwable e) {
+            }
+            @Override
+            public void onComplete() {
+            }
+        };
+        observable
+                .subscribeOn(Schedulers.io())  // io子线程生产任务
+                .observeOn(AndroidSchedulers.mainThread()) // mian线程监听
+                .subscribe(observer);
+    }
 
 
 

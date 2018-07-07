@@ -169,7 +169,7 @@ android:launchMode 由以下几个：
  singleTask始终位于其任务的根位置，但其他 Activity（必然是“standard”和“singleTop”Activity）可以启动到该任务中。
  如果singleInstance 启动另一个 Activity，系统会将该 Activity 分配给其他任务 — 就好像 Intent 中包含 FLAG_ACTIVITY_NEW_TASK 一样。
 
- 如果已存在一个 Activity 实例，则系统会通过调用该实例的 onNewIntent() 方法向 singleTask和singleInstance 传送 Intent，而不是创建新的 Activity 实例
+如果已存在一个 Activity 实例，则系统会通过调用该实例的 onNewIntent() 方法向 singleTask和singleInstance 传送 Intent，而不是创建新的 Activity 实例
 
 
 （3）普通的activity直接用默认的standard就可以，但是主页 HomeActivity 或者 MainActivity 这种 位于第一级页面的 activity最好是singleTask
@@ -182,6 +182,12 @@ android:launchMode 由以下几个：
 
 (4) singleTask会对home机制有影响，如果在不是主页的页面按下home键，接着点击 启动按钮，这时候会进入HomeActivity而不是上一次home键退出app的的页面。
 
+
+(5) 遇到过的问题：
+    1.  activity(singleTask模式)是主入口，再多设置一个启动方式activity-alias，一共有两个启动图标。
+    无论点哪一个启动图标，通过getIntent().getComponent().getClassName()拿到的name都不对，
+    但是onNewIntent()拿到的 name是对的，原因是getIntent()是第一次启动传入的那个intent，一直都不会被替换。
+    在activity的onNewIntent()调用setIntent()把新传入的intent设置进去就可以了
 
 
 -----------------------
@@ -2569,14 +2575,24 @@ chipId = new String(outStream.toByteArray(), "UTF-8");
 chipId = StringUtils.trimAll(chipId);
 
 
+------------------------------------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
+activity-alias
+这个标签属性可以在manifest中，多配制一个指向某一个activity，
+设置了之后，界面多一个图标（类似于快捷方式），
+getIntent().getComponent().getClassName()能获取到 pkgName.TestAlias
+例如：
+        <activity-alias
+            android:name=".TestAlias"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/icon"
+            android:label="TestAliasLabel"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 	
 	
 	

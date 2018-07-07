@@ -66,6 +66,11 @@ adb shell 命令略等于linux 终端命令，即大部分命令的相同的，�
 
 adb 命令
 ------------------
+
+adb shell dumpsys meminfo pkgName
+
+------------------
+
 adb shell dumpsys activity | grep "mFocusedActivity"   //linux下命令行，查看当前activity
 
 adb shell dumpsys activity | findstr "mFocusedActivity"   //windows下命令行，查看当前activity
@@ -104,6 +109,7 @@ adb push ./openvpn-keys /sdcard
 
 删除apk
 adb uninstall <package_name>
+
 ------------------
 
 在手机中导出apk：
@@ -181,6 +187,15 @@ ro.config.notification_sound：默认通知铃声
 ro.config.alarm_alert：默认闹钟铃声
 dalvik.vm.stack-trace-file：trace文件放置目录
 
+----------------------------
+
+签名安装失败，
+INSTALL_FAILED_VERIFICATION_FAILURE
+在ADB安装过程中，需要禁用对APK的验证。如果安全性中的设置为灰色或不工作，
+则应尝试对设备进行轰击，并根据您的API级别(全局、系统、安全)运行设置数据库的设置：
+adb shell settings put global verifier_verify_adb_installs 0
+disable the package verifier as well using:
+adb shell settings put global package_verifier_enable 0
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 
