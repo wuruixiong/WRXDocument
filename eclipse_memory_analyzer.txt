@@ -120,7 +120,7 @@ retained heap:指的是一个对象的retained set所包含对象所占内存的
 或者 右击并点开Merge Shortest Path To GC Roots 选择exclude all phantom/weak/soft etc.
 可以查看 以该对象的引用的最终root为起始点，直到该对象的引用的GC路径，（一直向下伸展）
 
-点开Path to GC roots或者Merge Shortest Path To GC Roots个人感觉差不多，
+点开Path to GC roots 或者 Merge Shortest Path To GC Roots个人感觉差不多，
 只是顺序不同而已，即将Path to GC roots 颠倒可以得到 Merge Shortest Path To GC Roots
 
 泄漏原因：例如有对象A，点开对象A的Path to GC roots，A对象的GC Roots的对象没有被释放，就是A对象依旧被引用，导致了A对象本该被释放，却没有被释放

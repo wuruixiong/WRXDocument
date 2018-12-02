@@ -137,6 +137,7 @@ android:focusableInTouchMode="false"
 可以在canvas中通过控制矩阵Matrix来控制旋转rotate和缩放scale
 在使用Matrix处理bitmap旋转、缩放、平移时，平移会和旋转、缩放冲突，导致只能执行其中一个，
 可以先使用Matrix.setTranslate设置平移距离，再使用Matrix.postRotate、Matrix.postScale来处理冲突问题
+
 ------------------------------------------------------------------------------------------------------------
 				
 scroll的三大状态(能滑动的控件，listview，gridview，recycleview都有)： SCROLL_STATE_IDLE, SCROLL_STATE_DRAGGING or SCROLL_STATE_SETTLING.
@@ -541,6 +542,7 @@ CPU架构是CPU厂商给属于同一系列的CPU产品定的一个规范，主�
 两个不同品牌的CPU，其产品的架构也不相同，例如，Intel、AMD的CPU是X86架构的，而IBM公司的CPU是PowerPC架构，ARM公司是ARM架构。
 
 ---------------------
+
 
 CPU与GPU
 图形处理器（英语：Graphics Processing Unit，缩写：GPU）

@@ -1,4 +1,3 @@
-S
 Gson
 
 //把ArrayList<String>转成 json字符串
@@ -1069,6 +1068,144 @@ Retrofit2 + RXjava2 子线程中同步调用 多次网络请求 和 多次磁盘
 
 用户很多，随便输个123456就有数据
 https://api.github.com/users/{user}
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------
+
+
+Rxjava2 源码分析：
+
+简单实例：
+	private void rxTest() {
+        Observer<String> observer = new Observer<String>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+            }
+            @Override
+            public void onNext(String s) {
+                mConTv.append(s);
+            }
+            @Override
+            public void onError(Throwable e) {
+            }
+            @Override
+            public void onComplete() {
+            }
+        };
+        //使用Observable.create()创建被观察者
+        Observable observable = Observable.create(new ObservableOnSubscribe() {
+            @Override
+            public void subscribe(ObservableEmitter emitter) throws Exception {
+                emitter.onNext("Hello");
+                emitter.onNext("World");
+                emitter.onComplete();
+            }
+        });
+        //订阅
+        observable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                //订阅
+                .subscribe(observer);
+    }
+
+
+1. 这里 Observable.create实际是创建了一个 ObservableCreate实例，ObservableCreate.class 继承自 Observable实现了ObservableSource接口
+
+2. 关键部分是订阅：
+装饰者模式。
+
+ObservableCreate 中有一个 CreateEmitter封装了 传进去的观察者Observer<String> observer
+
+CreateEmitter中的几个方法：onNext、onError、onComplete ，分别对应了observer的几个方法。
+所以 emitter.onNext("Hello"); 就是直接调用的observer.onNext() .
+
+
+3. 线程调度，在io子线程中执行发射，在主线程中监听发射
+
+ObservableSubscribeOn 这个类封装了调用 .subscribeOn()时传入的Schedulers 
+
+ObservableObserveOn 这个类封装了调用 .observeOn()时传入的Schedulers 
+
+ObservableSubscribeOn、ObservableObserveOn同时都是继承自 Observable的类
+  
+所以这一个操作：observable .subscribeOn(Schedulers.io()) .observeOn(AndroidSchedulers.mainThread()) .subscribe(observer);
+实际上是用装饰者模式 将最开始的observable又装了两层。原始的observable是下一个装饰的源，下一个装饰是下下个的源。
+
+订阅时，最终由 subscribeOn中创建的ObservableSubscribeOn封装的 CreateEmitter实例 来执行onNext操作。
+onNext之后就要通知 observeOn中创建的 ObservableObserveOn来执行 观察者的 onNext，也就是observer的onNext最后是被ObservableObserveOn 调用的。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

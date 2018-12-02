@@ -184,7 +184,7 @@ SELECT Company, OrderNumber FROM Orders ORDER BY Company DESC
 SELECT Company, OrderNumber FROM Orders ORDER BY Company DESC, OrderNumber ASC
 
 
--------------------------
+---------------------------------------------------------------------------
 
 
 SQLite 命令：
@@ -209,6 +209,108 @@ select * from polls_question;
 
 注意：在sqlite3 DatabaseName.db之后，SQLite的命令提示符下，既可以用 一个. 加上具体命令语句 的形势操作数据库，
 也可以使用SQL语言去操作数据库，区别是SQL语言要 以分号;结尾
+
+
+---------------------------------------------------------------------------
+
+
+MySQL:
+
+MAC 上的配置，在MAC上使用mysql需要安装 mysql，接着配置mysql的环境变量。
+
+终端命令行操作：
+
+登录命令：
+
+mysql -u root -p
+Enter password:password
+
+mysql -h localhost -u root -ppassword
+
+mysql -h 127.0.0.1 -u root -ppassword
+
+-h后面加的是IP地址，可以用于远程登录，127.0.0.1是本地IP地址，localhost同理。
+-u 后面加的是用户名，root是默认用户名，root是超级用户，安装mysql之后就存在的用户
+实测过，-p后面也可以不接密码，会要求再次输入密码，终端下密码是隐藏的，不会打印出来
+都可以接密码，不过密码就是明文的。
+
+安装完成之后，mysql的默认端口号是  3306
+登录命令还可以接端口号：
+mysql -u root -P 3307 -h 101.200.152.192 -p
+
+--------------------------
+
+登录之后，输入命令之前会带有的前缀:  mysql> 
+所有输入的命令都要以 ; (分号) 结尾
+
+MySQL的命令不分大小写
+
+退出登录
+mysql> quit;
+mysql> exit;
+
+查看命令
+mysql> help;
+mysql> \h
+
+查看端口号
+show global variables like 'port';
+show variables like 'port';
+
+查看所有数据库
+show databases;
+
+创建一个名为 mytesdDB 的数据库
+create database mytesdDB;
+删除该数据库
+drop database mytesdDB;
+
+使用/选择一个数据库，会打印出来一些信息，
+选择中之后，就可以执行创建表，以及对表的增删改查操作。
+mysql> use mytestDB;
+Database changed
+
+打印所有的表
+show tables;
+
+查看表结构：
+desc table_name;
+
+--------------------------
+
+数据类型：
+有其他数据库都有的 整型，浮点型，字符型，时间和日期型
+还有 大整型 bigint  ，文本 text  可以存放巨大的字符数量，长文本型 longtext  等等多达几十种的数据类型
+
+
+基本操作：
+创建表， 表名是 myName，id不为空、主键、自增长；name 不为空；phone 不为空
+create table myName(id int(8) not null primary key auto_increment, name char(20) not null, phone char(20) not null);
+
+插入数据
+insert into myName (id, name, phone) values (1, "red", "136999"), (2, "green", "137333");
+id 如果是自增长可以不用指定
+insert into myName (name, phone) values ("white", "136098");
+
+删除:
+delete from myName where id=1;
+
+更新：
+update myName set name="blue" where id=2
+
+查看数据
+select * from myName;
+查看一列数据
+select name from myName;
+取前十行
+select * from myName limit 0,10;
+条件过滤：
+mysql> select * from myName where id=1;
+并且条件过滤
+mysql> select * from myName where id=1 and name="red";
+组合过滤，加括号
+select * from myName where (id=1 and name="red") or (id=3 and name="white");
+
 
 
 
