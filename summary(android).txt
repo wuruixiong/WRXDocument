@@ -2597,7 +2597,53 @@ getIntent().getComponent().getClassName()能获取到 pkgName.TestAlias
         </activity-alias>
 	
 	
-	
-	
+------------------------------------------------------------------------------------------------------------
+
+动态字符串%d %s ------android String
+
+%s、%1$s、%d、%1$d
+
+<xliff:g>标签介绍： 
+属性id可以随便命名 
+属性值举例说明
+%n$ms：代表输出的是字符串，n代表是第几个参数，设置m的值可以在输出之前放置空格 
+%n$md：代表输出的是整数，n代表是第几个参数，设置m的值可以在输出之前放置空格，也可以设为0m,在输出之前放置m个0 
+%n$mf：代表输出的是浮点数，n代表是第几个参数，设置m的值可以控制小数位数，如m=2.2时，输出格式为00.00 
+
+也可简单写成：
+%d   （表示整数）
+%f    （表示浮点数）
+%s   （表示字符串）
+
+例1：
+<string name="message">我选择为%s的玩具</string>
+String test = String.format(getResources().getString(R.string.message),  "红色");
+
+例2，两个或多个：
+<string name="alert">我的名字叫%1$s，我来自%2$s</string>
+String sAgeFormatString sAgeFormat1= getResources().getString(R.string.alert);
+String sFinal1 = String.format(sAgeFormat1, "李四","首都北京"); 
+
+例3：
+<string name="test_xliff">小红今年<xliff:g id="xxx">%d</xliff:g>岁了，上<xliff:g id="yyy">%s</xliff:g>年级！</string>
+String test = String.format(getResources().getString(R.string.test_xliff), 7, "小学二");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -42,7 +42,8 @@ BtReadThread：死循环，一直调用loopOnce，从输入流mUartInput取出Bt(蓝牙)指令，调用
 
 分发Bt消息流程：
 找到蓝牙设备之后的流程，在BtCmdHandler下：
-case FindDeviceItem，onSearchDevice，mDataManager.setStringArray，这样就把数据放进了BtServiceManager的CarDataManager中。
+case FindDeviceItem，onSearchDevice，notifyPhoneFind, mDataManager.setStringArray，
+这样就把数据放进了BtServiceManager的CarDataManager中。
 BtServiceManager和CarService通信的接口，BtServiceManager是从CarBaseManager再从ICarCallback.Stub继承下来的，就是IBinder
 接着调到setValueByObject，setValue，mBaseManager.request，mCarService.request
 
@@ -50,9 +51,77 @@ BtServiceManager和CarService通信的接口，BtServiceManager是从CarBaseManager再从IC
 这里发的type=1，what=103(为什么不写在BT_HANDLER中?)
 （RequestManager负责向app分发消息，会给每种类型的app创建一个IRequestHandler，例如，蓝牙的BT_HANDLER，主要的MAIN_HANDLER）
 
-mRequestHandler.setGlobalValue->DataManager.notifyDataChange -> DataObserverItem.onDataChange -> observer.onDataChange
-（这个observerCallbackInfo类型，在CallbackManager的register方法中创建，CallbackInfo实现了IDataObserver接口）
+mRequestHandler.setGlobalValue->DataManager.setvalue -> onDataChange-> notifyDataChange ->
+遍历DataManager.mDataObservers, 取出子元素并调用DataObserverItem.onDataChange 
+（在CallbackManager的register方法中, 会创建CallbackInfo并调用mDataManager.addDataObserver，
+这个observer是CallbackInfo类型，实现了IDataObserver接口
+接着再把IDataObserver再封装一下，mDataObservers.add(new DataObserverItem(observer, filter, filterType))
+
+-> (IDataObserver)observer.onDataChange
 CallbackInfo的onDataChange中，(ICarCallback)cbk.onCarCallback
+
+CallbackInfo中的 (ICarCallback)cbk是在CallbackManager.register传进来的，register被registerCallback调用。
+
+CarServiceMain.registerCallback被 carBt的BtManager调用，
+
+--------------
+
+还有一个分发流程：
+Messenger初始化
+carService：android.car.server.bt.BtProxy中注册了一个Messenger
+ServiceManager.addService("car_bt", mMessenger.getBinder());
+
+carBtService_Com：BtMain构造方法，mRemote = new Messenger(ServiceManager.getService("car_bt"))
+再设置到mRemoteMessage.setMessenger(mRemote,...)
+
+
+在carBtService_Com中分发
+BtCmdHandler.dispatchCmd() -> mBtMain.onHfpState() -> mWorkHandler.sendMessageDelayed()->
+case MSG_DELAY_NOTIFY_HFP_STATE: -> notifyHfpState() -> mRemoteMessage.sendRemoteMessage() -> (Messenger)mRemote.send(msg)
+
+所以，只要是发的 mRemoteMessage.sendRemoteMessage()，就是发到
+carService的BtProxy的mMessenger中，
+MyHandler.handleMessage，MyHandler.onHfpState，CarServiceMain.getCallbackManager().callbackBtHfpState(mBtData)，
+callbackInt2(PRO_TYPE_BT, CBK_BT_HfpState,...), CarBaseManager.onCarCallback, 
+
+carBt:
+BtManager.onCallback-> BtManager.onBtCallback-> notifyClient -> BtClientHandler.handleMessage()
+
+--------------
+
+carBt 发挂断消息到 carBtService
+carBt:
+BtManager.rejectOrHangup()-> BtManager.requestInt2(...REQ_BT_Fun...) -> CarBaseManager.requestInt2
+-> CarBaseManager.request -> 
+
+carService
+RequestManager.BT_HANDLER.onRequest -> case REQ_BT_Fun: -> handleBtFun() -> EventSender.sendBtHangup()
+EventSender.sendEvent(EVENT_BT_HANGUP) -> EventHub.sendEvent().sHandler.obtainMessage
+EventHub.EventHandler.handleMessage -> notifyListener() -> 遍历sListenerList，逐条调用 EventListener.onEvent()
+BtProxy.mEventReceiver.onEvent -> case EVENT_BT_HANGUP: sendRemoteMessage(BtMessage.BT_MSG_REQ_HANGUP)
+-> BtProxy.sendRemoteMessage() -> mClient.send(msg)
+注意：mClient是carBtService的RemoteMessage.mLocal，最终是发到BtMain.mBinderHandler上
+
+carBtService
+RemoteMessage.mLocal -> BtMain.mBinderHandler.handleMessage -> case BT_MSG_REQ_HANGUP:mBtCmdSender.hangup()
+-> BtCmdSender.hangup()/sendRawData(BT_CMD_HANGUP) 就是蓝牙命令：BT_CMD_HANGUP = "AT#CG\r\n".getBytes()
+
+BtCmdSender最终蓝牙命令发送。
+
+
+--------------
+
+第三方通信总结：
+在carBtService中
+走 mWorkHandler.sendMessageDelayed()的就是 发message到 carService的BtProxy，最后走到carBt的BtManager.onCallback
+
+
+走mDataManager.setStringArray就是走 carService的CarServiceMain.request，最后走到carBt的BtManager.onDataChange
+
+
+
+
+
 
 --------------
 
@@ -154,6 +223,8 @@ carPublicLib库中 android.os.ServiceManager.getService()返回空：
 除了反射还有一种方法使用系统的不开发的代码，写一个同名并且同包名的类，编译时，如果这个类与系统同名，
 那么会使用到系统的类而不是自己写的类。
 所以真实调用getService并不返回空，而是调用系统的ServiceManager.getService()。而这个getService方法并不对普通开发者开放。
+
+只要是在CarBaseManager调用mCarService.request()的就是在使用 CarServiceMain.request()
 
 ------------------------------------------------------
 

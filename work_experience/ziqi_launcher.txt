@@ -515,8 +515,11 @@ WidgetUtils.setButtonsClickListener(getWindow().getDecorView(), mOnClickListener
     }
 三点写的不好：
 1.onHfpState() 本身就会执行switchToPage，一共会切换两次页面，
-2.已经有了BtData可以获取当前状态，为什么要用TextUtils.equals一个BtMainMusic来判断是否切页
-3.BtMainMusic这个类不存在
+2.onHfpState() 本身就会执行loadPhonebook,loadCallLog
+
+1.23
+路畅蓝牙：
+代码思维及其怪异，看图片。
 
 
 2. 电脑卡的飞起，一出问题死机重启再到启动android studio，半小时。
