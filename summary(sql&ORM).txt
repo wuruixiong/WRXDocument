@@ -1,4 +1,10 @@
 
+row 行 [rəʊ] 
+column 列 ['kɒləm] 
+
+
+
+--------------------------------------------------------------------------------
 
 基础
 主键和外键：
@@ -260,10 +266,10 @@ show variables like 'port';
 查看所有数据库
 show databases;
 
-创建一个名为 mytesdDB 的数据库
-create database mytesdDB;
+创建一个名为 mytestDB 的数据库
+create database mytestDB;
 删除该数据库
-drop database mytesdDB;
+drop database mytestDB;
 
 使用/选择一个数据库，会打印出来一些信息，
 选择中之后，就可以执行创建表，以及对表的增删改查操作。
@@ -287,6 +293,10 @@ desc table_name;
 创建表， 表名是 myName，id不为空、主键、自增长；name 不为空；phone 不为空
 create table myName(id int(8) not null primary key auto_increment, name char(20) not null, phone char(20) not null);
 
+删除表
+DROP TABLE 表名;
+drop table name;
+
 插入数据
 insert into myName (id, name, phone) values (1, "red", "136999"), (2, "green", "137333");
 id 如果是自增长可以不用指定
@@ -297,6 +307,9 @@ delete from myName where id=1;
 
 更新：
 update myName set name="blue" where id=2
+
+加一列数据：
+alter table user add column password varchar(255) not null after uid;
 
 查看数据
 select * from myName;
@@ -310,8 +323,103 @@ mysql> select * from myName where id=1;
 mysql> select * from myName where id=1 and name="red";
 组合过滤，加括号
 select * from myName where (id=1 and name="red") or (id=3 and name="white");
+查询user表中的 两列数据name，email，会展示这两列的全部数据
+select name, email from user;
+
+------------------------------------------------------------------------------
+
+MySql加外键的几个例子：
+CREATE TABLE Orders
+(
+Id_O int NOT NULL,
+OrderNo int NOT NULL,
+Id_P int,
+PRIMARY KEY (Id_O),
+FOREIGN KEY (Id_P) REFERENCES Persons(Id_P)
+)
+
+还可以加别名fk_PerOrders：
+CREATE TABLE Orders
+(
+Id_O int NOT NULL,
+OrderNo int NOT NULL,
+Id_P int,
+PRIMARY KEY (Id_O),
+CONSTRAINT fk_PerOrders FOREIGN KEY (Id_P)
+REFERENCES Persons(Id_P)
+)
+
+加了别名之后可以用别名删除该外键：
+ALTER TABLE Orders
+DROP FOREIGN KEY fk_PerOrders
+
+注意，当表已经存在时，也可以加外键：
+ALTER TABLE Orders
+ADD FOREIGN KEY (Id_P)
+REFERENCES Persons(Id_P)
 
 
+------------------------------------------------------------------------------
+
+以下表格配合MyBatis使用，MyBatis无法自动创建表格。
+重点关注，外键的添加：
+
+一对多关系，一个user可以持有多个boat，所以boat中有user的id字段
+user表 用户表
+ uid 主键，自增
+ name
+ email
+
+boat表 请求表
+ bid 主键，自增
+ uid 外键，绑定一个uid，表示这一行boat是哪个user持有的
+ name
+ method 请求方式 get/post
+ head 请求头
+ body 请求体，可以指向一个url链接，也可以是具体的 字符串内容
+
+注意，这里先创建好两个表格user和boat，再将boat的uid字段设置为外键：
+create table user( uid int not null primary key auto_increment, name varchar(255) not null, password varchar(255) not null, email varchar(255) not null );
+create table boat( bid int not null primary key auto_increment, uid int not null, name varchar(255) not null, method varchar(255) not null, head text, body longtext );
+
+设置外键，别名为id_for_user：
+ALTER TABLE boat
+ADD CONSTRAINT id_for_user
+FOREIGN KEY (uid)
+REFERENCES user(uid)
+
+在user表中插入测试数据：
+insert into user (uid, password, name, email) values (1, "rpsd", "red", "136999@101.com"), (2, "gpsd", "green", "137333@101.com");
+
+在boat表中，插入测试数据：
+mysql> insert into boat (bid, uid, name, method) values (101, 1, "postTest", "get");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into boat (bid, uid, name, method) values (123, 2, "postTest", "get");
+Query OK, 1 row affected (0.05 sec)
+
+因为设置了外键，所以如果插入了uid不对的数据会报错，例如：
+mysql> insert into boat (bid, uid, name, method) values (102, 100, "postTest", "get");
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`springtestdb`.`boat`, CONSTRAINT `id_for_user` FOREIGN KEY (`uid`) REFERENCES `user` (`uid`))
+
+
+删除数据，失败，因为存在外键关系：
+mysql> delete from user where uid=1;
+ERROR 1451 (23000): Cannot delete or update a parent row: a foreign key constraint fails (`springtestdb`.`boat`, CONSTRAINT `id_for_user` FOREIGN KEY (`uid`) REFERENCES `user` (`uid`))
+ 
+解决办法：
+1. 可以先删除boat表中的  uid=1的行，接着再删除 user表中的数据
+2. 添加外键时，设置级联删除  ON DELETE CASCADE; 
+删除外键关系：
+ALTER TABLE boat DROP FOREIGN KEY id_for_user;
+设置级联删除，之后，如果对表user有删除操作，那么boat表中的对应数据会被删除
+ALTER TABLE boat ADD CONSTRAINT id_for_user FOREIGN KEY (uid) REFERENCES user(uid) ON DELETE CASCADE; 
+
+delete from user where uid=1;
+此时两个表中此时uid为1的行都被删除。
+
+delete from boat where bid=123;
+user表中的数据，不会受boat中的数据被删除的影响
 
 
 

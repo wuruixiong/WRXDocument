@@ -5,6 +5,40 @@
 
 python3.6 默认安装了pip3，可以使用pip3直接安装 dlango框架
 
+
+------------------------------
+
+Pycharm连接mysql
+
+安装mysqlclient，django连接mysql可以用mysqlclient，还有Mysql官方提供的mysql-connector-python
+pip3 install mysqlclient
+
+
+如果Pycharm是使用虚拟环境的话，
+在Pycharm的终端下，键入which python
+会输出该python的环境  ../venv/bin/python/bin/python
+这个环境不是本机python的环境，只是当前项目的虚拟python环境
+再键入which pip (pip --version 也可以看)
+会输出该python的环境  ../venv/bin/python/bin/pip
+这个路径也不是本机pip3的路径，只是当前项目的虚拟python环境
+
+总结，如果Pycharm使用虚拟环境，那么需要在虚拟环境中安装mysqlclient
+
+在终端下执行
+pip list
+还可以看到安装了django
+
+直接在Pycharm下执行：
+pip install mysqlclient
+
+
+
+
+
+
+
+mysql -u root -p
+
 ------------------------------------------------------------------------
 
 dlango 整体框架：

@@ -1,4 +1,37 @@
 
+
+MAC下对python的使用，
+
+MAC自带了python2，但是很多项目需要使用python3，
+所以python3需要重新安装，
+安装完成python3之后，
+如果在终端键入 python，那么打开的是python2
+键入python3，打开的是python3
+可以用命令行查看版本号：
+python --version
+python3 --version 
+
+另外 python3自带了 pip，而MAC默认安装的python是没有的
+
+python3的pip命令：
+查看版本：
+$ pip3 --version
+安装mysql-connector-python，python下的 mysql官方驱动
+$ pip3 install mysql-connector-python
+查看已安装
+pip3 --version
+
+
+查看路径
+// 系统自带的python2.7，目录为/usr/bin/python
+which python
+which python3
+
+
+
+
+----------------------------------------------------------------------------
+
 单引号和双引号是单行字符串
 三引号是多行字符串，可以直接输入回车，而不需要用\n来表示
 
