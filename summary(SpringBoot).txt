@@ -1,3 +1,56 @@
+登录远程VPS服务器：
+这个root@ 就是 搬瓦工上对应的root登录
+ssh root@1.2.3.4 -p 12345
+或者
+ssh 1.2.3.4 -p 12345
+
+98.142.131.139
+
+
+Kbj5jPekDM2k
+
+
+
+
+ssh root@98.142.131.139 -p 27801
+
+
+
+第1条命令：
+wget --no-check-certificate https://raw.githubusercontent.com/teddysun/shadowsocks_install/master/shadowsocks-libev.sh
+第2条命令
+chmod +x shadowsocks-libev.sh
+第3条命令
+./shadowsocks-libev.sh 2>&1 | tee shadowsocks-libev.log
+
+{
+    "server":"98.142.131.139",
+    "server_port":444,
+    "local_address":"127.0.0.1",
+    "local_port":1080,
+    "password":"kk123098",
+    "timeout":300,
+    "method":"aes-256-cfb",
+    "fast_open":false
+}
+
+ssh -p 27801 root@98.142.131.139
+
+
+#############################################################
+# One click Install Shadowsocks-Python server               #
+# Intro: https://teddysun.com/342.html                      #
+# Author: Teddysun <i@teddysun.com>                         #
+# Github: https://github.com/shadowsocks/shadowsocks        #
+#############################################################
+
+Please enter password for shadowsocks-python
+(Default password: teddysun.com):
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 crud是指在做计算处理时的增加(Create)、读取查询(Retrieve)、更新(Update)和删除(Delete)几个单词的首字母简写。
 crud主要被用在描述软件系统中数据库或者持久层的基本操作功能。
@@ -50,7 +103,47 @@ Mapper注解的使用：
 2. 在单个Interface中增加@Mapper，这个接口用于进行基本的sql操作，DAO接口。
 
 
+Mybatis 
+1. spring boot依赖mybatis：
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+现在也可在创建工程时，选择依赖mybatis了
 
+2. 如果引入mybatis的依赖，就要在 application.properties 中加入连接数据库，否则报错
+例如：
+spring.jpa.hibernate.ddl-auto=create
+spring.datasource.url=jdbc:mysql://localhost:3306/springTestDB
+spring.datasource.username=root
+spring.datasource.password=WRXdemysql
+
+3. 使用时，添加一个@Mapper注解接口：
+@Mapper
+public interface UserMapper {
+
+    @Select("select * from user where name = #{name} and password = #{password}")
+    List<User> selectUserByNamePwd(User user);
+
+    @Select("select * from user where uid = #{uid}")
+    List<User> selectUserByUid(Integer uid);
+
+    @Insert("insert user (name, password, email) values(#{name}, #{password}, #{email})")
+    void addOne(User user);
+
+    @Update("update user set name = #{name} where uid = #{uid} and password = #{password}")
+    void updateName(User user);
+
+    @Delete("delete from user where uid = #{uid} and name = #{name} and password = #{password}")
+    void deleteOne(User user);
+}
+
+还可以传入bean对象，直接使用#号，对象里面的全局变量
+#{}是预编译处理，${}是字符串替换。
+Mybatis在处理#{}时，会将sql中的#{}替换为?号，调用PreparedStatement的set方法来赋值，防制sql注入
+
+直接调用方法即可获得数据对象列表。
 
 
 
