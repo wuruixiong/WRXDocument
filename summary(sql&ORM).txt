@@ -294,6 +294,9 @@ show tables;
 查看表结构：
 desc table_name;
 
+自带四个默认数据库：
+information_schema、mysql、performance_schema、sys
+
 --------------------------
 
 数据类型：
@@ -370,6 +373,20 @@ ALTER TABLE Orders
 ADD FOREIGN KEY (Id_P)
 REFERENCES Persons(Id_P)
 
+--------------------------
+
+增加唯一性约束：
+alter table tableName add unique(column_name);
+
+查看约束
+show keys from tableName;
+
+删除唯一性约束
+然后可以使用DROP INDEX：
+DROP INDEX index_name ON tbl_name
+或ALTER TABLE语法：
+ALTER TABLE tbl_name DROP INDEX index_name
+ALTER TABLE user DROP INDEX name;
 
 ------------------------------------------------------------------------------
 
