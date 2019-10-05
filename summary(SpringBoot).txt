@@ -330,18 +330,36 @@ Mybatis在处理#{}时，会将sql中的#{}替换为?号，调用PreparedStateme
 
 Mybatis  xml使用：
 
+通常使用xml方式来访问数据库，使用sql语言，
+通常使用mapper作为根标签，与一个java类的mapper绑定
 
 
+第三方工具类
+tk.Mybatis
+简化开发，使用框架定义好的方法即可，不再需要在mapper.xml文件中配置了。
 
+引入流程：
+1.导包：
+<dependency>
+	<groupId>tk.mybatis</groupId>
+	<artifactId>mapper-spring-boot-starter</artifactId>
+	<version>2.1.0</version>
+	<exclusions>
+		<exclusion>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</exclusion>
+	</exclusions>
+</dependency>
 
+2.mapper继承tk框架里面的mapper(还可以加入泛型)：
+public interface UserMapper extends Mapper<UmsMember>
+2.1 bean类的id成员变量加入注解@Id和@GeneratedValue
+@Id
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+private String id;
 
-
-
-
-
-
-
-
+3.Application的@MapperScan换成tk框架里面的。
 
 
 

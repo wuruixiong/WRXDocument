@@ -243,9 +243,9 @@ MAC 上的配置，在MAC上使用mysql需要安装 mysql，接着配置mysql的
 mysql -u root -p
 Enter password:password
 
-mysql -h localhost -u root -ppassword
+mysql -h localhost -u root -p password
 
-mysql -h 127.0.0.1 -u root -ppassword
+mysql -h 127.0.0.1 -u root -p password
 
 -h后面加的是IP地址，可以用于远程登录，127.0.0.1是本地IP地址，localhost同理。
 -u 后面加的是用户名，root是默认用户名，root是超级用户，安装mysql之后就存在的用户
@@ -255,6 +255,47 @@ mysql -h 127.0.0.1 -u root -ppassword
 安装完成之后，mysql的默认端口号是  3306
 登录命令还可以接端口号：
 mysql -u root -P 3307 -h 101.200.152.192 -p
+
+
+mysql导入其他已经创建的数据库文件
+在MySQL Qurey Brower中直接导入*.sql脚本，是不能一次执行多条sql命令的，在mysql中执行sql文件的命令：
+mysql> source   d:/myprogram/database/db.sql;
+
+
+本数据库的查看编码
+show variables like 'char%';
+show variables like '%char%';
+
+
+查看表编码
+show create table <表名>;
+例：show create table user;
+查看字段编码
+show full columns from <表名>;
+例： show full column from user;
+
+
+修改编码
+set character_set_client=utf8;
+set character_set_connection=utf8;
+set character_set_database=utf8;
+set character_set_results=utf8;
+set character_set_server=utf8;
+set character_set_system=utf8;
+set collation_connection=utf8;
+set collation_database=utf8;
+set collation_server=utf8;
+
+修改编码格式
+修改数据库编码格式
+alter database <数据库名> character set utf8mb4;
+例：alter database db_user character set utf8mb4;
+修改表编码
+alter table <表名> character set utf8mb4;
+例：alter table user character set utf8mb4;
+修改字段编码
+ALTER TABLE <表名> MODIFY COLUMN <字段名> <字段类型> CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+例：ALTER TABLE comment MODIFY COLUMN content VARCHAR(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --------------------------
 
