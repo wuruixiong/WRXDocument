@@ -297,6 +297,24 @@ alter table <表名> character set utf8mb4;
 ALTER TABLE <表名> MODIFY COLUMN <字段名> <字段类型> CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 例：ALTER TABLE comment MODIFY COLUMN content VARCHAR(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+
+mysql时区问题：
+登录mysql，执行命令处理，重启后失效
+设置时间为东八区：
+> set global time_zone = '+8:00'; ##修改mysql全局时区为北京时间，即我们所在的东8区
+> set time_zone = '+8:00'; ##修改当前会话时区
+> flush privileges; #立即生效
+查看时区：
+select curtime();或者select now();
+
+通过修改/etc/my.cnf文件来处理
+Windows下是my.ini（C:\ProgramData\MySQL\MySQL Server 8.0\my.ini）
+修改方法：
+# vim /etc/my.cnf ##在[mysqld]区域中加上
+default-time_zone = '+8:00'
+# /etc/init.d/mysqld restart ##重启mysql使新时区生效
+Windows下的mysql重启，可以在管理->服务 找到mysql，右键，点击重启
+
 --------------------------
 
 登录之后，输入命令之前会带有的前缀:  mysql> 
@@ -337,6 +355,9 @@ desc table_name;
 
 自带四个默认数据库：
 information_schema、mysql、performance_schema、sys
+
+修改字段名
+alter table pms_sku_image change column spuImgId spu_img_id bigint(20);
 
 --------------------------
 
@@ -428,6 +449,97 @@ DROP INDEX index_name ON tbl_name
 或ALTER TABLE语法：
 ALTER TABLE tbl_name DROP INDEX index_name
 ALTER TABLE user DROP INDEX name;
+
+--------------------------
+
+查询多张表格
+
+最基本的多表格查询：
+select  字段1,字段2... from 表1,表2... [where 条件]
+注意: 如果不加条件直接进行查询,则会出现以下效果,这种结果我们称之为 笛卡尔乘积
+#查询人员和部门所有信息
+select * from person,dept;
+
+
+多表格查询加where关键字判断：
+#查询人员和部门所有信息，把两个表中的某个字段id作为条件判断是否相同
+select * from person,dept where person.did = dept.did;
+#注意: 多表查询时,一定要找到两个表中相互关联的字段,并且作为条件使用
+
+
+多表连接查询，语法：
+SELECT 字段列表
+    FROM 表1  INNER|LEFT|RIGHT JOIN  表2
+ON 表1.字段 = 表2.字段;
+有三种连接方法，INNER JOIN，LEFT JOIN，RIGHT JOIN ，最后要加上关键字on
+
+内连接查询 (只显示符合条件的数据)
+#查询人员和部门所有信息
+select * from person inner join dept on person.did = dept.did;
+效果: 可以发现, 内连接查询与多表联合查询的效果是一样的，即使用where也可以达到一样的效果
+
+左外连接查询 (左边表中的数据优先全部显示)
+#查询人员和部门所有信息
+select * from person left join dept on person.did = dept.did;
+效果:人员表中的数据全部都显示,而 部门表中的数据符合条件的才会显示,不符合条件的会以 null 进行填充.
+
+右外连接查询 (右边表中的数据优先全部显示)
+#查询人员和部门所有信息
+select * from person right join dept on person.did =dept.did;
+效果:正好与[左外连接相反]
+
+全连接查询：是在内连接的基础上增加 左右两边没有显示的数据
+　　注意: mysql并不支持全连接 full JOIN 关键字
+　　注意: 但是mysql 提供了 UNION 关键字.使用 UNION 可以间接实现 full JOIN 功能
+#查询人员和部门的所有数据
+SELECT * FROM person LEFT JOIN dept ON person.did = dept.did
+UNION
+SELECT * FROM person RIGHT JOIN dept ON person.did = dept.did;
+
+--------------------------
+
+别名
+多表查询时，表名太长或者表格太多，可以取一个别名进行查询：
+
+为orders表取别名o，查询30001订单的下单日期，SQL语句如下
+mysql> select * from orders as o
+    -> where o.o_num = 30001;
+	
+为customers和orders表分别取别名，并进行连接查询，SQL语句如下：
+mysql> select c.c_id,o.o_num
+    -> from customers as c left join orders as o
+    -> on c.c_id = o.c_id;
+	
+	
+别名似乎可以在表格后面直接加一个空格然后写别名，例如
+ from customers ct
+相当于之后用ct可以表示customers这张表
+
+--------------------------
+
+if关键字，IF()函数：
+mysql> select id,if(id>2,'ok', 'no') from pms_base_sale_attr;
++----+---------------------+
+| id | if(id>2,'ok', 'no') |
++----+---------------------+
+|  1 | no                  |
+|  2 | no                  |
+|  3 | ok                  |
+|  4 | ok                  |
+
+
+把if()取别名为isChecked
+mysql> select id, if(id>2,'ok', 'no') as isChecked from pms_base_sale_attr;
++----+-----------+
+| id | isChecked |
++----+-----------+
+|  1 | no        |
+|  2 | no        |
+|  3 | ok        |
+|  4 | ok        |
+
+
+
 
 ------------------------------------------------------------------------------
 

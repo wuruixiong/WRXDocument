@@ -2,16 +2,601 @@
 springboot项目，gmail谷粒商城
 
 项目结构：
-gamil-parent 
+gamll-parent 
 所有model的根模块，负责管理版本号，定义好各个框架的版本，maven管理
 
+gamll-api
+提供持久层和bean的支持，pom文件中依赖了mybatis，java代码中写了bean类和service接口
 
 gamil-user 用户相关
 
 
+三个util
+gamll-commons-util 一般工具模块，给所有的模块使用的工具模块
+gamll-web-util 前端专用工具模块，给web模块（控制层）使用的工具模块
+gamll-service-util 后端专用工具模块，给service模块（业务层）使用的工具模块
+
+
+模块开始分层：
+web后缀是对外接口，对外提供数据
+service后缀是对内，读取数据库，为web提供数据
+
+
+web和service的项目模块
+gamil-user-web, gamil-user-service 用户相关
+gmall-manage-web, gmall-manage-serivce 为前端提供数据
+gmall-item-web 前台服务(不再需要gmall-item-serivce了，直接调用其他service模块即可)
+
+
+
+
+SOA面向服务
+多个微服务组成服务集群，所以要把serivce模块拆分出来
+每个业务对应一个微服务，如果有新的功能模块，只需要把这些微服务组合一下就可以对外提供
+
+
+
+缓存、分布式锁，高并发压力问题
+
+
+
+--------------------
+
+gmall的数据结构表，实战项目用过的表，实际项目可以更加复杂：
+
+| oms_cart_item               |
+| oms_company_address         |
+| oms_order                   |
+| oms_order_item              |
+| payment_info                |
+| pms_base_attr_info          |
+| pms_base_attr_value         |
+| pms_base_catalog1           |
+| pms_base_catalog2           |
+| pms_base_catalog3           |
+| pms_base_sale_attr          |
+| pms_brand                   |
+| pms_comment                 |
+| pms_comment_replay          |
+| pms_product_image           |
+| pms_product_info            |
+| pms_product_sale_attr       |
+| pms_product_sale_attr_value |
+| pms_product_vertify_record  |
+| pms_sku_attr_value          |
+| pms_sku_image               |
+| pms_sku_info                |
+| pms_sku_sale_attr_value     |
+| ums_member                  |
+| ums_member_level            |
+| ums_member_receive_address  |
+| wms_ware_info               |
+| wms_ware_order_task         |
+| wms_ware_order_task_detail  |
+| wms_ware_sku                |
+
+
+表关系：
+pms_base_catalog1 分类一号列表，大分类，可以看做是首页的总分类
+pms_base_catalog2 分类二号列表，属于一号分类列表的子项，每一行都要对应一个一号分类的id，这个id相当于外键
+pms_base_catalog3 分类三号列表，属于二号分类列表的子项，每一行都要对应一个二号分类的id，这个id相当于外键
+
+
+三号分类列表衍生出spu
+pms_product_info  spu，SPU = Standard Product Unit （标准化产品单元）
+pms_product_image spu相关图片
+pms_product_sale_attr spu属性列表
+pms_product_sale_attr_value spu属性列表的值表
+
+pms_sku_info sku，Stock keeping Unit，库存保有单位
+pms_sku_image sku相关图片
+pms_sku_attr_value sku属性 
+pms_sku_sale_attr_value sku属性列表的值表
+
+
+商品详情页面的数据结构：
+大部分是sku相关，一部分是spu相关
+
+1 sku的结构  pms_sku_
+2 spu的结构  pms_spu_
+3 类目的结构 pms_catalog_
+4 属性的结构 pms_attr_
+
+
+平台属性，这些属性在搜索栏的筛选里面，例如内存16g，鞋码44，长度1米等等
+这些属性用来搜索时过滤，每一个商品sku可以拥有很多个这种属性
+pms_base_attr_info
+pms_base_attr_value     
+
+
+销售属性列表，给用户选择商品用的
+pms_product_sale_attr
+pms_product_sale_attr_value
+pms_sku_sale_attr_value
+
+
+平台属性和销售属性的区别：
+商品的平台属性属于电商网站后台管理（整个商品平台的维度下的，所有的笔记本都可以有16g内存）
+商品的销售属性属于在电商网站上卖商品的商家管理(属于某一件商品的维度下的，同一型号的售卖中的笔记本只会有一种是16内存)
+
+
+
+SPU 是商品信息聚合的最小单位。
+例如：品牌苹果+型号：5s可以确定一个产品，即SPU
+再加上颜色白色，尺码4.0，即表示一个SKU
+SPU + 颜色 + 尺码，就是一个SKU，SKU是从属于SPU的关系
+
+SPU由电商平台编辑管理
+SKU由电商编辑管理
+也就是说，spu是商城用来规范商品的，sku是商家自己决定买什么货物的
+
+spu的范围通常比sku要大
+
+
+--------------------
+
+
+架构演变过程
+
+ORM单体架构，前后端所有的模块都放在一起
+MVC 分三层
+RPC 多个服务，各个模块独立通讯
+SOA 多个服务，注册中心管理模块
 
 
 -----------------------------------------------------
+
+VMware安装centos7
+
+配置ip信息：
+192.168.8.198
+255.255.255.0
+192.168.8.1
+192.168.8.1
+
+主机名：vcen
+
+root密码：WRXdevcen7
+
+创建管理员用户：
+wrx
+密码：
+WRXcen777
+
+-----------------
+
+命令：
+
+关机：shutdown -h now
+查看ip地址：ip addr
+
+测试虚拟机与本机的网络通信：
+(1) 在虚拟机终端ping本机的ip；在本机终端ping虚拟机的ip
+(2) 随意第一项的修改ip地址，尝试能否ping通
+如果(1)可以ping通，但是(2)失败，就表明双方处于同一局域网内
+如果本机和虚拟机的ip地址前三段是相同的，基本也是处于同一局域网内
+
+查看是否安装ssh，如果打印了openssh和libssh那么就是安装了，貌似安装centos7时，默认安装ssh
+rpm -qa | grep ssh
+
+rpm -qa | grep ssh 可以看到系统中ssh安装包
+ps -ef | grep ssh 查看ssh服务有没有运行,如果有,可以看到类似以下内容:
+root 2659 1 0 18:31 ? 00:00:00 /usr/sbin/sshd
+root 2702 2618 0 18:38 pts/0 00:00:00 grep ssh
+这证明ssh已经在运行了,进程名为sshd 如果没有运行,可以通过以下命令运行之: 
+service sshd start
+
+
+xshell连接centos7，安装lrzsz，用于传输文件
+yum install lrzsz -y
+检查是否安装成功。
+rpm -qa | grep lrzsz
+执行，把文件传输到当前centos的目录下
+在Windows系统下使用xshell，输入命令时，会自动弹出文件选择框。
+rz -y
+
+-----------------
+
+本地下载jdk，解压jdk
+tar -xzvf jdk-8u131-linux-x64.tar.gz -C /opt
+jdk设置环境变量：
+配置环境 vi  /etc/profile 并在最后添加
+export JAVA_HOME=/opt/jdk1.8.0_221
+export JRE_HOME=${JAVA_HOME}/jre
+export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
+export PATH=${JAVA_HOME}/bin:$PATH
+执行profile文件（通常用于重新执行刚修改的初始化文件，使之立即生效，而不必注销并重新登录）
+source /etc/profile
+
+
+redis解压安装:
+tar -zxf redis-3.2.13.tar.gz
+安装gcc
+yum -y install gcc
+
+安装zip
+yum install -y unzip zip
+unzip [-cflptuvz][-agCjLMnoqsVX][-P <密码>][.zip文件][文件][-d <目录>][-x <文件>] 或 unzip [-Z]
+解压dubbo
+
+
+
+解压tomcat之后，配置apache-tomcat-8.5.24/conf/server.xml
+<Context path="/dubbo" docBase="/opt/dubbo" debug="0" privileged="true" />
+增加一个Context容器，用于dubbo的运行
+
+进入到tomcat的bin目录
+cd /home/hstomcat/apache-tomcat-7.0.63/bin
+启动tomcat
+使用ls命令，可以看到bin目录下的文件
+
+运行bin目录下的启动命令脚本
+sh startup.sh或者./startup.sh
+这样tomcat就启用了
+
+查看tomcat进程是否启动
+ps aux | grep tomcat
+
+关闭tomcat，同样在tomcat的bin目录下
+sh shutdown.sh
+
+重启可以理解为先关闭tomcat+再启动tomcat
+sh shutdown.sh
+sh startup.sh
+
+如果用命令查看到tomcat已经启动，但是无法浏览器无法访问
+设置防火墙
+firewall-cmd --permanent --zone=public --add-port=8080/tcp  
+firewall-cmd --reload  
+firewall-cmd --zone=public --query-port=8080/tcp 
+
+查看防火墙状态
+firewall-cmd --state
+停止firewall
+systemctl stop firewalld.service
+禁止firewall开机启动
+systemctl disable firewalld.service 
+
+
+dataLogDir=/opt/zookeeper/logs
+
+访问http://192.168.43.192:8080/dubbo，输入默认的用户名和密码（都是root）
+
+
+查看zookeeper的已连接服务
+cd/usr/local/zookeeper-3.4.8/bin
+./zkCli.sh -server 127.0.0.1:2181
+ls /
+或者： ls /dubbo
+
+
+----------------------------------------------------------
+
+安装图片存储服务器FastDFS
+安装gcc和其他运行时库：
+yum install gcc-c++ -y
+yum -y install zlib zlib-devel pcre pcre-devel gcc gcc-c++ openssl openssl-devel libevent libevent-devel perl unzip net-tools wget
+yum -y install libevent
+yum install perl*
+
+把libfastcommon上传和安装，安装路径放在/usr/local/下：
+rz -y（执行这个命令时会自动弹出文件选择框）
+tar -zxvf libfastcommonV1.0.7.tar.gz -C /usr/local/
+进行编译安装：
+cd /usr/local/libfastcommon-1.0.7/
+./make.sh           #编译
+./make.sh install   #安装
+进入usr/lib64查看生成的so文件，并复制到usr/lib下
+cp libfastcommon.so /usr/lib
+
+安装FastDFS_v5.05，上传和解压
+rz -y
+tar -zxvf FastDFS_v5.05.tar.gz -C /usr/local
+/FastDFS/目录下，编译和安装 
+cd /usr/local/FastDFS/
+./make.sh && ./make.sh install 
+复制
+cp /usr/local/FastDFS/conf/* /etc/fdfs/
+注意：可以不用复制，只需要在开机启动，即etc/init.d/ 目录下，
+      将安装时自动生成的两个文件fdfs_storaged和fdfs_trackerd中的CONF=/etc/fdfs/tracker.conf 改为FastDFS/conf/下的对应文件即可
+
+------------------
+以下是安装FastDFS_v5.05之后进行的配置
+
+tracker和storage
+tracker对storage进行管理和调用，tracker一般会有一个
+storage负责对文件的存储，storage可以安装在多个服务器内，形成多个storage一起提供存储服务
+所以storage要配置tracker服务器的ip地址，而tracker不需要
+
+
+进入/etc/fdfs/，修改tracker配置文件
+把base_path改成/opt/fastdfs，这个目录如果没有要自行创建
+还有其他例如 http.server_port=8080 可以按需要去改。
+vim /etc/fdfs/tracker.conf
+base_path=/opt/fastdfs
+
+
+进入/etc/fdfs/，修改storage配置文件
+vi /etc/fdfs/storage.conf
+修改软件目录路径：
+base_path=/opt/fastdfs
+Storage存储文件的目录,存放文件的位置(store_path)，如果没有这个目录需要创建 mkdir /opt/fastdfs/fdfs_storage
+store_path0=/opt/fastdfs/fdfs_storage 
+#如果有多个挂载磁盘则定义多个store_path，如下
+#store_path1=.....
+#store_path2=.....
+配置tracker服务器ip：
+tracker_server=192.168.43.192:22122
+
+
+配置开机自启动：
+安装之后已经在etc/init.d/下创建了fdfs_storaged  fdfs_trackerd，但是需要修改部分配置：
+vi ../../etc/init.d/fdfs_trackerd
+把/usr/local/bin/改为/usr/local/FastDFS/  stop和restart都要改
+storaged也要改
+vi ../../etc/init.d/fdfs_storaged
+
+将启动脚本加入linux服务（chkconfig开机自启）
+chkconfig  --add  fdfs_trackerd
+chkconfig  --add  fdfs_storaged
+
+启动服务
+service fdfs_trackerd start
+service fdfs_storaged start
+
+ps命令过滤查看
+ps -aux | grep fdfs
+
+
+上传测试：
+修改/etc/fdfs/client.conf
+vi /etc/fdfs/client.conf
+base_path=/opt/fastdfs
+tracker_server=192.168.43.192:22122
+
+
+把一张图传到centos上，再上传
+rz -y
+/usr/bin/fdfs_test  /etc/fdfs/client.conf  upload  ./panda.jpg
+上传成功之后会有地址打印出来
+此时还不能访问，因为fdfs不是web服务器，不支持http，它只是一个图片存储服务器
+需要集成nginx
+http://192.168.43.192/group1/M00/00/00/wKgrwF3Q80KAJ28_AABUxbVIpSY739_big.jpg
+
+如果图片上传成功，可以在以下对应的上传路径上查看：
+/opt/fastdfs/fdfs_storage/data 
+/00/00/wKhDo1qipbiAJC6iAAB1tayPlqs094_big.jpg
+
+-----------------------------
+ 
+nginx
+FastDFS和nginx整合
+上传并解压
+rz -y
+tar -zxvf fastdfs-nginx-module_v1.16.tar.gz -C /usr/local 
+解压后把/usr/local/fastdfs-nginx-module/src/config的内容修改一部分，修改config文件将/usr/local/...路径改为/usr/...
+/usr/include/fastdfs /usr/include/fastcommon/
+复制文件
+cp mod_fastdfs.conf /etc/fdfs
+vi /etc/fdfs/mod_fastdfs.conf 
+修改内容
+base_path=/opt/fastdfs
+......
+tracker_server=192.168.43.192:22122
+......
+url_have_group_name = true
+......
+store_path0=/opt/fastdfs/fdfs_storage
+
+将libfdfsclient.so拷贝至/usr/lib下
+cp /usr/lib64/libfdfsclient.so /usr/lib/
+
+
+安装nginx
+
+创建目录
+mkdir -p /var/temp/nginx/client
+安装pcre库
+yum -y install pcre-devel
+安装zlib库
+yum install -y zlib-devel
+
+上传nginx-1.12.2压缩包到/usr/local目录下，并解压
+tar -zxvf nginx-1.12.2.tar.gz -C /usr/local
+添加fastdfs-nginx-module模块
+cd nginx-1.8.0
+./configure \
+--prefix=/usr/local/nginx \
+--pid-path=/var/run/nginx/nginx.pid \
+--lock-path=/var/lock/nginx.lock \
+--error-log-path=/var/log/nginx/error.log \
+--http-log-path=/var/log/nginx/access.log \
+--with-http_gzip_static_module \
+--http-client-body-temp-path=/var/temp/nginx/client \
+--http-proxy-temp-path=/var/temp/nginx/proxy \
+--http-fastcgi-temp-path=/var/temp/nginx/fastcgi \
+--http-uwsgi-temp-path=/var/temp/nginx/uwsgi \
+--http-scgi-temp-path=/var/temp/nginx/scgi \
+--add-module=/usr/local/fastdfs-nginx-module/src
+
+编译
+make
+安装
+make install
+编辑nginx.conf：
+vi /usr/local/nginx/conf/nginx.conf
+#server_name  localhost;
+#如果fastFDS在本机，使用localhost也可以
+server_name  192.168.43.192;
+#charset koi8-r;
+#access_log  logs/host.access.log  main;
+location / {
+	#root   html;
+	#index  index.html index.htm;
+	ngx_fastdfs_module;
+}
+
+运行：
+/usr/local/nginx/sbin/nginx
+之后就可以在浏览器中查看之前上传的图片了
+
+报错修复：
+运行
+/usr/local/nginx/sbin/nginx
+报错
+[root@vcen /]# nginx: [emerg] open() "/var/run/nginx/nginx.pid" failed (2: No such file or directory)
+var/run/是临时文件所以直接在其他目录中创建：
+创建pid目录：
+mkdir /usr/local/nginx/logs
+配置文件：
+vi /usr/local/nginx/conf/nginx.conf
+在原本注释掉的pid下再增加一行
+pid        /usr/local/nginx/logs/nginx.pid;
+
+
+设置开机启动，首先添加一个执行权限给rc.local
+chmod  755  /etc/rc.d/rc.local
+vi /etc/rc.d/rc.local
+加一行
+/usr/local/nginx/sbin/nginx
+
+-----------------------------
+
+springboot + fastFDS
+
+在github下载fastFDS，项目中直接clone
+E:\MyGmall>git clone https://github.com/happyfish100/fastdfs-client-java
+fastdfs-client-java，maven，LifeRecycle中执行
+install
+执行完成之后，gmall-manage-web的pom里面依赖maven：
+<dependency>
+	<groupId>org.csource</groupId>
+	<artifactId>fastdfs-client-java</artifactId>
+	<version>1.27-SNAPSHOT</version>
+</dependency>
+
+
+
+
+
+-----------------------------
+
+常用查询过滤命令：
+
+过滤命令常接 grep 用来过滤，中间用分号隔开，后面接过滤内容：
+ps -A | grep xxx  查看全部进程中带有xxx的
+
+
+查看某个软件是否已安装，带过滤
+1、rpm包安装的，可以用rpm -qa看到，如果要查找某软件包是否安装，用 rpm -qa | grep “软件或者包的名字”。
+rpm -qa | grep ruby
+
+2、以deb包安装的，可以用dpkg -l能看到。如果是查找指定软件包，用dpkg -l | grep “软件或者包的名字”；
+dpkg -l | grep ruby
+
+3、yum方法安装的，可以用yum list installed查找，如果是查找指定包，命令后加 | grep “软件名或者包名”；
+yum list installed | grep ruby
+
+
+ps命令：
+ps -aux  查看所有进程，附带有cpu占用信息。也可以加grep命令进行过滤
+
+ps aux | grep tomcat
+ps aux | grep zookeeper
+
+-----------------------------------------------------
+
+dubbo包括了注册中心、监控中心在内的多个功能：
+Provider: 暴露服务的服务提供方。
+Consumer: 调用远程服务的服务消费方。
+Registry: 服务注册与发现的注册中心。
+Monitor: 统计服务的调用次调和调用时间的监控中心。
+Container: 服务运行容器。
+
+调用关系说明
+1.服务容器负责启动，加载，运行服务提供者。
+2.服务提供者在启动时，向注册中心注册自己提供的服务。
+3.服务消费者在启动时，向注册中心订阅自己所需的服务。
+4.注册中心返回服务提供者地址列表给消费者，如果有变更，注册中心将基于长连接推送变更数据给消费者。
+5.服务消费者，从提供者地址列表中，基于软负载均衡算法，选一台提供者进行调用，如果调用失败，再选另一台调用。
+6.服务消费者和提供者，在内存中累计调用次数和调用时间，定时每分钟发送一次统计数据到监控中心。
+
+这个框架要完成调度必须要有一个分布式的注册中心,存储所有服务的元数据,用到zookeeper。
+zookeeper用来注册服务和负载均衡。
+
+Dubbo的Provider，Consumer在启动时都会创建一个注册中心，
+注册中心可以选择Zookeeper。支持4种注册中心,（multicast,zookeeper,redis,simple），常用的是Zookeeper。
+Dubbo里默认使用zkclient来操作zookeeper服务器，其对zookeeper原始客户单做了一定的封装，
+操作zookeeper时能便捷一些，比如不需要手动处理session超时，不需要重复注册watcher等等。
+
+RegistryFactory类是注册中心的入口，调用注册中心方法的类是RegistryProtocol。
+
+maven依赖时dubbo时，要加上zkclient和Zookeeper
+ 
+
+-----------------------------------------------------
+
+注册中心zookeeper
+
+zookeeper配置：
+##ZooKeeper服务器存储快照文件的目录,必须配值,建议放置在var目录下
+dataDir=/opt/zookeeper-3.4.11/data
+
+来到bin下，执行
+./zkServer.sh start
+./zkServer.sh status
+
+查看进程
+ps -ef | grep zookeeper
+
+-----------------------------------------------------
+
+dubbo和zookeeper都可以设置，dubbo主要是设置tomcat(因为tomcat里面配置了启动dubbo)
+zookeeper设置其本身
+
+设置开机自启动的两种方法：
+1 /etc/rc.local 中配置
+2 /etc/init.d 目录下，添加脚本，chmod + r添加脚本权限（或者 chmod 777）
+  使用chkconfig --add命令增加该脚本，重启后chkconfig --list查看 （chkconfig就是服务配置管理命令）
+  不用重启，也可直接调用：service dubbo-admin start
+
+Linux chkconfig命令用于检查，设置系统的各种服务。
+chkconfig [--add][--del][--list][系统服务] 或 chkconfig [--level <等级代号>][系统服务][on/off/reset]
+--add　增加所指定的系统服务，让chkconfig指令得以管理它，并同时在系统启动的叙述文件内增加相关数据。
+--del　删除所指定的系统服务，不再由chkconfig指令管理，并同时在系统启动的叙述文件内删除相关数据。
+
+
+-----------------------------------------------------
+
+将user模块拆分为 user-service和user-web，并在dubbo上部署。
+
+
+-----------------------------------------------------
+
+springboot + dubbo的坑
+
+1. 防火墙要关闭，或者开放对应的端口
+2. @service等注解要换成dubbo的注解
+3. web微服务的 @Autowired改为@Reference（这个@Reference是dubbo库里面的）
+
+排查问题：
+1. 可以用ps命令查看tomcat(里面部署了dubbo)和zookeeper是否启动
+2. 可以进入zookeeper的zkCli脚本查看在zookeeper注册的服务
+3. 微服务注册成功会有打印： Starting ZkClient event thread.
+
+如果微服务的provider和consumer都注册成功，那么可以在dubbo界面的consumer的详情，里面就有访问的ip address
+这个ip地址是和tomcat那台机器的地址不一样的
+tomcat可以在虚拟机的ip地址后加8080访问，再加/dubbo可以访问dubbo的管理界面
+
+如果是本地用dubbo部署了微服务，可以直接通过本地ip访问
+
+
+
+
+
+
+
+
 
 
 

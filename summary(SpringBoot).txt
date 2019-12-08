@@ -257,6 +257,18 @@ springmvc在java web项目中就是一个全功能MVC模块，而MVC框架就是
 
 
 
+Spring注解@Component、@Repository、@Service、@Controller区别
+如果 Web 应用程序采用了经典的三层分层结构的话，
+最好在持久层、业务层和控制层分别采用 @Repository、@Service 和 @Controller 对分层中的类进行注释，
+而用 @Component 对那些比较中立的类进行注释。 
+
+@Repository用于mapper的注解
+@Service用于service的注解
+@Controller用于Controller的注解
+
+
+
+
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -336,7 +348,8 @@ Mybatis  xml使用：
 
 第三方工具类
 tk.Mybatis
-简化开发，使用框架定义好的方法即可，不再需要在mapper.xml文件中配置了。
+简化开发，使用框架定义好的方法即可（增删改查都已经定义好了），不再需要在mapper.xml文件中配置了。
+只要继承tk.Mybatis.mapper就好
 
 引入流程：
 1.导包：
@@ -359,7 +372,16 @@ public interface UserMapper extends Mapper<UmsMember>
 @GeneratedValue(strategy = GenerationType.IDENTITY)
 private String id;
 
-3.Application的@MapperScan换成tk框架里面的。
+3.TkMybatis默认使用继承Mapper接口中传入的实体类对象去数据库寻找对应的表（bean类以大驼峰命名，表以下划线命名）
+因此如果表名与实体类名不满足对应规则时,会报错,这时使用@Table为实体类指定表。
+方法定义好了，加上会自动去找到对应的表，所以不需要再去创建mapper.xml了
+
+4.Application的@MapperScan换成tk框架里面的
+
+5.在application.properties配置文件中,配置mapper.xml文件指定的位置[可选]
+
+6.如果有特殊的需求,可以自己实现mapper.xml自定义sql语句，但路径必须与@MapperScan的对应
+
 
 
 
