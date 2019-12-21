@@ -143,6 +143,71 @@ MVC 分三层
 RPC 多个服务，各个模块独立通讯
 SOA 多个服务，注册中心管理模块
 
+-----------------------------------------------------
+vi查找功能
+1、命令模式下输入“/字符串”，例如“/Section 3”。
+2、如果查找下一个，按“n”即可。
+
+redis整合：
+
+修改配置文件sudo vim xxx/redis.conf
+1.注释#bind 127.0.0.1
+
+2.
+修改daemonize yes 初始值为no
+
+关闭保护模式
+protected-mode no 设置为no
+
+3.（可选）
+配置redis访问密码
+requirepass test123
+
+
+将redis的启动脚本复制一份放到/etc/init.d目录下
+cp /usr/local/redis-4.0.6/utils/redis_init_script /etc/init.d/redisd
+注意，查看这个启动脚本，需要到对应的配置路径
+
+
+先切换到/etc/init.d目录下
+
+然后执行自启命令
+
+[root@iZwz991stxdwj560bfmadtZ init.d]# chkconfig redisd on
+service redisd does not support chkconfig　
+ 
+
+看结果是redisd不支持 chkconfig
+解决方法：
+使用vim编辑redisd文件，在第一行加入如下两行注释，保存退出
+# chkconfig:   2345 90 10
+# description:  Redis is a persistent key-value database
+注释的意思是，redis服务必须在运行级2，3，4，5下被启动或关闭，启动的优先级是90，关闭的优先级是10。
+
+
+缓存穿透
+是利用redis和mysql的机制(redis缓存一旦不存在，就访问mysql)，直接绕过缓存访问mysql，而制造的db请求压力
+一般在代码中防止该现象的发生
+解决：
+缓存穿透最好解决，如果redis和mysql中同时没有这个数据，直接在redis中缓存一个空字符，
+这样下一次访问数据时，redis会直接取一个空字符给前端
+
+
+缓存击穿
+是某一个热点key在高并发访问的情况下，突然失效，导致大量的并发打进mysql数据库的情况
+
+
+缓存雪崩
+缓存时采用了相同的过期时间，导致缓存在某一时刻同时失效，导致的db崩溃
+解决：设置不同的缓存失效时间
+
+
+穿透：利用不存在的key去攻击mysql数据库
+雪崩：缓存中的很多key失效，导致数据库负载过重宕机
+击穿：在正常的访问情况下，如果缓存失效，如果保护mysql，重启缓存的过程
+使用redis数据库的分布式锁，解决mysql的访问压力问题
+
+
 
 -----------------------------------------------------
 
@@ -368,7 +433,7 @@ http://192.168.43.192/group1/M00/00/00/wKgrwF3Q80KAJ28_AABUxbVIpSY739_big.jpg
 /00/00/wKhDo1qipbiAJC6iAAB1tayPlqs094_big.jpg
 
 -----------------------------
- 
+
 nginx
 FastDFS和nginx整合
 上传并解压
@@ -550,6 +615,8 @@ dataDir=/opt/zookeeper-3.4.11/data
 ps -ef | grep zookeeper
 
 -----------------------------------------------------
+
+设置开机启动
 
 dubbo和zookeeper都可以设置，dubbo主要是设置tomcat(因为tomcat里面配置了启动dubbo)
 zookeeper设置其本身
