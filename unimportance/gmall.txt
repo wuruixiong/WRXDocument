@@ -38,8 +38,34 @@ SOA面向服务
 
 缓存、分布式锁，高并发压力问题
 
+--------------------
 
 
+$ ssh-keygen -t rsa -C "wowuruixiong@163.com"
+Generating public/private rsa key pair.
+Enter file in which to save the key (/c/Users/wuruixiong/.ssh/id_rsa):
+Created directory '/c/Users/wuruixiong/.ssh'.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /c/Users/wuruixiong/.ssh/id_rsa.
+Your public key has been saved in /c/Users/wuruixiong/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:Iv89sMB6Jp2aAaurn3MsfwYMvEbC1yaGa/jbXvKu8Iw wowuruixiong@163.com
+The key's randomart image is:
++---[RSA 2048]----+
+|                 |
+|                 |
+|... .            |
+|.o++ o           |
+|.o=++.. S        |
+|.oooooo..        |
+|.oo.o+oo o       |
+| .+B=*B....      |
+|=oEBXXo . ..     |
++----[SHA256]-----+
+
+hw08603606
+hw08603606/hw08603606
 --------------------
 
 gmall的数据结构表，实战项目用过的表，实际项目可以更加复杂：
@@ -185,6 +211,31 @@ service redisd does not support chkconfig　
 注释的意思是，redis服务必须在运行级2，3，4，5下被启动或关闭，启动的优先级是90，关闭的优先级是10。
 
 
+查看redis进程
+ps aux | grep redis
+结果：
+root       1095  0.0  0.2 134176  2416 ?        Rsl  12:47   0:03 /usr/local/bin/redis-server *:6379
+root       2029  0.0  0.0 112728   972 pts/0    S+   13:48   0:00 grep --color=auto redis
+
+连接redis
+redis-cli -h host -p port -a password
+我们这个redis没有设置密码
+redis-cli -h 192.168.43.192 -p 6379
+
+查看redis的内容，查看所有的键：
+keys *
+结果：
+1) "sku:100:info"
+2) "sku:107:info"
+3) "sku:20:info"
+4) "user:202cb962ac59075b964b07152d234b70:info"
+
+上面那个user是我们在代码中使用了jedis框架中的
+jedis.setex()方法设置进去的用户和密码键对值
+
+
+
+
 缓存穿透
 是利用redis和mysql的机制(redis缓存一旦不存在，就访问mysql)，直接绕过缓存访问mysql，而制造的db请求压力
 一般在代码中防止该现象的发生
@@ -227,6 +278,14 @@ root密码：WRXdevcen7
 wrx
 密码：
 WRXcen777
+
+第二台虚拟机
+配置ip信息
+192.168.8.239
+255.255.255.0
+192.168.8.1
+192.168.8.1
+
 
 -----------------
 
@@ -656,6 +715,615 @@ springboot + dubbo的坑
 tomcat可以在虚拟机的ip地址后加8080访问，再加/dubbo可以访问dubbo的管理界面
 
 如果是本地用dubbo部署了微服务，可以直接通过本地ip访问
+
+-----------------------------------------------------
+
+nginx负载均衡
+原理：
+开发时，idea关闭微服务的单例模式，同一个module启动多次，这样就有多个相同功能的微服务同时对外提供服务，
+配置启动nginx，让这多个微服务对应的端口号或者ip不同，这样多个相同功能的微服务同时服务多个客户端，实现负载均衡。
+(IntelliJ IDEA默认运行项目后，再点击运行就是重启，但有时候，需要配置项目的不同端口号，同时运行)
+
+idea操作步骤：
+取消single instance only（或者勾选allow parallel run），启动一个测试负载均衡的微服务；把之前启动的微服务端口更换，再次启动另一个相同的微服务。
+nginx配置时要配置对应的端口号，
+
+
+-----------------------------------------------------
+
+搜素引擎 elasticSearch ，简称es，其实就是一个数据存储库，NoSQL
+新准备一台虚拟机，centos7，添加用户，安装jdk和配置jdk环境变量，
+
+把elasticsearch-6.3.1.tar.gz上传至虚拟机
+首先用root用户解压
+tar – zxvf elasticsearch-6.3.1.tar.gz
+然后用root用户授权
+chmod 777 -R elasticsearch-6.3.1
+
+修改elasticsearch/config的文件：
+elasticSearch.yml、jvm.Opitons
+
+elasticSearch.yml中配置es的host
+network.host:192.168.43.199
+http.port:9200
+
+jvm.Opitons中配置es能够使用jvm内存大小
+-Xms 和 -Xmx需要配置的相等，不然无法启动成功。
+-Xms512m
+-Xmx512m
+
+
+centos
+修改系统最大文件数
+vi /etc/security/limits.conf
+加入：（*代表所有用户）
+* soft nofile 65536
+* hard nofile 65536
+* soft nproc 4096
+* hard nproc 4096
+
+vi /etc/sysctl.conf 
+加入：
+vm.max_map_count=655360
+fs.file-max=655360
+
+
+直接启动可执行文件：
+elasticsearch-6.3.1/bin/elasticsearch
+
+
+启动成功后可以访问，这时会返回一个包含elasticSearch信息的json数据
+192.168.43.199:9200
+如果访问失败，可以配置防火墙或者直接关闭防火墙
+清空data和logs数据
+192.168.43.199:9200/_cat/nodes?v
+
+elasticsearch详情信息
+http://192.168.43.199:9200/
+
+如果访问上面这个两个链接，可以显示内容，就表示配置成功
+
+-----------------------------
+
+nohup命令启动elasticSearch和kibana
+后台运行，把日志输出到本地文件
+
+-----------------------------
+
+kibana
+
+Kibana是一个开源的分析与可视化平台，设计出来用于和Elasticsearch一起使用的。你可以用kibana搜索、查看存放在Elasticsearch中的数据。
+Kibana与Elasticsearch的交互方式是各种不同的图表、表格、地图等，直观的展示数据，从而达到高级的数据分析与可视化的目的。
+Elasticsearch、Logstash和Kibana这三个技术就是我们常说的ELK技术栈，可以说这三个技术的组合是大数据领域中一个很巧妙的设计。
+一种很典型的MVC思想，模型持久层，视图层和控制层。Logstash担任控制层的角色，负责搜集和过滤数据。Elasticsearch担任数据持久层的角色，负责储存数据。
+
+把kibana的安装包上传至虚拟机，并解压
+
+修改配置文件kibana-6.3.1-linux-x86_64/config/kibana.yml
+server.host: "0.0.0.0"
+elasticsearch.url: "http://192.168.43.199:9200"
+
+直接启动bin下的可执行文件：
+kibana-6.3.1-linux-x86_64/bin/kibana
+
+启动后访问：
+http://192.168.43.199:5601/
+这个界面是一个完整的web的UI页面，可以通过这个界面对elasticsearch进行增删改查
+
+-----------------------------
+
+elasticsearch分词器
+
+无论是内置的分析器（analyzer），还是自定义的分析器（analyzer），都由三种构件块组成的：character filters ， tokenizers ， token filters。
+内置的analyzer将这些构建块预先打包到适合不同语言和文本类型的analyzer中。
+
+中文分词器插件: IK分词器, elasticsearch-analysis-ik6
+
+把elasticsearch-analysis-ik6解压到/opt/es/elasticsearch-6.3.1/plugins下，就可以直接使用功能
+
+-----------------------------
+
+elasticsearch集群配置
+默认就是集群的，需要简单配置就可以。负载均衡默认实现。
+
+要实现集群，设置config/elasticsearch.yml，目前配置两台虚拟机集群，192.168.43.200和192.168.43.85
+cluster.name: aubin-cluster     #必须相同 
+# 集群名称（不能重复）
+node.name: els1（必须不同）
+# 节点名称，仅仅是描述名称，用于在日志中区分（自定义）
+#指定了该节点可能成为 master 节点，还可以是数据节点
+node.master: true
+node.data: true
+path.data: /opt/data
+# 数据的默认存放路径（自定义）
+path.logs: /opt/logs 
+# 日志的默认存放路径 
+network.host: 192.168.43.200
+# 当前节点的IP地址，这个ip地址要是本机的ip地址，
+http.port: 9200 
+# 对外提供服务的端口
+transport.tcp.port: 9300
+#9300为集群服务的端口 
+discovery.zen.ping.unicast.hosts: ["172.18.68.11", "172.18.68.12","172.18.68.13"] 
+# 集群个节点IP地址，也可以使用域名，需要各节点能够解析 
+discovery.zen.minimum_master_nodes: 2 
+# 为了避免脑裂，集群节点数最少为 半数+1
+
+
+cerebro
+es集群管理工具，elasticsearch的两台机器是安装在centos虚拟机上的，在windows下解压cerebro，
+解压后执行bin下的bat文件
+启动后访问
+http://localhost:9000/
+在webUi界面中，输入连接地址即可
+http://192.168.43.85:9200
+
+清空data和logs数据
+192.168.43.200:9200/_cat/nodes?v
+
+
+集群分片复制，一条数据是存放在不同分片中的，而且每个分片在不同的机器上都有复制片
+这点可以在cerebro工具上查看，甚至可以创建index时选择分片数
+
+
+-----------------------------
+
+elasticsearch常用命令，可以用这些命令在kibana上进行增删改查
+get 查
+post 改
+put 增
+delete 删
+
+几乎所有的命令都是这种格式
+PUT/DELETE/POST/GET /{index}/{type}/{id}
+
+
+显示所有的索引
+GET _cat/indices
+
+-----------------------------
+
+新增一个索引，插入索引可以用post和put
+PUT /catalog/product/1
+{
+  "sku": "SP000001",
+  "title": "Elasticsearch for Hadoop",
+  "description": "Elasticsearch for Hadoop",
+  "author": "Vishal Shukla",
+  "ISBN": "1785288997",
+  "price": 26.99
+}
+
+
+POST /catalog/product
+{
+  "sku": "SP000003",
+  "title": "Mastering Elasticsearch",
+  "description": "Mastering Elasticsearch",
+  "author": "Bharvi Dixit",
+  "price": 54.99
+}
+
+put的格式，{}中写入json格式，这个id可以有也可以没有
+PUT /{index}/{type}/{id}
+{
+  "field": "value",
+  ...
+}
+
+
+-----------------------------
+
+删除
+DELETE /catalog/product/100
+
+-----------------------------
+更改
+POST /catalog/product/100/_update
+{
+  "doc": {
+    "price" : 100.01
+  }
+}
+
+POST /catalog/product/100/_update
+{
+  "doc": {
+    "author": "Albert Paro",
+    "title": "Elasticsearch 5.0 Cookbook",
+    "description": "Elasticsearch 5.0 Cookbook Third Edition",
+    "price": "54.99"
+  },
+  "doc_as_upsert": true
+}
+
+
+POST /catalog/product/1/_update
+{
+  "script": {
+    "source": "ctx._source.price += params.increment",
+    "lang": "painless",
+    "params": {
+      "increment": 20
+    }
+  }
+}
+
+以上命令都可以在kibanan中执行
+
+
+-----------------------------
+查找
+GET /catalog/product/100
+关于查找
+搜素索引时，执行一条即可
+GET /{index}/{type}/{id}
+如果没有id，可以使用_search，加_search是搜素全部id：
+GET /{index}/{type}/_search
+
+
+-----------------------------
+
+Ik(中英文分词器插件)有两个：
+1 ik_smart （简易分词）
+2 ik_max_word （尽最大可能分词）
+
+以下是两种不一样的分词，可以在kibana上尝试
+GET _analyze
+{
+  "analyzer": "ik_smart", 
+  "text": "我是中国人"
+}
+GET _analyze
+{
+  "analyzer": "ik_max_word", 
+  "text": "我是中国人"
+}
+
+分词结果影响了索引的数量，尽最大可能分词分的索引数量多一些
+
+
+
+
+-----------------------------------------------------
+
+elasticsearch + stringboot开发
+
+开发之前，在application.properties中加入参数配置，如果不加http或者https，编译时会报错（ IllegalArgumentException Illegal character...）
+spring.elasticsearch.jest.uris=http://192.168.43.199:9200
+
+
+增加电商索引数据
+PUT gmall0105
+{
+ "mappings": {
+   "PmsSkuInfo":{
+     "properties": {
+       "id":{
+        "type": "keyword",
+        "index": true
+      },
+      "skuName":{
+        "type": "text",
+        "analyzer": "ik_max_word"
+      },
+      "skuDesc":{
+        "type": "text"
+        , "analyzer": "ik_smart"
+      },
+      "catalog3Id":{
+        "type": "keyword"
+      },
+      "price":{
+        "type": "double"
+      },
+      "skuDefaultImg":{
+        "type": "keyword",
+        "index": false
+      },
+      "hotScore":{
+        "type": "double"
+      },
+      "productId":{
+        "type": "keyword"
+      },
+      "skuAttrValueList":{
+        "properties": {
+          "attrId":{
+            "type":"keyword"
+          },
+          "valueId":{
+            "type":"keyword"
+          }
+        }
+      }
+     } 
+   }
+ } 
+}
+
+--------------------
+
+代码开发
+
+实例1，创建索引和查找这个索引：
+@Autowired
+JestClient jestClient;
+@Test
+public void contextLoads() throws IOException {
+	putTest();
+}
+public void putTest() throws IOException {
+	Article article = new Article();
+	article.setId(1);
+	article.setAuthor("Tom");
+	article.setContent("hello world !");
+	article.setTitle("今日消息");
+	//构建一个索引功能，类型为news
+	Index index = new Index.Builder(article).index("jest").type("news").id("100").build();
+	try {
+		jestClient.execute(index);
+		System.out.println("数据索引成功！");
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+}
+//Article是一个bean，也可以是json
+//添加完成之后可以直接搜素索引：GET /jest/news/_search或者GET /jest/news/100
+
+// 查找
+@Test
+public void search(){
+	//查询表达式
+	String json = "{\n" +
+			"    \"query\" : {\n" +
+			"        \"match\" : {\n" +
+			"            \"content\" : \"hello\"\n" +
+			"        }\n" +
+			"    }\n" +
+			"}";
+	//构建搜索功能
+	Search search = new Search.Builder(json).addIndex("jest").addType("news").build();
+	try {
+		SearchResult result = jestClient.execute(search);
+		System.out.println(result.getJsonString());
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+}
+
+--------------------
+
+实例2，查找：
+String dslStr = searchSourceBuilder.toString();
+System.err.println(dslStr);
+// 用api执行复杂查询
+List<PmsSearchSkuInfo> pmsSearchSkuInfos = new ArrayList<>();
+Search search = new Search.Builder(dslStr).addIndex("gmall0105").addType("PmsSkuInfo").build();
+SearchResult execute = jestClient.execute(search);
+
+
+
+
+--------------------
+
+实例3，修改
+public void postBean() {
+	Book article = new Book();
+	article.setId(1);
+	article.setAuthor("Tom");
+	article.setContent("hello Tom!");
+	article.setTitle("好消息");
+	Index update = new Index.Builder(article).index("jest").type("news").id("101").build();
+	try {
+		JestResult result = jestClient.execute(update);
+		System.out.println("数据修改:"+ result.isSucceeded());
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+}
+
+--------------------
+
+实例4，删除
+public void deleteBean() {
+	Delete delete = new Delete.Builder("101").index("jest").type("news").build();
+	JestResult result = null;
+	try {
+		result = jestClient.execute(delete);
+		System.out.println("数据删除:"+ result.isSucceeded());
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+}
+
+--------------------
+
+面包屑功能：
+在商城中，一种手机商品有多个筛选条件：
+选择一个内存16g之后，16g就是一个面包屑；
+再选一个尺寸5英寸之后，5英寸又是一个面包屑。
+这样形成一整条筛选条件之后，可以过滤出少许符合条件的手机。
+
+许多网站都有面包屑导航，不一定是 电子商城的搜索筛选才有面包屑功能
+
+这个项目中，elastic search的搜素结果，提供大量 平台属性值 给用户进行选择过滤，达到面包屑功能的效果
+
+
+
+
+
+------------------------------------------------------------
+
+
+用户登录认证：
+
+用户认证中心：
+
+
+SpringBoot整合token、JWT实现登录认证
+JSON Web Token（JWT）是目前最流行的跨域身份验证解决方案
+
+
+-------------------------
+
+以前的用户身份认证：
+Internet服务无法与用户身份验证分开。一般过程如下。
+1.用户向服务器发送用户名和密码。
+2.验证服务器后，相关数据（如用户角色，登录时间等）将保存在当前会话中。
+3.服务器向用户返回session_id，session信息都会写入到用户的Cookie。
+4.用户的每个后续请求都将通过在Cookie中取出session_id传给服务器。
+5.服务器收到session_id并对比之前保存的数据，确认用户的身份。
+
+这种模式最大的问题是，没有分布式架构，无法支持横向扩展。如果使用一个服务器，该模式完全没有问题。
+但是，如果它是服务器群集或面向服务的跨域体系结构的话，则需要一个统一的session数据库库来保存会话数据实现共享，
+这样负载均衡下的每个服务器才可以正确的验证用户身份。
+
+一种解决方案是听过持久化session数据，写入数据库或文件持久层等。收到请求后，验证服务从持久层请求数据。该解决方案的优点在于架构清晰，
+而缺点是架构修改比较费劲，整个服务的验证逻辑层都需要重写，工作量相对较大。而且由于依赖于持久层的数据库或者问题系统，
+会有单点风险，如果持久层失败，整个认证体系都会挂掉。
+
+-------------------------
+
+JWT的原则
+
+JWT的原则是在服务器身份验证之后，将生成一个JSON对象并将其发送回用户，如下所示。
+{
+"UserName": "Chongchong",
+"Role": "Admin",
+"Expire": "2018-08-08 20:15:56"
+}
+
+之后，当用户与服务器通信时，客户在请求中发回JSON对象。服务器仅依赖于这个JSON对象来标识用户。
+为了防止用户篡改数据，服务器将在生成对象时添加签名。
+服务器不保存任何会话数据，即服务器变为无状态，使其更容易扩展。
+
+
+
+
+JWT的声明一般被用来在身份提供者和服务提供者间传递被认证的用户身份信息，以便于从资源服务器获取资源。比如用在用户登录上
+JWT 最重要的作用就是对 token信息的防伪作用。
+JWT的原理， 
+一个JWT由三个部分组成：公共部分、私有部分、签名部分。最后由这三者组合进行base64编码得到JWT。
+1、公共部分
+主要是该JWT的相关配置参数，比如签名的加密算法、格式类型、过期时间等等。
+2、私有部分
+用户自定义的内容，根据实际需要真正要封装的信息。一般用户名和密码就是封装在这里面。
+3、签名部分
+根据用户信息+盐值+密钥生成的签名。如果想知道JWT是否是真实的只要把JWT的信息取出来，
+加上盐值和服务器中的密钥就可以验证真伪。所以不管由谁保存JWT，只要没有密钥就无法伪造。
+4、base64编码，并不是加密，只是把明文信息变成了不可见的字符串。
+但是其实只要用一些工具就可以吧base64编码解成明文，所以不要在JWT中放入涉及私密的信息，因为实际上JWT并不是加密信息。
+
+-------------------------
+
+登录代码：
+
+
+
+-------------------------
+
+
+
+------------------------------------------------------------
+
+分布式事务
+
+多个事务并发执行，例如订单服务提交引起 支付服务、订单服务、库存服务以及其他服务，这些服务并不是同时并发有可能是不同时间并发
+当有一个服务没有完成，例如：库存服务的库存不足无法发货，导致库存服务状态回滚，引起其他服务的并发回滚
+分布式事务就是为了解决这个问题，通俗一点就是并发事务之间保持一致性，不求同年同月同日生，但求同年同月同日死。
+
+----------------------
+
+消息中间件 apache-activemq
+ActiveMQ是一种开源的基于JMS（Java Message Servie）规范的一种消息中间件的实现。
+
+----------------------
+
+延迟队列
+
+在ActiveMQ的配置文件中配置延迟，用于查询支付宝支付成功接口后发现消息
+
+幂等性检查，短时间内的请相同求，返回同一结果。
+
+----------------------
+队列消息是点对点、一对一的模式，一个消息的生产者对应一个消息的消费者，一个消费者消费消息之后，其他消费者不会受到消息；
+主题消息是发布/订阅、一对多的模式，一个消息的生产者可能对应多个消息的消费者，每一条消息都会发送给所有的消费者；
+
+
+
+------------------------------------------------------------
+
+库存系统：
+电商订单到 库存，如果存在两个商品仓库（电商的商品当然不可能只放在一个仓库里面，肯定是多仓库存放）
+需要拆成两个订单，简称拆单，拆单不只是根据仓库来拆，可以有其他因素，例如：物品贵重，物流，类型不同（手机和海鲜就需要拆单）等等
+
+
+
+
+
+
+------------------------------------------------------------
+
+秒杀
+
+
+
+
+
+
+
+
+---------------
+
+限流
+
+漏铜算法
+令牌桶算法
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------
+
+docker + k8s（Kubernetes）
+云容器自动化部署
+
+
+1 git 代码版本控制(svn)
+2 jenkins 自动打包测试工具(将写好的代码从git上拉下来，然后打成为服务的jar包)
+3 glusterfs 分布式文件存储系统，相当于fastdfs
+4 docker 把(springboot)微服务作为一个个单独的容器，单独运行
+5 Kubernetes解决的就是docker集群以及各处网络访问的阻碍(它还有负载均衡功能，我们用的是nginx+springcloud)
+6 etcd+confd+nginx 将nginx的配置实现动态化，在webui页面上就可以配置nginx的反向代理
+
+
+
+
+------------------------------------------------------------
+
+
+测试流程
+
+本地启动activeMQ
+
+开启以下微服务
+cardService、managerService、orderService、userService、orderWeb、passportWeb、payMent
+
+访问
+http://192.168.58.1:8017/toTrade
+登录信息
+test
+202cb962ac59075b964b07152d234b70
+登录完成之后显示购物车列表
+点击提交订单
 
 
 

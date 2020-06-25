@@ -383,9 +383,14 @@ private String id;
 6.如果有特殊的需求,可以自己实现mapper.xml自定义sql语句，但路径必须与@MapperScan的对应
 
 
+----------------------------------------------------------------------------------------------------------------------------------------------------------
 
+application.properties文件配置
+可以在上一级目录中添加config目录，在创建application.properties文件
 
-
+单元测试的配置：
+需要在resoures中的application.properties增加配置
+特别是zookeeper的相关配置只有在这里才生效
 
 
 
