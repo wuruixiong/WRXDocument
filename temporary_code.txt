@@ -26,3 +26,51 @@ fanminghui@chinasofti.com
 /usr/local/halo.jar
 /cloudbuild-1592925964111-31/20200623.1/halo.jar
 https://devrepo-cn-south-1.devcloud.huaweicloud.com/DevRepoServer/v1/files/download?filename=b48fef2b3ce04ccd9f309976b1230c0d/cloudbuild-1592925964111-31/20200625.1/halo.jar
+
+
+
+
+
+
+
+
+http://139.159.244.121/
+
+
+
+
+
+
+
+
+
+There was a problem with the instance info replicator
+
+com.netflix.discovery.shared.transport.TransportException: Cannot execute request on any known server
+	at com.netflix.discovery.shared.transport.decorator.RetryableEurekaHttpClient.execute(RetryableEurekaHttpClient.java:112) ~[eureka-client-1.9.21.jar:1.9.21]
+	at com.netflix.discovery.shared.transport.decorator.EurekaHttpClientDecorator.register(EurekaHttpClientDecorator.java:56) ~[eureka-client-1.9.21.jar:1.9.21]
+	at com.netflix.discovery.shared.transport.decorator.EurekaHttpClientDecorator$1.execute(EurekaHttpClientDecorator.java:59) ~[eureka-client-1.9.21.jar:1.9.21]
+	at com.netflix.discovery.shared.transport.decorator.SessionedEurekaHttpClient.execute(SessionedEurekaHttpClient.java:77) ~[eureka-client-1.9.21.jar:1.9.21]
+	at com.netflix.discovery.shared.transport.decorator.EurekaHttpClientDecorator.register(EurekaHttpClientDecorator.java:56) ~[eureka-client-1.9.21.jar:1.9.21]
+	at com.netflix.discovery.DiscoveryClient.register(DiscoveryClient.java:857) ~[eureka-client-1.9.21.jar:1.9.21]
+	at com.netflix.discovery.InstanceInfoReplicator.run(InstanceInfoReplicator.java:121) ~[eureka-client-1.9.21.jar:1.9.21]
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:511) [na:1.8.0_144]
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266) [na:1.8.0_144]
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.access$201(ScheduledThreadPoolExecutor.java:180) [na:1.8.0_144]
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:293) [na:1.8.0_144]
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [na:1.8.0_144]
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [na:1.8.0_144]
+	at java.lang.Thread.run(Thread.java:748) [na:1.8.0_144]
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

@@ -1,0 +1,584 @@
+对称加密:A与 B 之间之间的通讯数据都用同一套的密钥来进行加密解密。
+对称加密通常有 DES,IDEA,3DES 加密算法。
+
+
+非对称加密：用公钥和私钥来加解密的算法。打个比方，A 的公钥加密过的东西只能通过 A 的私钥来解密；同理，A 的私钥加密过的东西只能通过 A 的公钥来解密。顾名思义，公钥是公开的，别人可以获取的到；私钥是私有的，只能自己拥有。
+缺点，加解密比对称加密耗时.
+优点，比对称加密安全.
+但是非对称加密也是存在漏洞，因为公钥是公开的，如果有 C 冒充 B 的身份利用 A 的公钥给 A 发消息，这样就乱套了，所以接下来就采用非对称加密+摘要算法+数字签名的机制来确保传输安全。
+常见的非对称加密算法有：RSA、ECC（移动设备用）、Diffie-Hellman、El Gamal、DSA（数字签名用）
+RSA目前来说还算安全，可以用在SSL/TLS上
+
+
+Hash算法（摘要算法），不可逆算法
+Hash算法的特点是单向不可还原，用户可以通过hash算法对目标信息生成一段特定长度的唯一hash值，却不能通过这个hash值重新获得目标信息。因此Hash算法常用在不可还原的密码存储、信息完整性校验等。只要源数据不同，算法得到的摘要必定不同。
+常见的Hash算法有MD2、MD4、MD5、HAVAL、SHA
+目前仅剩SHA-2算法是安全的，其他算法均可破解
+
+
+数字签名
+数字签名用来，保证信息传输的完整性、发送者的身份认证、防止交易中的抵赖发生。
+数字签名是 A将原始明文通过 hash 算法得到摘要，这个摘要是不可逆的；将明文加密，连同摘要一起发送给B；B接收到后解密，得到这个摘要a和加密的明文，再将加密明文解密得到原始明文，然后通过同一 hash 算法得到新的摘要b，比较a与b就可得知在传输过程中是否被更改过。
+因此数字签名能够验证信息的完整性。如果中途数据被纂改或者丢失。那么对方就可以根据数字签名来辨别是否是来自对方的第一手信息数据。
+
+---------------------------------------
+
+
+登录方案
+序言
+作为一个软件开发者，提高软件的安全性是每个人都需要关注的。安全性涉及的面很广，比如Apk包是否做了代码混淆（提高反编译难度），数据传输过程是否安全，数据库存储的数据是否安全等。
+今天，我们来探讨一下App登录模块密码传输的安全性。
+
+可行方案
+先给出一个比较可行的方案，后面会分析安全性是怎么体现的。
+
+用户注册过程，客户端通过rule1(pass)得到一个编码后的密码串passStr，然后调用注册接口把name/passStr传给服务器保存（不能用明文密码传输保存）
+用户在登录页面填写了用户name和密码pass后，点击登录按钮，客户端通过rule1(pass)把明文密码转换为passStr
+客户端发送请从服务器查询一个时间戳ts和随机盐salt
+客户端按照一定规则rule2(pass, salt)生成一个加密字符串encryptStr1，调用登录接口，把name/encryptStr1/ts传给服务端
+服务器接收到请求，根据name获取passStr/salt，然后按照同样的规则rule2(pass, salt)得到密码串encrptStr2
+然后用encryptStr2与客户端传来的encryptStr1进行比对，如果两者相同，则登录成功，返回一个会话给客户端。
+
+SHA-2算法（不可逆算法，破解除外）
+
+上面的步骤中有些地方需要做一些说明：
+服务端不能存储明文密码，但可以存储一个编码后的密文passStr，这个密文在用户注册的过程中客户端生成（根据用户输入的密码pass按一定的规则rule1生成），通过注册接口传给服务端，服务端保存在用户表中。
+salt应该具有时效性，可以设置一个比较短的有效期（如1分钟），一旦超过这个时间，salt失效，通过salt生成的加密串也验证不通过。
+这么说可能不够形象，下面我用一张图来表示：
+
+
+
+image.png
+模拟盗取用户信息登录
+针对上面提出的登录加密方案，我们考虑一下如何能够盗取用户的登录信息。
+
+首先，我要说的是Https请求可以通过抓包工具获取通信内容，所以仅仅通过Https来保证安全是不可靠的
+在手机中植入病毒，获取用户的输入行为，这种方式毫无疑问可以直接拿到用户的用户名跟密码，直接冒充用户身份登录
+拦截用户的注册请求获取passStr，不过用户注册的行为是一次性的，所以不那么好拦截，我们就认为无法获取passStr
+拦截获取随机盐接口，那么攻击者就可以修改参数获取用户的随机盐
+拦截登录接口，攻击者可以获取当次请求的encryptStr1/name/ts，用这些参数可以在salt有效期内冒充用户进行登录
+攻击者反编译Apk，获取rule1和rule2，但攻击者还是无法推算出passStr，所以还是无法冒充用户身份进行登录
+综上所述，攻击者可以做的事情如下：
+
+往用户手机中植入恶意病毒，监听用户输入操作，获取用户名密码，可冒充用户登录
+拦截用户注册请求，获取passStr，拦截获取随机盐请求，知道获取salt规则，反编译Apk，获取rule2。知道这些信息的情况下，也可以冒充用户进行登录。但这种方式难度极大，主要存在以下几个难点：注册操作是一次性的，不太可能被拦截；要抓取Https请求包，需要在用户手机上安装证书，或者让用户在自己安装证书的手机上登录账号；APK会加入混淆规则，所以反编译难度比较高。总结来说，这种方式不太可行。
+拦截用户登录接口，获取此次登录参数，在salt有效时间内，可以冒充用户登录，如果用户体系存在互踢机制，那么用户会发觉账号被踢，及时修改密码
+总结
+从以上分析可以看出，这种登录方案还是比较安全可靠的，用户密码和登录信息不易泄漏。当然，除了这种方式，还有很多其他方式也可以保证安全，比如非对称加密RSA算法，对称加密算法（用RSA加密秘钥）等。
+
+
+---------------------------------------
+
+
+Html5
+
+style标签，用于为 HTML 文档定义样式信息。在 style 中，您可以规定在浏览器中如何呈现 HTML 文档。
+type 属性是必需的，定义 style 元素的内容。唯一可能的值是 "text/css"。style 元素位于 head 部分中。
+例如：style是用花括号{} 来写入样式的。
+
+----------------------------------------------------------------------
+
+获取HTML元素3个方法比较：document.getElementsByName()、document.getElementById()、document.getElementsByTagName()
+
+document.getElementsByName()    是根据控件名称获取这个控件对象，因为控件名称可以相同，返回的是一个对象数组。 
+document.getElementById()      是根据控件ID获取这个控件对象，因为控件ID唯一，返回的是一个对象。 
+document.getElementsByTagName() 是根据控件TAG获取这个控件对象，返回的是一个对象数组。 
+例如： 
+HTML中有控件如下： 
+    <input type="radio" id="radio1" checked="checked" name="radiogroup1"  value="1"/> 
+    <input type="radio" id="radio2" name="radiogroup1" value="2"/> 
+    <input type="radio" id="radio3" name="radiogroup1" value="3"/> 
+则： 
+ document.getElementsByName('radiogroup1') 取得的是这三个控件，可以用      document.getElementsByName('radiogroup1')[0] 取得的是第一个控件。 
+ document.getElementById('radio1')取得的是第一个控件， 
+ document.getElementsByTagName('input') 取得的是这三个控件
+
+可以在JavaScript中获取这些，联合事件一起使用
+
+例1，内联模型：
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<title>无标题文档</title>
+</head>
+<body>
+<script>
+function butOnclick(){ alert('wrx'); }
+</script>
+<input type="button" name="button" value="点击" onclick="javascript:butOnclick();"/>
+</body>
+</html>
+
+例2，脚本模型，以下这个button.onmouseup可以替换成其他事件，onclick/ondblclick，onfocus/onblur等等
+<body>
+    <button id="button"> 点击我</button>
+    <script>
+        var button=document.getElementById("button");
+        button.onmouseup=function(){
+            alert("hello world");
+        };
+    </script>
+</body>
+
+例3，脚本模型，鼠标滚动事件
+   <script>
+        document.onmousewheel=function(){
+            alert(event.wheelDelta);
+        };
+    </script>
+----------------------------------------------------------------------
+
+h5各种标签用法：
+
+
+
+
+
+
+----------------------------------------------------------------------
+
+JavaScript
+
+JavaScript
+JavaScript用法简单，只需要在.html文件中加入<script>标签，这个标签一般加在<head>或者</body>里面
+直接使用浏览器打开html文件即可，浏览器能自动识别<script>标签
+它的写法就是在<script>写类似于java的代码，例如：
+<head>
+<script type="text/javascript" > alert("hello world"); </script>
+</head>
+------------------------------
+
+<script>标签属性：
+在HTML5中script主要有以下几个属性：async，defer，charset，src，type，
+
+async（可选）：关键词：异步脚本，外部文件，立即下载；
+当标签中包含这个属性时会立即下载脚本（外部文件），只对外部脚本文件有效，下载的同时可以进行页面的其他操作，下载完成后停止解析并执行，执行后继续进行解析，但不能保证执行顺序。　　
+<script src="js/index2.js" async="async"></script> 　　
+
+defer（可选）：关键词：延迟脚本，外部文件，延迟加载；
+当标签中包含这个属性时，脚本可以再等到页面完全被解析或显示之后执行，只对外部文件有效，如果同时存在两个带有defer的脚本，由于延迟的原因，前者将会有限于后者执行。
+<script src="js/index1.js" defer="defer"></script> 
+
+charset（可选）：关键词：字符集
+大多数浏览器已经忽略它的值了，所以很少有人使用。
+
+src（可选）：关键词：外部引用，这个很经常用到
+表示需要引用的外部文件的地址。
+使用方式：
+1 在html文件的<head>中写加入
+<script type="text/javascript" src="demo2.js"></script>
+2 在html文件的同一目录下，加入文件demo2.js，并写入
+alert("wrx");
+
+type（可选）：关键词：MIME（脚本语言的内容类型）
+为保证最大限度的浏览器兼容，type的属性值主要时候用的依旧是text/javascript，如果没有写这个属性，其默认值仍然为text/javascript。
+------------------------------
+
+JavaScript关键字
+break，case，catch，continue，default，delete，do，else，finally，for，function，
+if，in，instanceof，new，return，switch，this，throw，try，typeof，var，void，while，with
+
+------------------------------
+
+变量定义举例
+var obj = 100;
+var obj = "www";
+var obj = {"key1":"value1", "key2":"value2", "key3":"value3"};
+var obj = new Date();
+var obj = new String("green");
+
+JSON操作
+var obj = {make: "Honda", model: "Accord", year: 1998};
+var jsonstr = JSON.stringify(obj);
+alert(jsonstr);
+var jsonObject= JSON.parse(jsonstr);
+
+var jsonObj = {make: "Honda", model: "Accord", year: 1998};
+alert(jsonObj.year);
+
+var jsonArray = ["123", "456", "789"];
+alert(jsonArray[1]);
+
+------------------------------
+
+运算符
+JavaScript的运算符合Java接近，加减乘除 自增 自减 位运算 三目运算 与或非 大于小于等于都可以直接使用
+------------------------------
+
+流程控制语句
+JavaScript的运算符合Java接近，for循环，if判断，switch case defult，try catch finally都可以使用
+
+------------------------------
+
+函数使用关键字function，可以有返回值和多个参数，不需要声明返回值类型
+function method(str) {					
+	return "hello " + str;
+}
+alert(method("oo"));
+------------------------------
+
+类，创建类可以使用var，可以不需要定义类而直接创建 
+function Person(){
+    this.username = "zhangsan";
+    this.password = "123";
+    this.get = function(){
+        return (this.username+","+this.password);
+    }
+}
+var person = new Person();
+alert(person.username);
+alert(person.get());
+
+直接创建空类并使用
+var object = new Object();
+object.name="ppp";
+alert(object.name);
+------------------------------
+
+事件
+javascript与HTML之间交互就是通过事件实现的，事件就是文档或浏览器窗口中发生的一些特定的交互瞬间。
+事件在浏览器中是以对象的形式存在的，即event，触发一个事件，就会产生一个事件对象event，该对象包含着所有与事件有关的信息，包括导致事件的元素、事件的类型以及其他与特定事件相关的信息。
+
+常用事件：
+onfocus/onblur:聚焦离焦事件，用于表单校验的时候比较合适。
+onclick/ondblclick:鼠标单击和双击事件
+onkeydown/onkeypress：搜索引擎使用较多
+onload：页面加载事件，所有的其它操作(匿名方式)都可以放到这个绑定的函数里面去。如果是有名称，那么在html页面中只能写一个。
+onsubmit：表单提交事件 ，有返回值，控制表单是否提交。
+onchange:当用户改变内容的时候使用这个事件(二级联动)
+onmouseover/onmouseout:鼠标的移入/移出时事件（用于购物网站商品详情页）
+onmousemove：当鼠标的移入到某元素块时的事件（用于购物网站商品详情页）
+
+事件添加
+脚本模型(还有其他模型可以用)，以下这个button.onmouseup可以替换成其他事件，onclick/ondblclick，onfocus/onblur等等
+<body>
+    <button id="button"> 点击我</button>
+    <script>
+        var button=document.getElementById("button");
+        button.onmouseup=function(){
+            alert("hello world");
+        };
+    </script>
+</body>
+
+
+------------------------------------------------------------------------------------------------
+
+window.onload是一个事件，当文档内容完全加载完成会触发该事件。
+可以为此事件注册事件处理函数，并将要执行的脚本代码放在事件处理函数中，于是就可以避免获取不到对象的情况。
+
+window.onload()事件绑定事件处理函数，可以绑定匿名函数，也可以绑定具名函数。
+window.onload()绑定多个事件处理函数时，只能使用一次此事件，所以可以将多个事件处理函数放在一个代码块中加载。
+<head>   
+<meta charset=" utf-8">   
+<script type="text/javascript">
+window.onload=function(){
+  function a(){
+    document.getElementById("bg").style.backgroundColor="#F90";
+  }
+  function b(){
+    document.getElementById("bg").style.width="200px";
+  }
+  a();
+  b();
+}
+</script>
+</head>
+
+------------------------------------------------------------------------------------------------
+
+Ajax技术
+AJAX = 异步JavaScript和XML
+AJAX为向服务器发送请求和解析服务器响应提供了流畅的接口。能够以异步方式从服务器取得更多信息，意味着用户单击后，可以不必刷新页面也能取得新数据。
+也就说可以使用AJAX技术取得新数据，然后再通过DOM将新数据插入到页面中。
+AJAX将浏览器原生的通信能力提供给了开发人员，简化了实现同样操作的任务。同时可以在不重新加载整个网页的情况下，对网页的某部分进行更新。
+
+AJAX的技术核心是XMLHttpRequest对象（简称XHR），现在几乎所有浏览器都提供这个原生内置对象，在JavaScript中通过操作XHR对象来使用AJAX。
+
+创建XMLHttpRequest对象的方式非常简单：
+var xhr = new XMLHttpRequest();
+// 启动一个GET请求，并没有发送
+xhr.open("get", "http://localhost:8080/AjaxTest/AjaxServlet", false);
+// 发送请求
+xhr.send(null);
+
+
+
+------------------------------------------------------------------------------------
+
+
+TCP，Http，Https，SSL/TLS
+--------------------------------------------------------------------------------------
+Token
+在计算机身份认证中是令牌（临时）的意思，是服务端生成的一串字符串，作为客户端进行请求的一个标识。
+当用户第一次登录后，服务器生成一个token并将此token返回给客户端，以后客户端只需带上这个token前来请求数据即可，无需再次带上用户名和密码。
+简单token的组成；uid(用户唯一的身份标识)、time(当前时间的时间戳)、sign（签名，token的前几位以哈希算法压缩成的一定长度的十六进制字符串。为防止token泄露）
+
+Token, 令牌，代表执行某些操作的权利的对象
+访问令牌（Access token）表示访问控制操作主体的系统对象
+邀请码，在邀请系统中使用
+Token, Petri 网（Petri net）理论中的Token
+密保令牌（Security token），或者硬件令牌，例如U盾，或者叫做认证令牌或者加密令牌，一种计算机身份校验的物理设备
+会话令牌（Session token）,交互会话中唯一身份标识符
+令牌化技术 (Tokenization), 取代敏感信息条目的处理过程
+
+Token 是在服务端产生的。如果前端使用用户名/密码向服务端请求认证，服务端认证成功，那么在服务端会返回 Token 给前端。
+前端可以在每次请求的时候带上 Token 证明自己的合法地位。
+Token保存在Cookies上，这样就不用保存用户名密码而是保存Token，就可以做免密登录了（可以在chrome中查看某个需要登录的网站是否保存了Token）
+--------------------------------------------------------------------------------------
+Cookie
+有时也用其复数形式 Cookies，指某些网站为了辨别用户身份、进行 session 跟踪而储存在用户本地终端上的数据（通常经过加密）。定义于 RFC2109 和 2965 中的都已废弃，最新取代的规范是 RFC6265 。可以叫做浏览器缓存
+--------------------------------------------------------------------------------------
+TCP的三次握手
+用通俗的话来讲，这三次沟通就是：
+发起方：“你好，请问我可以跟你建立一个连接吗？”（发送请求，等待回复）
+接收方：“好啊，我准备好了，来吧。”
+发起方：“好的，谢谢，我现在开始向你发送数据了。”
+
+1.客户端的TCP向服务器端的TCP发送一个特殊的TCP报文段：SYN报文，进入SYN_SENT状态，等待服务器确认。（首部的SYN被置为1）
+2.服务端SYN报文段，发送一个允许连接的报文段：SYNACK报文段，进入SYN_RECV状态。（SYN为1，ACK标记位为1，确认号为client_isn+1）
+3.客户端收到SYNACK报文段，客户机会再次向服务端发送一个确认报文，客户端进入ESTABLISHED状态。
+  服务端收到这个报文段后，也进入ESTABLISHED状态ACK标记位为1，确认号为server_isn+1。
+  
+为什么是三次？
+为了实现可靠数据传输， TCP 协议的通信双方， 都必须维护一个序列号， 以标识发送出去的数据包中， 哪些是已经被对方收到的。
+ 三次握手的过程即是通信双方相互告知序列号起始值， 并确认对方已经收到了序列号起始值的必经步骤。
+如果只是两次握手， 至多只有连接发起方的起始序列号能被确认， 另一方选择的序列号则得不到确认。
+
+第一次握手是客户端告诉服务端准备发起通讯。第二次握手是服务端发序列号给客户端。第三次握手是客户端发序列号给服务端。
+
+在 UDP 协议中， 是没有握手这个操作的。即不管数据包的丢失。 不可靠的，不能保证顺序的。
+
+TCP 协议为了实现可靠传输， 通信双方需要判断自己已经发送的数据包是否都被接收方收到， 如果没收到， 就需要重发。 
+为了实现这个需求， 很自然地就会引出序号（sequence number） 和 确认号（acknowledgement number） 的使用
+
+发送方在发送数据包（假设大小为 10 byte）时， 同时送上一个序号( 假设为 500)，那么接收方收到这个数据包以后，
+就可以回复一个确认号（510 = 500 + 10） 告诉发送方 “我已经收到了你的数据包， 你可以发送下一个数据包， 序号从 510 开始” 。
+
+为了实现可靠传输，发送方和接收方始终需要同步( SYNchronize )序号。 需要注意的是， 序号并不是从 0 开始的， 
+而是由发送方随机选择的初始序列号 ( Initial Sequence Number, ISN )开始 。 由于 TCP 是一个双向通信协议， 通信双方都有能力发送信息， 并接收响应。
+因此， 通信双方都需要随机产生一个初始的序列号， 并且把这个起始值告诉对方
+
+TCP报文格式
+（1）序号：Seq序号（Sequence number），占32位，用来标识从TCP源端向目的端发送的字节流，发起方发送数据时对此进行标记。
+（2）确认序号：Ack序号（Acknowledgment number），占32位，只有ACK标志位为1时，确认序号字段才有效，Ack=Seq+1。
+（3）标志位：共6个，即URG、ACK、PSH、RST、SYN、FIN等，具体含义如下：
+  　　（A）URG：紧急指针（urgent pointer）有效。
+  　　（B）ACK：确认序号有效。
+  　　（C）PSH：接收方应该尽快将这个报文交给应用层。
+  　　（D）RST：重置连接。
+  　　（E）SYN：发起一个新连接。
+  　　（F）FIN：释放一个连接。
+
+总结：
+第一次握手总是客户端发给服务端的。
+第二次握手服务端发给客户端序号。
+第三次握手客户端发给服务端确认序号。
+--------------------------------------------------------------------------------------
+
+TLS/SSL，SpringBoot，数字签名和数字证书，公钥私钥 
+SSL(Secure Sockets Layer 安全套接层),及其继任者传输层安全（Transport Layer Security，TLS）是为网络通信提供安全及数据完整性的一种安全协议。
+TLS与SSL在传输层与应用层之间对网络连接进行加密。
+-------------------------------
+公钥私钥都可以用来加密和解密，一般私钥服务机保留用来加密报文，公钥发给客户机用来解密服务机发过来的报文
+私钥加密公钥解密
+
+数字签名
+首先通过数字摘要技术（哈希摘要算法）把交易信息缩短成固定长度的字符串，然后用非对称加密技术（私钥）对摘要进行加密，进而形成数字签名。
+
+数字证书
+数字签名，用户公钥，用户某些相关信息组成数字证书。数字证书被 证书授权中心 的私钥加密
+数字证书是附带在发送的报文上的
+
+服务端发送原报文和数字证书给客户端，客户端开始验证：
+数字证书用ca的公钥解密，得到用户公钥和数字签名
+公钥解密数字签名得到 数字摘要
+原报文进行哈希摘要算法得到另一份数字摘要
+两份数字摘要进行对比
+
+数字摘要进行对比验证 完整性，确保信息没有被修改过
+公钥私钥的加解密验证 通信双方的合法性并且保证报文不是明文，确保通信的对方的身份正确
+数字证书中心也是确保 通信双方的合法性，当客户端没有服务端的公钥时，数字证书中心的公钥解密报文，拿到服务端的公钥。
+客户端浏览器中内置的受信任的数字证书中心，浏览器中有一个默认的数字证书中心列表
+
+Certificate报文发送之后，互相确认了通信双方的身份，也拥有了服务端的公钥，之后双方就是用公钥私钥加密通信。
+
+在https中这套机制是在 传输层 中的，用于tcp握手，握手完成之后，双方用公私钥，加解密传输信息。
+-------------------------------
+windows查看证书
+底部任务栏搜索internet选项，或者控制面板找internet选项，或者ie浏览器的工具的internet选项
+internet选项 -> 内容
+受信任的根证书颁发机构 就是ca，例如：Actalis Authentication Root CA
+
+--------------------------------------------------------------------------------------
+HTTPS:
+0.建立TCP连接
+由于SSL协议依赖于TCP连接实施，所以在SSL交互之前需要先建立TCP连接。客户端connect服务端，服务端acccept客户端，经历三次握手以后TCP连接建立。
+
+具体数据交互过程：
+1. 客户端发送 Client Hello给服务端
+
+2. 服务端发送 Server Hello给客户端
+   服务端发送 Server Certificate报文
+   服务端发送 Client server key exchange报文
+   服务端发送 Certificate request报文
+   服务端发送 Server hello done报文
+
+3. 客户端发送 Client Certificate报文
+   客户端发送 Client key exchange报文
+   客户端发送 Certificate verity报文
+   客户端发送 change cipher spec 报文
+   客户端发送 Client finish message报文
+
+4. 服务端发送 change cipher spec 报文
+   服务端发送 server finish message报文
+
+Client Hello
+	1.Version Number. 2 for SSL 2.0 ； 3 for SSL 3.0 ；3.1 for TLS.
+	2.Randomly Generated Data. 随机码，（random_C，也叫Client random）用于生成MS（master secret）和MAC密钥，
+	3.Session Identification (if any). 有或者无，有则客户端传上一次session的id可以恢复session
+	4.Cipher Suite. 客户端支持的密码算法列表，供服务器选择
+	5.Compression Algorithm. 客户端支持的压缩算法列表，供服务器选择
+	
+Server Hello.
+	1.Version Number. 服务器选择的版本
+	2.Randomly Generated Data. 随机码，（random_S，也叫Server random）用于生成MS（master secret）和MAC鉴别码。此时服务端已经可以生成自己的MS，（master secret）后面会对比客户端生成的M，用于会话加密，是对称的。MAC密钥用于鉴别报文完整性。
+	3.Session Identification (if any). 有3种情况，1无：说明这次是新session；2新的，表明是新session，可能是服务器恢复旧session失败导致；3旧的：服务器恢复session成功，这个id与客户端给的一样。
+	4.Cipher Suite. 服务端选择的密钥算法
+	5.Compression Algorithm. 服务端选择的压缩算法
+
+Server Certificate. 服务端的公钥证书，包含公钥
+
+Server Key Exchange. 通常没有，可选的，是一个暂时用于加密客户端发送的信息。仅仅用于服务端的公钥无法对信息加密
+
+Client Certificate Request. 请求客户端的公钥，可选的。
+
+Server Hello Done. 说明hello结束，等待客户端回应
+
+Client Certificate. 发送客户端公钥
+
+Client Key Exchange. 证书没问题，用双方选择的随机码生成pre-master secret，用服务端公钥加密后发送，用于会话加密，是对称密钥。
+
+Certificate Verify. 仅当客户端发送的自己公钥时会有。数字签名，客户端用自己私钥加密，服务端用客户端给的公钥解密，做端点鉴别。
+
+Change Cipher Spec. 告诉服务端已经用协商好的算法加密信息。
+
+Client Finished. 一段用服务端公钥以及加密信息的hash，如果服务端能解开，说明没问题
+
+Change Cipher Spec Message. 告诉客户端已经用协商好的算法加密信息
+
+Server Finished Message.
+
+关于身份验证：
+服务端和客户端(可选)都会发送自己的证书给对方，通过数字证书验证对方身份的合法性
+
+关于加密随机数的生成：
+客户端:
+计算产生随机数字Pre-master
+	此时客户端已经获取全部的计算协商密钥需要的信息：两个明文随机数 random_C 和 random_S 与自己计算产生的 Pre-master，
+	计算得到协商密钥:enc_key=Fuc(random_C, random_S, Pre-Master)
+	在Client Key Exchange（第三次握手）中发服务端
+服务器:
+	用私钥解密加密的 Pre-master 数据，基于之前交换的两个明文随机数 random_C 和 random_S，
+	计算得到协商密钥:enc_key=Fuc(random_C, random_S, Pre-Master);
+random_C 和 random_S：
+	在hello阶段就互相发送给对方的随机数
+
+MS: master secret，用于对称加密
+MAC : message authentication key ，用于鉴别报文完整性。注意与链路层的MAC区别
+MS和MAC都是由两个随机数生成的。
+
+正式开始通信：
+将http明文加密后进行传输
+双方通信的密文由 明文加密钥加算法 组成。先用密钥加密，再用算法加密。
+
+总结：
+1.客户端向服务端发出请求，包含协议版本号、随机数Client random，以及客户端支持的加密方法
+2.服务端确认双方使用的加密方法，并给出数字证书、以及一个服务器生成的随机数（Server random）
+3.客户端确认数字证书有效，生成一个新的随机数（Premaster secret），并使用数字证书中的公钥，加密这个随机数
+4.服务端使用自己的私钥，获取客户端发来的随机数（即Premaster secret）
+5.双方根据约定的加密方法，使用前面的三个随机数，生成"对话密钥"（session key），用来加密接下来的整个对话过程。
+
+----------------------------
+1.客户端发送Client Hello报文开始SSL通讯。报文包含客户端支持的SSL的指定版本，加密组件（Cipher Suite）列表（所使用的加密算法及密钥长度）。
+
+2.服务器可以进行SSL通讯时，会以Server Hello报文作为应答。和客户端一样，在报文中包含SSL版本以及加密组件。服务器端加密组件内容是从步骤1接收到客户端加密组件内筛选出来的。
+
+3.之后服务器发送Certificate报文。报文中包含公开密钥证书。
+
+4.最后服务器发送Server Hello Done报文通知客户端，最初阶段的SSL握手协商部分结束。
+--4a.在客户端的证书验证过程为：用数字证书认证机构的公钥（一般在浏览器内置了）对签名进行解密得到摘要1，使用认证机构同样的摘要算法对证书源文件计算得到摘要2，
+     比对摘要1和摘要2是否一致即可确认信息是否被篡改。客户端确认证书有效后就可以从服务器证书取出公开密钥使用了。
+--4b.客户端随机生成Pre-master Secret（主要是通过RSA或者Diffie-Hellman算法生成）放入Client Key Exchange报文中。
+--4c.使用证书携带的公开密钥对Client Key Exchange报文加密处理。
+--4d.用Pre-master secret生成 master secre；还有生成CBC模式的初始向量（CBC模式第一次明文块做XOR的时候需要用到的初始向量，只要选择不同的初始向量，
+     相同的密文加密后会形成不同的密文，这是目前应用最广泛的模式。CBC加密后的密文是上下文相关的，但如果一个分组丢失，后面的分组将全部作废，即同步错误）。
+	 
+5.SSL第一次握手结束并验证通过后，客户端以Client Key Exchange报文作为回应。报文中包含通信加密中使用的一种称为Pre-master secret的随机密码串。该报文已经用步骤3中的公开密钥进行加密。
+--5a.服务器使用Pre-master secret 生成master secret。还有生成CBC模式的初始向量。
+Client Hello 和Server Hello阶段都会发送各自的Random随机数给对方，最终都是用来计算Master Secret的。
+ 
+6.接着客户端继续发送Change Cipher Spec报文。该报文会提示服务器，在此报文之后的通信会采用Pre-master secret密钥加密。
+
+7.客户端发送Finished报文。该报文包含连接至今全部报文的整体校验值。这次握手协商是否成功，要以服务器是否能够正确解密该报文作为判定标准。（已采用Pre-master secret密钥加密）
+
+8.服务器同样发送Change Cipher Spec报文。
+
+9.服务器同样发送Finished报文。
+
+10.服务器和客户端的Finished报文交换完毕之后，SSL连接建立完成，通信会受到SSL的保护。从此处开始进行应用层协议的通信，即发送HTTP请求。
+
+11.应用层协议通信，即发送HTTP响应。
+
+12.最后由客户端断开连接。断开连接时，发送close notify报文。上图做了一些省略，这步之后再发送TCP FIN报文来关闭与TCP的通讯。
+
+在以上流程中，应用层发送数据室会附加一种叫MAC的报文摘要。其能够查知报文是否遭到篡改，从而保护报文的完整性。
+
+
+--------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

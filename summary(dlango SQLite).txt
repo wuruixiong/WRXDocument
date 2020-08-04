@@ -1,4 +1,64 @@
+python
 
+类定义：
+class Person(object):
+	def __init__(self, name, age, sex):
+		self.name = name
+		self.age = age
+		self.sex = sex
+
+	def say(self):
+		return 'I am ' + self.name
+
+1. __init__函数是构造函数，
+2. self，首先明确的是self只有在类的方法中才会有，独立的函数或方法是不必带有self的。
+self在定义类的方法时是必须有的，虽然在调用时不必传入相应的参数。
+self名称不是必须的，在python中self不是关键词，你可以定义成a或b或其它名字都可以,
+但是约定成俗（为了和其他编程语言统一，减少理解难度），不要搞另类，大家会不明白的。
+self在定义时需要定义，但是在调用时会自动传入。
+self总是指调用时的类的实例，英文翻译过来就是 自己，本身 的意思。
+
+
+------------------------------
+Django
+
+view(视图):完成逻辑相关的操作，一般写在views.py里，第一个参数必须是request，返回值是HttpResponse。
+
+
+template(模板):视图函数只是返回文本，而实际上，页面大多是带有样式的HTML。
+DTL(Django template language)是特殊的模板语言，也是带有特殊语法的HTML文件，
+这个HTML文件可以被Django编译，可以传参，数据动态化，最后编译出一个普通HTML返回给客户端。 
+
+--------------------------------------------------------------------------
+
+urls.py配置
+新版本的django使用path，path()中可以传入参数：路径，视图，url名称。
+其中视图参数不需要加小括号，直接将视图函数作为参数传入(加了小括号就是调用该函数并把返回值作为参数传入)
+
+--------------------------------------------------------------------------
+
+template(模板):
+DTL可以使用外部渲染模板函数传入的参数。在使用模板变量时，使用两个花括号{{ variate }}
+DTL可以带有if/for..in/url 等等特殊语法，在使用该标签时，会使用花括号+百分号+内部语法 {% if... %}来使用模板标签。
+
+template可以被继承，重复使用，降低代码冗余。
+
+例如：
+def index(request):
+	context = {
+		'username' : 'wrx'
+	}
+	# 渲染函数render中，传入context(第一个context表示函数render的关键字参数，第二个context表示方法内定义的那一个context)
+	return render(request, 'index.html',  context = context)
+
+# 还能这么写
+def say(request):
+	return render(request, 'index.html',  context = {'title': 'my page', 'user': user})
+	#return render(request, 'index.html', {'title': 'my page', 'user': user})
+
+index.html: 
+
+------------------------------
 
 使用 pycharm开发 python web， 现在有虚拟机，所以不用安装dlango，只需直接创建项目再运行即可。
 个人理解，想要使用安装过的dlango开发也可，但需要制定路径，

@@ -2630,19 +2630,171 @@ String test = String.format(getResources().getString(R.string.test_xliff), 7, "�
 
 
 
+------------------------------------------------------------------------------------------------------------
 
 
 
 
 
+android gradle
+gradlew assembleDebug --stacktrace
+可打印堆栈，当编译报错时，方便定位
+
+------------------------------------------------------------------------------------------------------------
 
 
+NDK开发 Android 与 C++
 
+------------------------------
 
+关于android的库
 
+jni的本质就是通过反射来进行的，详细可以看android的native方法定义
 
+android的ndk提供了大量的函数(路径是\ndk-bundle\sysroot\usr\include)，都是只有头文件声明，这些头文件的定义就在.so库中，
+手机操作系统自带这些库，.so库一般位于/system/lib/下。只要是程序，一般都会用到这些库文件提供的功能。
+所以本地开发环境是看不到c++的源码的，只能看到头文件的声明。
+不建议在android原生ndk源码上浪费时间，一般的需要使用到c++开发的情况也是 拿着其他框架的源代码利用ndk编译出.so库文件来使用
+再把那些.so文件存入项目中进行依赖，比较少使用到android的原生框架代码。
 
+例如 ndk中的\ndk-bundle\sources\cxx-stl\gnu-libstdc++
+在真实的设备上，只自带了缺省的C++ 运行时库（一般该文件位于/system/lib/libstdc++.so），
+在Android NDK中只包含了这个运行时库所需要的一些头文件，并没有真实的静态库和动态库。
+所以，也就是说，Android系统中默认的那个C++运行时库是没有静态库版本的，而且由于系统自带了，
+所以在你的程序中也不需要再包含这个库的.so文件了，可以减小安装文件的大小。
 
+C++ 标准除了定义了语法之外，还包含了一个包罗万象的标准库，方便程序的开发者调用，
+从而使用简单代码就可以实现复杂的功能。最简单的，比如string就是属于C++ 标准库的，C++ 自己的语法中并没有string关键字，只有char。
+
+运行时库（Runtime library）通俗的说就是我们的程序运行的时候所依赖的库文件，
+在Windows平台这些库由微软提供，并且是以2种形式提供：静态库(lib)、动态库(lib+dll)。每个库还都提供debug、release 2个版本。
+C/C++运行时库从形式上来讲和我们自己开发的静态库、动态库没什么两样，
+只是它们由微软开发和维护，并提供了一些常用的功能支持（如malloc,free, printf等等），
+如果我们的程序需要使用这些功能（事实上，只要是C/C++程序就一定会用到运行时库提供的功能），
+就要链接C/C++运行时库。我们可以自主选择是链接“静态库”还是“动态库”，是链接“debug版本”的还是“release版本”的。
+
+参考博客：
+https://blog.csdn.net/koibiki/article/details/80952367
+
+----------------------------------------------------------------
+
+Clang是一个由Apple主导编写，基于LLVM的C/C++/Objective-C编译器
+
+----------------------------------------------------------------
+
+一些个人的理解：
+----------------------
+关于.so库
+在java中，如果要使用到c++代码，必须要用到jni，
+也就是说cpp代码至少有一个方法是指向java代码的( 用JNIEXPORT void JNICALL 关键字标识，方法名是java的包名并以下划线分隔开)
+接着java代码中定义一个对应的方法。
+如果编译出.so文件并需要使用该.so文件，不使用cpp源码，那么.so文件的cpp源码，也必须有一个jni方法，
+同时，java代码中也要有对应的包名下的方法。
+
+如果在一些项目中发现没有cpp文件却有java的native方法，应该是依赖了.so文件，并且使用了jni技术，
+那么这些native方法是不能换名字的，或者也不能把native方法所在的类转移到其他路径，否则在调用native方法时会报错。
+----------------------
+关于android studio ndk c++开发
+可能有时无法查看c++源码，需要在setting中plugins中开启 "android ndk support"
+这个源码是位于ndk中的，例如#include 
+
+------------------------------------------------------------------------------------------------------------
+
+NDK开发 CMake
+
+CMake
+cmake就是脚本构建工具，用于构建C / C ++库
+
+android 官网介绍了几个cmake脚本的基础命令
+https://developer.android.com/studio/projects/configure-cmake
+
+cmake官方也有这些命令的详细描述，比较不友好的是没有例子
+https://cmake.org/cmake/help/latest/manual/cmake-commands.7.html
+https://cmake.org/cmake/help/latest/command/add_library.html
+https://cmake.org/cmake/help/latest/command/find_library.html
+https://cmake.org/cmake/help/latest/command/target_link_libraries.html
+
+------------
+
+android原生api官方文档
+https://developer.android.com/ndk/guides/stable_apis
+
+----------------------------------------------------------------
+
+Android NDK 原生 API：
+Android NDK 会提供一组随着新的 Android API 级别的后续发布而逐渐添加的原生标头和共享库文件。
+https://developer.android.com/ndk/guides/stable_apis.html
+
+以下两个基本步骤的操作，以便让您的应用使用 NDK 提供的库：
+1.在您的代码中添加与您想使用的库关联的标头。
+  这个就是cpp代码中include头文件
+
+2.通知编译系统您的原生模块需要在加载时链接库。
+  在cmake中要引入链接库，使用target_link_libraries命令
+
+Android平台上已经存在预构建的NDK库，因此您无需构建它们或将它们打包到APK中。 
+因为NDK库已经是CMake搜索路径的一部分，所以您甚至不需要在本地NDK安装中指定库的位置 - 您只需要向CMake提供您要使用的库的名称并链接 
+
+----------------------------------------------------------------
+cmake_minimum_required(VERSION 3.4.1)
+描述当前cmake是使用了哪一个版本，也有很多版本
+------------
+add_library()
+加入一个动态库
+可以在一个cmake文件中多次使用add_library命令，
+一般情况下是一套c++功能的文件写一个
+例如：
+add_library(plasma SHARED
+              plasma.cpp
+              native-lib.cpp )
+编译名plasma的为动态库，这个动态库里面是两个cpp(plasma、native-lib)的代码组成的。
+
+SHARED是参数，意思是建立名为plasma的动态库，还有其他参数STATIC, MODULE
+STATIC是建立静态仓库，具体使用说明可以看官方介绍，一般情况就是编译动态库
+
+如果要使用到这个库，那么需要在java代码中加入
+static {
+	System.loadLibrary("plasma");
+}
+
+注意：java代码中，声明native方法，
+那么这个方法就要在两个cpp文件中的其中一个，再定义好相对应的方法
+例如 native String plasmaTest()
+然后在native-lib.cpp定义一个方法：
+extern "C" JNIEXPORT jstring JNICALL
+Java_wrx_mytest_PlasmaView_plasmaTest()
+
+------------
+include_directories(src/main/cpp/include/)
+用于指定头文件路径
+
+------------
+find_library( log-lib
+              log )
+log是android的日志库，log-lib是别名
+
+target_link_libraries(
+                       #Links the log library to the target library.
+					   #将日志库链接到目标库
+                       ${log-lib}
+                       )
+
+------------
+target_link_libraries()
+将预构建的库链接，这个是最后一步，
+其实通常只需要 写 add_library和target_link_libraries就可以，
+add_library 是预构建自己的代码
+target_link_libraries 是把预构建的代码进行连接，如果还要使用一些预构建的NDK库，也要写进去
+
+------------
+注意：
+1.add_library、target_link_libraries等大多数命令都可以执行多次，即在一个cmake文件中，可以多次执行这些函数
+2.编译完成之后，build下面会生成.so的动态库文件
+3.注意命令中 library和libraries这种一个和多个的区别
+4.以上命令不可以更换顺序，否则在编译时，cmake会报错，正常情况下几个add_library命令写在最前面，
+   然后是几个target_link_libraries写在最后面。
+
+------------------------------------------------------------------------------------------------------------
 
 
 

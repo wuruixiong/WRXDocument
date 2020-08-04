@@ -1,0 +1,914 @@
+
+微服务已经其他的框架选型有几个比较重要的参考指标
+1.GitHub社区活跃度，如果一个项目超过一年没有更新，不推荐使用
+2.基础广泛，框架成熟
+
+
+
+微服务就是将传统的一站式应用，根据业务拆分成一个个小的服务，彻底解耦，
+用一个集中式管理(注册中心)来协调这些服务，每个微服务甚至可以用不同的语言，用不同的数据库来编写。
+
+
+消息中间件
+搜素框架
+negix负载均衡
+
+
+
+spring cloud 
+又很多小项目组成，每个项目有自己的版本，同一用地铁站命名
+
+
+-----------------------------------------
+心跳的概念
+注册中心每隔一段时间例如五秒，就会发生一条消息给 服务提供者或服务消费者，如果没有回应就表示服务提供者或服务消费者没有注册上。
+
+
+
+
+
+
+
+
+
+-----------------------------------------
+
+spring Cloud是一套规范，
+Spring Cloud Netflix是Spring Cloud其中的一个实现，
+现在又有了Spring Cloud Alibaba一个实现。
+同时部署运维这一部分可以多关注一下k8s。
+
+
+Netflix下有很多应用于springcloud的解决方案
+Eureka注册中心，ribbon负载均衡，Hystrix熔断和降级，zuul网关等等
+
+
+-----------------------------------------
+
+mybaits
+使用步骤：
+
+1导入依赖包，这个依赖包是要有版本号的，因为spring-boot-dependencies里面没有内置的mybaits版本号
+<dependency>
+	<groupId>org.mybatis.spring.boot</groupId>
+	<artifactId>mybatis-spring-boot-starter</artifactId>
+	<version>1.3.2</version>
+</dependency>
+
+2.编写javabean文件，编写XXXDao(或者命名为XXXMapper)的文件
+
+3.创建XXXMapper.xml，xxxconfig.xml
+结构：
+rescources
+	mybatis
+		mapper
+			XXXMapper.xml
+		mybaits-config.xml
+这里的XXXMapper.xml会绑定到之前的XXXDao上
+这里可以使用其他框架，加一个注解就可以不用再下mapper.xml文件了，config.xml文件也可以不用写了
+
+4.编写application.yml或者application.properties
+
+application.yml：
+#mybatis配置
+mybatis:
+  type-aliases-package: wrx.sc.scapi
+  config-location: classpath:mybatis/mybatis-config.xml
+  mapper-locations: classpath:mybatis/mapper/*.xml
+#spring的mysql的配置
+spring:
+  datasource:
+    #type: org.apache.tomcat.jdbc.pool.DataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/sc_demo?characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: WRXdemysql
+	
+
+application.properties：
+# mysql
+spring.datasource.url=jdbc:mysql://localhost:3306/gmall_study?characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+spring.datasource.username=root
+spring.datasource.password=WRXdemysql
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+
+# mybtais配置，这个mapper的路径要写对
+mybatis.mapper-locations=classpath:mapper/*Mapper.xml
+mybatis.configuration.map-underscore-to-camel-case=true
+
+5.创建XXXService接口，XXXServiceImpl实例化接口并使用mapper，@Service要使用在XXXServiceImpl上而不是XXXService上
+创建XXXController使用XXXService
+这里的mapper和service都可以使用@Autowired注解
+
+6.自定义负载均衡算法，
+application处增加注解@RibbonClient，name的参数使用大写，详细用法自行查询，
+@RibbonClient(name = "SPRINGCLOUD-PROVIDER-DEPT",configuration = XXXRule.class)
+
+
+-----------------------------------------
+
+
+Eureka集群
+
+集群就是多个eureka通过defaultZone配置连接在一起，每一个微服务同时向众多个注册中心Eureka注册，
+这么做的好处是以防单个注册中心挂掉之后整体服务全部无法正常工作
+-------
+
+Eureka注册中心module
+
+1.创建一个Eureka项目，用来当做注册中心
+2.导入pom依赖，编写配置文件，在Application处添加注解@EnableEurekaServer
+pom依赖
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+</dependency>
+
+#yml Eureka配置
+eureka:
+  instance:
+    hostname: localhost #Eureka服务端的实例名称
+  client:
+    register-with-eureka: false # 表示是否向eureka注册中心注册自己
+    fetch-registry: false #fetch-registry如果为false，则表示自己为注册中心
+    service-url:
+     # 单机：
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+     # 集群（关联）：
+     # defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/
+	 
+	 
+3.完成之后可以浏览器打开进行查看，通过ip和端口可以访问 http://localhost:7001/
+
+-------
+
+Provider微服务注册
+1.pom依赖
+<properties>
+	<java.version>1.8</java.version>
+	<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
+</properties>
+<dependencies>
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+	</dependency>
+</dependencies>
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-dependencies</artifactId>
+			<version>${spring-cloud.version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+
+2.Provider Application加入注解
+@EnableEurekaClient
+
+3.yml配置
+#Eureka的配置，服务注册到哪里
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:7001/eureka/
+  instance:
+    instance-id: springcloud-provider-dept8001 # 修改eureka上的默认描述信息！
+    prefer-ip-address: true  # true,可以显示服务的IP地址 ~
+
+4.微服务配置信息(可省略)，在localhost:7001的eureka页面，有一个连接可以点击，点击出现以下配置信息
+<!--actuator完善监控信息-->
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>	
+#yml的info配置
+info:
+  app.name: wrx-provider-dept8001
+  company.name: wrx.demo
+
+--------------
+
+集群配置
+
+1.创建三个module分别命名为eureka7001， eureka7002， eureka7003
+
+2.eureka修改集群配置(其他不需要修改，和单机配置一样)
+如果这里是eureka7001，那么设置defaultZone为另外两个eureka，本机不需要设置
+如果是eureka7002或者eureka7003一样的配置
+eureka:
+  instance:
+    hostname: localhost #Eureka服务端的实例名称
+  client:
+    register-with-eureka: false # 表示是否向eureka注册中心注册自己
+    fetch-registry: false #fetch-registry如果为false，则表示自己为注册中心
+    service-url:
+     # 单机：
+     # defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+     # 集群（关联）：
+     defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/
+
+3.修改provider的配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka/,http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/
+
+
+4.修改hosts文件
+127.0.0.1       eureka7001.com
+127.0.0.1       eureka7002.com
+127.0.0.1       eureka7003.com
+原本在同一台服务器上，以不同的端口来搭建集群，ip 或者 主机名相同时，无法形成副本。所以将其中一台迁移到了另外的服务器上了
+
+
+
+
+-------
+eureka是springcloud的注册中心，
+zookeeper是dubbo的注册中心
+两者有些不同点，首先eureka是基于http协议的，zookeeper是RPC协议
+
+在代码上，两者不同点在于eureka的consumer不需要在注册中心上注册，
+因为使用的是http协议，通过RESTful Service这种架构模式和Provider之间进行数据传递的
+具体代码就是使用RestTemplate类去传递
+Spring用于同步client端的核心类，简化了与http服务的通信，并满足RestFul原则，程序代码可以给它提供URL，并提取结果。
+
+而zookeeper、dubbo不一样，RPC协议下consumer需要 @Reference注解去获取 Provider的业务层service接口实例
+这就是所谓的远程接口调用
+
+关于eureka、zookeeper的CAP原则
+在一个分布式系统中，一致性（Consistency）、可用性（Availability）、分区容错性（Partition tolerance）。
+CAP 原则指的是，这三个要素最多只能同时实现两点，不可能三者兼顾。
+分布式系统需要分区容错性
+Zookeeper保证的是CP;
+Eureka保证的是AP，可用性，分区容错性
+
+-------
+
+在搭建 zookeeper 集群之前，我们首先要明白为什么要选择三台机器搭建，2台不可以吗？4台不可以吗？
+zookeeper 集群通常是用来对用户的分布式应用程序提供协调服务的，为了保证数据的一致性，对 zookeeper 集群进行了这样三种角色划分：leader、follower、observer分别对应着总统、议员和观察者。
+总统（leader）：负责进行投票的发起和决议，更新系统状态。
+议员（follower）：用于接收客户端请求并向客户端返回结果以及在选举过程中参与投票。
+观察者（observer）：也可以接收客户端连接，将写请求转发给leader节点，但是不参与投票过程，只同步leader的状态。通常对查询操作做负载。
+
+ZOOKEEPER：保证的是CP原则，即当我们向服务中心请求资源时，我们可以容忍服务中心返回的是几分钟前的信息，但不接受服务器直接挂掉不可用，也就是说，一致性相对高于可用性，BUG：zk存在一个问题，集群中当master节点挂掉，集群会进行一次内部选举，选一个新的节点作为master，这个时间是很长的(30~120s)，在此期间集群处于不可用状态，导致服务瘫痪，这是不可容忍的。
+
+EUREKA：保证的是AP原则，相对zookeeper来说eureka的各个节点都是平等的，几个节点挂掉并不会影响服务的使用，客户端再向服务中心注册服务时，只要有一个节点可用，就不影响服务的注册，另外eureka提供自我保护机制，当一段时间（15min）内超过85%的服务没有心跳时，eureka会认为客户端与服务中心出现网络故障，eureka会采用以下方式处理：
+
+eureka不再移除服务列表中因为长时间没有心跳而应该过期的服务
+eureka仍可以接受新服务的注册即查询请求，但不会同步到其他节点，保证当前节点可用，
+一旦其他节点恢复，再同步
+Eureka可以很好的应对网络故障导致部分节点挂掉的故障，而不会出现zookeeper的整个服务瘫痪，直至选举出新的master
+
+Eureka集群中每一个节点都是同级的，不需要经过漫长的选举
+
+
+每一个微服务中都有eureka client，用于服务的注册于发现 （服务的注册：把自己注册到eureka server） 
+（服务的发现：从eureka server获取自己需要的服务列表） 每一个微服务启动的时候，
+都需要去eureka server注册 当A服务需要调用B服务时，需要从eureka服务端获取B服务的服务列表，
+然后把列表缓存到本地，然后根据ribbon的客户端负载均衡规则，从服务列表中取到一个B服务，
+然后去调用此B服务 当A服务下次再此调用B服务时，如果发现本地已经存储了B的服务列表，
+就不需要再从eureka服务端获取B服务列表，直接根据ribbon的客户端负载均衡规则，从服务列表中取到一个B服务，
+然后去调用B服务 微服务，默认每30秒，就会从eureka服务端获取一次最新的服务列表 如果某台微服务down机，
+或者添加了几台机器， 此时eureka server会通知订阅他的客户端，并让客户端更新服务列表， 
+而且还会通知其他eureka server更新此信息 心跳检测，微服务每30秒向eureka server发送心跳， 
+eureka server若90s之内都没有收到某个客户端的心跳，则认为此服务出了问题， 会从注册的服务列表中将其删除，
+并通知订阅它的客户端更新服务列表， 而且还会通知其他eureka server更新此信息 eureka server保护机制，
+通过打卡开关，可以让eureka server处于保护状态，主要是用于某eureka server由于网络或其他原因，
+导致接收不到其他微服务的心跳，此时不能盲目的将其他微服务从服务列表中删除。 具体规则：如果一段时间内，
+85%的服务都没有发送心跳，则此server进入保护状态，此状态下，可以正常接受注册，可以正常提供查询服务，
+但是不与其他server同步信息，也不会通知订阅它的客户端，这样就不会误杀其他微服务
+
+
+
+-------
+
+疑问
+多个service的实例化，@Autowired怎么找到对应的
+Provider阻止外部访问
+
+@EnableDiscoveryClient  @EnableEurekaClient
+在使用Spring Cloud feign使用中在使用服务发现的时候提到了两种注解，
+一种为@EnableDiscoveryClient,一种为@EnableEurekaClient,用法上基本一致。
+spring cloud中discovery service有许多种实现（eureka、consul、zookeeper等等），
+@EnableDiscoveryClient基于spring-cloud-commons, @EnableEurekaClient基于spring-cloud-netflix。
+其实用更简单的话来说，就是如果选用的注册中心是eureka，那么就推荐@EnableEurekaClient，
+如果是其他的注册中心，那么推荐使用@EnableDiscoveryClient。
+
+
+
+
+-----------------------------------------
+
+springcloud ribbon负载均衡
+
+负载均衡是为了缓解单个微服务的压力，所以配置多个相同功能的微服务(这些微服务可以拥有不同的数据库)，
+当客户端访问时，负载均衡算法选择其中一个微服务进行访问。
+
+负载均衡通常是在客户端(就是消费者)做的
+
+负载均衡有两种，
+集中式，消费者和提供者之间再封装一层，所有的请求都过这一层，在这一层里面用负载均衡算法实现，将nginx可以做集中式负载均衡
+进程式，在消费者开始访问之前就确定要访问哪一个提供者
+
+ribbon是进程式，需要将consumer与eureka绑定，在众多provider选择一个访问
+
+
+
+----------
+
+配置consumer
+1.导入依赖
+<properties>
+	<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
+</properties>
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-dependencies</artifactId>
+			<version>${spring-cloud.version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+
+2.配置yml
+spring:
+  application:
+    name: springcloud-consumer-dept
+eureka:
+  client:
+    register-with-eureka: false # 不向Eureka注册自己，因为消费者不需要注册
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka/,http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/
+    
+3.RestTemplate增加注解@LoadBalanced
+    @Bean
+    @LoadBalanced
+    RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return builder.build();
+    }
+
+4.application增加注解@EnableEurekaClient：
+
+5.为了实现正真的负载均衡，可以直接创建多个相同功能的provider，
+使用同一个application name，连接不同的数据库，
+
+
+
+
+在处理Eureka时踩过一个缩进的坑，当时这么报错：
+Request execution error. endpoint=DefaultEndpoint{ serviceUrl='http://localhost:8761/eureka/}
+com.sun.jersey.api.client.ClientHandlerException: java.net.ConnectException: Connection refused: connect
+
+localhost:8761/eureka/中8761是eureka的默认端口，已经和yml中配置的端口不一致了，
+所以判断是yml配置出问题，仔细检查是缩进出问题，建议以后使用properties
+
+
+
+-----------------------------------------
+
+feign 负载均衡
+
+1. @FeignClient注解一个接口
+
+
+
+
+-----------------------------------------
+
+一般情况下，多个相同功能的微服务提供者 会注册在多个注册中心上，形成注册中心集群， 每个注册中心多个相同功能的微服务进行负载均衡
+
+客户端 在Eureka注册中心集群中 查询可用服务列表，在通过负载均衡算法去调用某一个微服务提供者
+
+
+-----------------------------------------
+
+
+框架Hystrix
+
+
+
+服务熔断
+当服务雪崩时产生作用
+
+熔断主要是在服务端做的，这里的客户端表示的是 注册中心的微服务提供者。
+熔断的代码主要是写在服务提供者上。
+
+1.pom.xml导入Hystrix依赖
+2.在用于熔断的方法上加入@HystrixCommand注解
+3.Application类增加@EnableCircuitBreaker注解，开启对熔断的支持
+
+
+引入pom依赖：
+<properties>
+	<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
+</properties>
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-dependencies</artifactId>
+			<version>${spring-cloud.version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+
+添加注解@HystrixCommand
+@GetMapping("/dept/get/{id}")
+@HystrixCommand(fallbackMethod = "hystrixGet")
+public Dept get(@PathVariable("id") Long id){
+	Dept dept = deptService.queryById(id);
+
+	if (dept==null){
+		throw new RuntimeException("id=>"+id+"，不存在该用户，或者信息无法找到~");
+	}
+
+	return dept;
+}
+public Dept hystrixGet(@PathVariable("id") Long id){
+	return new Dept()
+			.setDept_no(id)
+			.setDept_name("id=>"+id+"没有对应的信息，null--@Hystrix")
+			.setDb("no this database in MySQL");
+}
+
+
+这样当服务崩溃时，可以返回一个错误信息，防止服务崩溃
+
+
+
+-------
+
+服务降级
+某个微服务高并发的情况下，如果资源不足，停止掉其他微服务，供给高并发微服务。
+
+这个服务降级策略是在客户端做的。这里的客户端表示的是 注册中心的微服务消费者，一样是springboot里面的代码。
+降级的代码主要是写在消费者上，以我的理解 熔断和降级二者的功能其实差不多。
+当某一个微服务提供者关闭、异常、熔断之后，消费者检测到，便采取降级机制
+此时在客户端，我们可以准备一个 FallbackFactory，返回一个默认的值(缺省值)，整体的服务水平下降了。但是，好歹能用，比直接挂掉强
+
+服务熔断：服务端~  某个服务超时或者异常，引起熔断~，  保险丝~
+
+服务降级：客户端~ 从整体网站请求负载考虑~ ，当某个服务熔断或者关闭之后，服务将不再被调用~
+		 此时在客户端，我们可以准备一个 FallbackFactory，返回一个默认的值(缺省值)，整体的服务水平下降了~但是，好歹能用~
+		 比直接挂掉强~
+
+1.
+pom依赖			 
+<properties>
+	<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
+</properties>
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-dependencies</artifactId>
+			<version>${spring-cloud.version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+
+2.
+# yml 开启降级feign.hystrix
+feign:
+  hystrix:
+    enabled: true
+
+3.代码注解：
+从feign.hystrix的包中继承一个FallbackFactory，并实例化return一个Service
+@Component
+// value是提供者的路径名
+@FeignClient(value = "SPRINGCLOUD-PROVIDER-DEPT",fallbackFactory = DeptClientServiceFallbackFactory.class)
+public interface DeptClientService {
+	// 指向提供者对应的路径
+    @GetMapping("/dept/get/{id}")
+    public Dept queryById(@PathVariable("id") Long id);
+}
+
+@Component
+public class DeptClientServiceFallbackFactory implements FallbackFactory {
+    @Override
+    public DeptClientService create(Throwable throwable) {
+        return new DeptClientService() {
+            @Override
+            public Dept queryById(Long id) {
+                return new Dept()
+                        .setDept_no(id)
+                        .setDept_name("id=>"+id+"没有对应的信息，客户端提供了降级的信息，这个服务现在已经被关闭")
+                        .setDb("没有数据~");
+            }
+        };
+    }
+}
+在controller中使用这个service
+@RestController
+public class DeptConsumerController {
+    @Autowired
+    private DeptClientService service = null;
+	
+    @RequestMapping("/consumer/dept/get/{id}")
+    public Dept get(@PathVariable("id") Long id){
+       return this.service.queryById(id);
+    }
+}
+
+注：这样完成了之后，当对应的provider挂掉之后，就会返回一个错误信息给到前端
+
+
+
+-------
+
+监控
+
+Hystrix Dashboard流监控 
+
+创建一个maven项目，完成监控微服务，
+1.在新建的微服务中pom.xml导入Hystrix Dashboard 依赖
+<properties>
+	<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
+</properties>
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+</dependency>
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-dependencies</artifactId>
+			<version>${spring-cloud.version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+
+2.配置yml端口
+server:
+  port: 9001
+
+3.Application类增加 @EnableHystrixDashboard 注解
+@SpringBootApplication
+@EnableHystrixDashboard //开启监控
+public class SCDashboardApplication {
+......
+}
+
+4.浏览器访问http://localhost:9001/hystrix/
+可以看到Dashboard的豪猪logo页面
+
+-----------
+
+在原来项目的基础上增加 被监控的配置：
+
+1.导入依赖：spring-boot-starter-actuator
+<properties>
+	<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
+</properties>
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-dependencies</artifactId>
+			<version>${spring-cloud.version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+
+
+2.在application中增加熔断监控，并增加HystrixMetricsStreamServlet
+
+@SpringBootApplication
+@EnableEurekaClient //在服务启动后自动注册到Eureka中！
+@EnableCircuitBreaker //添加对熔断的支持
+public class SCProviderDeptHystrix8001Application {
+    public static void main(String[] args) {
+        SpringApplication.run(SCProviderDeptHystrix8001Application.class, args);
+    }
+    //增加一个 Servlet
+    @Bean
+    public ServletRegistrationBean hystrixMetricsStreamServlet(){
+        ServletRegistrationBean registrationBean = new ServletRegistrationBean(new HystrixMetricsStreamServlet());
+        registrationBean.addUrlMappings("/actuator/hystrix.stream");
+        return registrationBean;
+    }
+}
+
+3.浏览器访问http://localhost:9001/hystrix/
+输入
+http://localhost:8001/actuator/hystrix.stream
+即可访问提供者的监控页面
+
+或者直接浏览器直接访问http://localhost:8001/actuator/hystrix.stream
+可以查看ping信息和json信息
+
+4.解决Spring Cloud Dashboard Thread pools 一直处于Loading状态
+注意我们需要开启feign负载均衡才能开启
+
+1：创建另一个服务（例如：springcloud-order）
+2：将新的服务（order）注册到Eureka
+3：在user服务写一个新的Api接口，通过 Feign 访问新服务（order）的Api接口
+4：注意：经过本人测试通过RestTemplate的方式调用，仍然没有效果。
+5：当通过Feign调用一次新服务（order）后，hystrix.stream 正常，效果如下：
+
+
+无意中的测试，发现这个Loading...是一直在等待负载均衡的提供方要去消费服务，即访问负载均衡服务器，去调用客户端，
+如果有数据响应则监控界面就会有图形数据展示：
+如果想让图中的数据发生变化，则需要循环多次的去访问负载均衡的提供方，让其消费服务，以至于达到监控的目的。
+
+----------------------------------------------------------------------------------
+
+
+zuul路由网关
+
+zuul注册在 Eureka上，两者配合使用，然后在访问Eureka上的微服务之前，都要通过zuul进行跳转。
+
+1.在maven项目中新建maven子项目。
+
+2.添加zuul依赖
+    <properties>
+        <spring-cloud.version>Hoxton.SR6</spring-cloud.version>
+    </properties>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+        </dependency>
+	<dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+3.yml配置 名称、端口号等等
+将zuul注册进eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka/,http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/
+  instance:
+    instance-id: zuul9527.com
+    prefer-ip-address: true
+
+yaml配置，将springcloud-provider-dept这个id路径替换为mydept，/** 表示后面可接参数
+zuul:
+  routes:
+    mydept.serviceId: springcloud-provider-dept-hystrix #这个对应的提供者在eureka上的名称，不能出错
+    mydept.path: /mydept/**
+  ignored-services: "*"  # 不能再使用这个路径访问了，ignored ： 忽略,隐藏全部的~
+  prefix: /wrx # 设置公共的前缀
+
+4.appliaction配置 @EnableZuulProxy
+
+5.访问http://localhost:9527/mydept/dept/get/1
+可以获取到对应的信息
+
+
+----------------------------------------------------------------------------------
+
+springcloud 分布式配置 config
+默认使用git配置
+目前SpringCloud Config的使用主要是通过Git/SVN方式做一个配置中心，然后每个服务从其中获取自身配置所需的参数。
+这样，就可以达到 动态修改配置的目的，不用再编译部署了
+
+这个配置主要是远程云端上的yml或者properties文件
+目的：配置与代码解耦
+
+您可以使用spring.cloud.config.server.git.refreshRate控制配置服务器多久从Git后端获取更新的配置数据。
+以秒为单位指定此属性的值。默认情况下，该值为0，这意味着配置服务器将在每次请求时从Git存储库中获取更新的配置。
+
+config配置分为两大步骤
+一，创建config-server项目，并配置好git
+二，其他子项目连接到config-server项目上，一同使用git远程配置文件
+
+-----------
+创建config-server项目
+
+0.github创建新仓库
+并上传一个名为：config-dept-dev.yml的文件
+这个文件的命名规则需要符合spring-cloud-config的命名规则，具体规则自行查看
+在文件中随意添加以下配置：
+version: 1
+
+name: demo
+
+1.新建spring-cloud-config-server，一个新的application，
+引入pom依赖
+<properties>
+	<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
+</properties>
+<dependencies>
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-config-server</artifactId>
+	</dependency>
+</dependencies>
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-dependencies</artifactId>
+			<version>${spring-cloud.version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+
+2.增加注解@EnableConfigServer
+@SpringBootApplication
+@EnableConfigServer
+public class ScConfigServerApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ScConfigServerApplication.class, args);
+    }
+}
+
+3.yml文件，uri是github仓库地址，还有用户名和密码
+server:
+  port: 3344
+spring:
+  application:
+    name: springcloud-config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/wuruixiong/SpringCloudDemoConfig.git
+          username: XXX
+          password: XXX
+
+4.浏览器访问3344端口，加上文件配置的url
+http://localhost:3344/config-dept-dev.yml
+可以出现之前在config-dept-dev.yml的配置内容：
+version: 1
+
+name: demo
+
+-----------
+
+其他application的配置
+
+其他application需要导入spring-cloud-starter-config的pom依赖
+1.导入pom依赖
+<properties>
+	<spring-cloud.version>Hoxton.SR6</spring-cloud.version>
+</properties>
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-starter-config</artifactId>
+	</dependency>
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-dependencies</artifactId>
+			<version>${spring-cloud.version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+
+2.增加两个yml文件
+application.yml：
+server:
+  port: 3355
+spring:
+  application:
+    name: springcloud-config-client-3355
+
+bootstrap.yml：
+spring:
+  cloud:
+    config:
+      name: config-dept # 需要从git上读取的资源名称，不要后缀
+      profile: dev
+      label: master
+      uri: http://localhost:3344
+
+
+3.修改github文件，config-dept-dev.yml
+spring:
+  application:
+    name: springcloud-consumer-dept
+
+#Eureka配置
+eureka:
+  client:
+    register-with-eureka: false # 不向Eureka注册自己
+    service-url:
+      defaultZone: http://eureka7001.com:7001/eureka/,http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/
+
+version: 1
+
+name: demo
+
+4.编写一个获取配置的controller
+@RestController
+public class ConfigClientController {
+    @Value("${version}")
+    private String v;
+	
+	@Value("${spring.application.name}")
+    private String applicationName;
+
+    @Value("${eureka.client.service-url.defaultZone}")
+    private String eurekaServer;
+
+    @Value("${server.port}")
+    private String port;
+
+    @GetMapping("/get")
+    public String get(){
+        return this.v;
+    }
+
+    @RequestMapping("/config")
+    public String getConfig(){
+        return "applicationName:"+applicationName +
+         "eurekaServer:"+eurekaServer +
+         "port:"+port;
+    }
+}
+
+5.最后访问一下url可以得到一些配置信息
+http://localhost:3355/get
+http://localhost:3355/config
+
+
+----------------------------------------------------------------------------------
+
+
+springboot springcloud
+常用框架：
+
+
+@RestController、@PostMapping、@GetMapping
+这些注解都是在spring-boot-starter-web里面，基本上都要导入这个包
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,4 +1,38 @@
 
+
+
+对象关系映射（Object Relational Mapping，简称ORM）是通过使用描述对象和数据库之间映射的元数据，将面向对象语言程序中的对象自动持久化到关系数据库中。简单来说就是将数据库表与java实体对象做一个映射
+
+ORM的优缺点
+
+优点：符合面向对象编程；技术与业务解耦，开发时不需要关注数据库的连接与释放；
+缺点：orm会牺牲程序的执行效率和会固定思维模式
+
+orm主流框架
+hibernate（jpa）、mybatis/mybatis-plus(半自动orm)。
+基于jpa规范再次封装抽象实现的SpringData JPA。
+jpa在springboot中应用相当广泛
+
+
+JPA是Java Persistence API的简称，中文名为Java持久层API，是JDK 5.0注解或XML描述对象－关系表的映射关系，并将运行期的实体对象持久化到数据库中。
+JPA包括以下3方面的内容：
+（1）一套API标准。在javax.persistence的包下面，用来操作实体对象，执行CRUD操作，框架在后台替代我们完成所有的事情，开发者从烦琐的JDBC和SQL代码中解脱出来。
+（2）面向对象的查询语言：Java Persistence QueryLanguage（JPQL）。这是持久化操作中很重要的一个方面，通过面向对象而非面向数据库的查询语言查询数据，避免程序的SQL语句紧密耦合。
+（3）ORM（object/relational metadata）元数据的映射。JPA支持XML和JDK5.0注解两种元数据的形式，元数据描述对象和表之间的映射关系，框架据此将实体对象持久化到数据库表中。
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+
+
 row 行 [rəʊ] 
 column 列 ['kɒləm] 
 
@@ -315,6 +349,11 @@ default-time_zone = '+8:00'
 # /etc/init.d/mysqld restart ##重启mysql使新时区生效
 Windows下的mysql重启，可以在管理->服务 找到mysql，右键，点击重启
 
+导出数据库
+mysqldump -u root -p db_name > test_db.sql
+导入数据库
+
+
 --------------------------
 
 登录之后，输入命令之前会带有的前缀:  mysql> 
@@ -369,6 +408,9 @@ alter table pms_sku_image change column spuImgId spu_img_id bigint(20);
 基本操作：
 创建表， 表名是 myName，id不为空、主键、自增长；name 不为空；phone 不为空
 create table myName(id int(8) not null primary key auto_increment, name char(20) not null, phone char(20) not null);
+
+修改字段为自增
+
 
 删除表
 DROP TABLE 表名;

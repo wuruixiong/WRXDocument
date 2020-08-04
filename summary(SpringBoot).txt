@@ -393,6 +393,61 @@ application.properties文件配置
 特别是zookeeper的相关配置只有在这里才生效
 
 
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+各种框架的注解介绍
+以及注解的代码，注解如何生效
+
+
+内置的注解
+Java 定义了一套注解，共有 7 个，3 个在 java.lang 中，剩下 4 个在 java.lang.annotation 中。
+
+作用在代码的注解是
+@Override - 检查该方法是否是重写方法。如果发现其父类，或者是引用的接口中并没有该方法时，会报编译错误。
+@Deprecated - 标记过时方法。如果使用该方法，会报编译警告。
+@SuppressWarnings - 指示编译器去忽略注解中声明的警告。
+
+作用在其他注解的注解(或者说 元注解)是:
+@Retention - 标识这个注解怎么保存，是只在代码中，还是编入class文件中，或者是在运行时可以通过反射访问。
+@Documented - 标记这些注解是否包含在用户文档中。
+@Target - 标记这个注解应该是哪种 Java 成员。
+@Inherited - 标记这个注解是继承于哪个注解类(默认 注解并没有继承于任何子类)
+
+从 Java 7 开始，额外添加了 3 个注解:
+@SafeVarargs - Java 7 开始支持，忽略任何使用参数为泛型变量的方法或构造函数调用产生的警告。
+@FunctionalInterface - Java 8 开始支持，标识一个匿名函数或函数式接口。
+@Repeatable - Java 8 开始支持，标识某注解可以在同一个声明上使用多次。
+
+java中元注解(用来标识注解的注解)有四个： @Retention @Target @Document @Inherited；
+
+@Retention：注解的保留位置　　　　　　　　　
+@Retention(RetentionPolicy.SOURCE)   //注解仅存在于源码中，在class字节码文件中不包含
+@Retention(RetentionPolicy.CLASS)     // 默认的保留策略，注解会在class字节码文件中存在，但运行时无法获得，
+@Retention(RetentionPolicy.RUNTIME)  // 注解会在class字节码文件中存在，在运行时可以通过反射获取到
+
+@Target:注解的作用目标　　　　　　　　
+@Target(ElementType.TYPE)   //接口、类、枚举、注解
+@Target(ElementType.FIELD) //字段、枚举的常量
+@Target(ElementType.METHOD) //方法
+@Target(ElementType.PARAMETER) //方法参数
+@Target(ElementType.CONSTRUCTOR)  //构造函数
+@Target(ElementType.LOCAL_VARIABLE)//局部变量
+@Target(ElementType.ANNOTATION_TYPE)//注解
+@Target(ElementType.PACKAGE) ///包   
+
+@Document：说明该注解将被包含在javadoc中
+
+@Inherited：说明子类可以继承父类中的该注解
+
+
+-----------------------------
+
+各种框架的注解：
+lombok框架
+@Data
+@Data 注解的主要作用是提高代码的简洁，使用这个注解可以省去代码中大量的get()、 set()、 toString()等方法；
+这个注解写在类名上，自动生成get、set方法。
 
 
 
@@ -414,5 +469,532 @@ application.properties文件配置
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+过滤拦截器
+
+
+
+
+
+
+
+
+
+
+yaml配置DataSource问题
+
+
+
+
+gradle
+排除tomcat
+configurations {
+    implementation {
+        exclude module: 'spring-boot-starter-tomcat'
+        exclude module: 'slf4j-log4j12'
+    }
+}
+使用undertow
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-undertow'
+}
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+源码解析：
+
+
+ContextLoaderListener
+在SpringMvc中，ContextLoaderListener是用来监听web容器初始化的，
+初始化时，ContextLoaderListener就会创建IOC容器，同时，把bean对象通过反射的方式加入IOC容器
+
+DispatcherServlet
+在使用SpringBoot之后，我们表面上已经无法直接看到DispatcherServlet的使用了(SpringMVC可以看到)。
+
+DispatcherServlet实质也是一个HttpServlet
+
+在SpringMvc中DispatcherServlet需要配置在web.xml中，用于拦截所有的请求并分发到对应的controller上。
+例如默认配置的*.form就是拦截所有的请求
+<servlet>
+        <servlet-name>dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>*.form</url-pattern>
+</servlet-mapping>
+
+
+
+DispatcherServlet就是分发服务的核心，
+分发过程要调用到 HandlerMapping的实现类，HandlerAdapter的实现类，HandlerMethod，
+HandlerMapping 核心的东西就两个，
+ 第一个， 处理API 请求的实际controller 和
+处理方法的信息（XXXController.xxxMethod() , parameters, annotations, responseStatus等）； 
+第二个， 当前API 所需要的拦截器信息。 这两个东西实际被封装进HandlerExecutionChain 中， 
+并返回给DispatcherServlet， 在DispatcherSerlvet 的 doDispatch() 方法中会使用他们。
+
+
+
+HandlerMapping 是由 DispatcherServlet 调用，
+HandlerMapping有不同的实现类，例如AbstractHandlerMethodMapping就是在getHandlerInternal()获取一个HandlerMethod
+lookupHandlerMethod() 方法主要工作是在 Map<T, HandlerMethod> handlerMethods 中找到 HandlerMethod，
+这里的 T 是 HandlerMappingInfo，它封装了 @RequestMapping 注解中的信息。
+
+HandlerAdapter
+根据 Handler 来找到支持它的 HandlerAdapter，通过 HandlerAdapter 执行这个 Handler 得到 ModelAndView 对象。
+例如子类RequestMappingHandlerAdapter
+利用 RequestMappingHandlerMapping 获取的 Handler 是 HadnlerMethod 类型，它代表 Controller 里要执行的方法，
+而 RequestMappingHandlerAdapter 可以执行 HadnlerMethod 对象。
+
+-----------------------------
+
+各个服务容器的web.xml以及工作方式
+在springboot中，web目录和web容器已经被封装了，看不到这个目录(web容器默认是tomcat，可以配置为其他web容器)
+在springmvc中web目录依旧存在，可以看到applicationContext.xml和web.xml等配置文件
+
+springboot内置的Tomcat、Jetty和Undertow三种web容器都是支持web.xml、servlet那套代码框架的。
+
+由于内置了web容器所以springboot直接打jar包即可运行，不需要打war包和配置web.xml了
+
+SpringBoot这种设计在微服务架构下有明显的优点：
+可以创建独立、自启动的应用容器
+不需要构建War包并发布到容器中，构建和维护War包、容器的配置和管理也是需要成本和精力的
+通过Maven的定制化标签，可以快速创建SpringBoot的应用程序
+可以最大化地自动化配置Spring，而不需要人工配置各项参数
+提供了产品化特点，例如：性能分析、健康检查和外部化配置
+全程没有XML配置，也不需要代码生成
+
+
+
+
+-----------------------------
+
+注解如何生效：
+
+@Controller （控制层）源码解析：
+
+
+
+
+@Service（业务逻辑层）源码实现：
+
+
+
+@Repository持久层解析
+
+
+
+@Component
+@Controller @Service @Repository @Configuration都是@Component的子类
+在IOC容器初始化时，就会扫描这些注解所在的类，并加入IOC容器中
+
+
+
+@Configuration，@Bean
+源码中是如何实现@Configuration语意
+从Spring3.0，@Configuration用于定义配置类，可替换xml配置文件，被注解的类内部包含有一个或多个被@Bean注解的方法，
+这些方法将会被AnnotationConfigApplicationContext或AnnotationConfigWebApplicationContext类进行扫描，并用于构建bean定义，初始化Spring容器。
+
+与@Bean连用的例子
+@Configuration
+public class TestConfiguration {
+    public TestConfiguration() {
+        System.out.println("TestConfiguration容器启动初始化。。。");
+    }
+
+    // @Bean注解注册bean,同时可以指定初始化和销毁方法
+    // @Bean(name="testBean",initMethod="start",destroyMethod="cleanUp")
+    @Bean
+    @Scope("prototype")
+    public TestBean testBean() {
+        return new TestBean();
+    }
+}
+
+public static void main(String[] args) {
+	// @Configuration注解的spring容器加载方式，用AnnotationConfigApplicationContext替换ClassPathXmlApplicationContext
+	ApplicationContext context = new AnnotationConfigApplicationContext(TestConfiguration.class);
+	// 如果加载spring-context.xml文件：
+	// ApplicationContext context = new
+	// ClassPathXmlApplicationContext("spring-context.xml");
+	//获取bean
+	TestBean tb = (TestBean) context.getBean("testBean");
+	tb.sayHello();
+}
+注： 
+(1)、@Bean注解在返回实例的方法上，如果未通过@Bean指定bean的名称，则默认与标注的方法名相同； 
+(2)、@Bean注解默认作用域为单例singleton作用域，可通过@Scope(“prototype”)设置为原型作用域； 
+(3)、既然@Bean的作用是注册bean对象，那么完全可以使用@Component、@Controller、@Service、@Ripository等注解注册bean，当然需要配置@ComponentScan注解进行自动扫描
+
+-----------------
+
+springboot的IOC初始化，初始化之后如何开始
+
+@SpringBootApplication
+public class MyApplication{
+    public static void main(String[] args){
+        SpringApplication.run(MyApplication.class, args );
+    }
+}
+从SpringApplication.run()方法开始加载流程太过复杂，
+只挑关键代码分析
+
+createApplicationContext()创建ApplicationContext
+
+prepareContext()和refreshContext() 创建和初始化DefaultListableBeanFactory工厂类，
+从主类中定位资源并将资源中的bean加载进入ApplicationContext中，向ApplicationContext中添加ApplicationListener接口实现类
+
+AbstractApplicationContext.refresh() 创建出来的AbstractApplicationContext在refreshContext()中调用了自己的refresh()方法
+初始化DefaultListableBeanFactory工厂类
+
+prepareRefresh() obtainFreshBeanFactory() prepareBeanFactory(beanFactory)
+以上这三个方法都是为了准备bean的自动装配的，prepareBeanFactory最关键
+
+invokeBeanFactoryPostProcessors(beanFactory)方法：实例化所有已经注册的BeanFactoryPostProcessor的bean（实例化为单例），
+并遵循已给出的明确order值调用它，bean实例化与依赖注入开始阶段。
+
+destroyBeans()方法：摧毁已经创建的bean，避免悬空资源。
+
+-----------------
+
+IOC初始化之后 Bean缓存的地方
+Bean对象是缓存在键值对表里面的
+AbstractBeanFactory doGetBean() 方法，缓存在map或者set表中
+
+-----------------
+
+@Autowired怎么自动装配
+自动装配分为两步，一是找到被注解的变量，二是对象属性的注入
+在doCreateBean方法中一步步到最后调用到AutowiredAnnotationBeanPostProcessor中的postProcessProperties方法
+这个方法中使用了两个方法，一个是findAutowiringMetadata，另一个是metadata.inject(bean, beanName, pvs)。
+其中，前者就是通过反射机制找到该对象所有标注了@Autowired注解的属性或方法等，并以InjectionMetadata对象返回，后者就是通过metadata对象对相关属性进行属性注入。
+
+
+-----------------
+
+web容器初始化
+
+
+
+-----------------
+@Bean 和 @Component的区别
+注解作用
+@Component注解表明一个类会作为组件类，并告知Spring要为这个类创建bean。
+@Bean注解告诉Spring这个方法将会返回一个对象，这个对象要注册为Spring应用上下文中的bean。通常方法体中包含了最终产生bean实例的逻辑。
+两者对比
+相同点：两者的结果都是为spring容器注册Bean.
+不同点：@Component 通常是通过类路径扫描来自动侦测以及自动装配到Spring容器中。
+　　　　@Bean 注解通常是我们在标有该注解的方法中定义产生这个bean的逻辑。
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+Spring 注解解析
+
+Annotation(注解):
+从JDK 1.5开始, Java增加了对元数据(MetaData)的支持，也就是 Annotation(注解)。
+注解其实就是代码里的特殊标记，它用于替代配置文件：传统方式通过配置文件告诉类如何运行，有了注解技术后，
+开发人员可以通过注解告诉类如何运行。在Java技术里注解的典型应用是：可以通过反射技术去得到类里面的注解，以决定怎么去运行类。
+注解可以标记在包、类、属性、方法，方法参数以及局部变量上，且同一个地方可以同时标记多个注解。
+例如：
+// 抑制编译期的未指定泛型、未使用和过时警告
+@SuppressWarnings({ "rawtypes", "unused", "deprecation" })
+// 重写
+@Override
+
+meta-annotation（元注解）:
+除了直接使用JDK 定义好的注解，还可以自定义注解，
+在JDK 1.5中提供了4个标准的用来对注解类型进行注解的注解类，我们称之为 meta-annotation（元注解），他们分别是：
+@Target   @Retention   @Documented   @Inherited
+使用这4个元注解来对自定义的注解类型进行注解
+
+@Target注解：描述注解的使用范围
+@Retention注解：描述注解保留的时间范围
+@Documented注解：描述在使用 javadoc 工具为类生成帮助文档时是否要保留其注解信息。
+@Inherited注解：使被它修饰的注解具有继承性
+
+----------------------------------------------
+
+@Controller 、@RestController
+1. 根据@RestController的注释，@RestController是@Controller和@ResponseBody的结合体
+2. 在@RestController如果想要返回temlpate(模板)只能使用ModelAndView；在@Controller可以直接返回字符串，会自动加载模板。
+3. 如果只是使用@RestController注解Controller，则Controller中的方法无法返回jsp页面，配置的视图解析器InternalResourceViewResolver不起作用，
+返回的内容就是return里的内容。（等同于用@RestController注解的controller中的请求都是异步进行的）
+4. 在使用@Controller注解controller时，如果需要返回JSON，XML或自定义mediaType内容到页面，则需要在对应的方法上加上@ResponseBody注解
+
+----------------------------------------------
+
+@SpringBootApplication的几个重要注解：
+
+@SpringBootConfiguration
+继承@Configuration注解，这个我们就是为了加载配置文件用的
+这个注解的作用与@Configuration作用相同，都是用来声明当前类是一个配置类．可以通过＠Bean注解生成IOC容器管理的bean
+从Spring3.0，@Configuration用于定义配置类，可替换xml配置文件，被注解的类内部包含有一个或多个被@Bean注解的方法，
+这些方法将会被AnnotationConfigApplicationContext或AnnotationConfigWebApplicationContext类进行扫描，并用于构建bean定义，初始化Spring容器。
+
+@ComponentScan
+组件扫描和自动装配
+spring里有四大注解：@Service,@Repository,@Component,@Controller用来定义一个bean.
+@ComponentScan注解就是用来自动扫描被这些注解标识的类，最终生成ioc容器里的bean．
+可以通过设置@ComponentScan　basePackages，includeFilters，excludeFilters
+属性来动态确定自动扫描范围，类型已经不扫描的类型．默认情况下:它扫描所有类型，
+并且扫描范围是@ComponentScan注解所在配置类包及子包的类
+使用@SpringBootApplication注解，就说明你使用了@ComponentScan的默认配置，
+这就建议你把使用@SpringBootApplication注解的类放置在root package(官方表述)下，
+其他类都置在root package的子包里面，这样bean就不会被漏扫描
+
+@EnableAutoConfiguration
+@Import(EnableAutoConfigurationImportSelector.class)，借助EnableAutoConfigurationImportSelector，
+@EnableAutoConfiguration可以帮助SpringBoot应用将所有符合条件的@Configuration配置都加载到当前SpringBoot创建并使用的IoC容器。
+
+----------------------------------------------
+
+@Component
+@Component在类级别使用，使类成为一个组件。这些类可通过类路径扫描进行自动检测。在java配置中，@ComponentScan用于自动检测组件，在spring应用程序上下文XML中，component-scan标记用于通过类路径进行自动检测。@Component具有一个值属性，它是一个组件名称，它也将被视为spring bean名称。
+
+@Service
+@Service用于服务类注解。服务类可以充当j2EE模式的业务服务外观。服务类使用DAO，实体类等实现业务逻辑。@Service通过类路径扫描自动检测。对类进行注解@Service给出了逻辑意义，即这些类是服务。如果我们用@Component在服务类而不是@Service不会有任何问题，但是为了更好的可读性，则应该使用@Service注解服务类。@Service可理解为@Component的一个特例。
+
+@Repository
+@Repository用于持久层注解，应使用@Repository注解对这些类型的类进行注解，以通过类路径扫描进行自动检测。应使用@Repository注解对DAO类进行注解以进行自动检测。@Repository可理解为@Component的一个特例。
+
+@Controller
+@Controller在spring MVC的类级别使用。它表示该类是Web控制器。@Controller通过类路径扫描自动检测这些带注解的类。@Controller注解通常与@RequestMappingspring MVC中的注解结合使用。
+
+spring 2.5 中除了提供 @Component 注释外，还定义了几个拥有特殊语义的注释，它们分别是：@Repository、@Service 和 @Controller。在目前的 Spring 版本中，这 3 个注释和 @Component 是等效的，但是从注释类的命名上，很容易看出这 3 个注释分别和持久层、业务层和控制层（Web 层）相对应。虽然目前这 3 个注释和 @Component 相比没有什么新意，但 Spring 将在以后的版本中为它们添加特殊的功能。所以，如果Web 应用程序采用了经典的三层分层结构的话，最好在持久层、业务层和控制层分别采用@Repository、@Service 和 @Controller 对分层中的类进行注释，而用 @Component 对那些比较中立的类进行注释。 
+
+在applicationContext.xml文件中加一行：
+<context:component-scan base-package="com.xxx.xxx"/> 
+加上这一行以后，将自动扫描路径下面的包，如果一个类带了@Service注解，将自动注册到Spring容器，
+不需要再在applicationContext.xml文件定义bean了，类似的还包括@Component、@Repository、@Controller。
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Spring
+
+Spring框架，两个重要功能的容器
+控制反转(IOC)
+面向切面(AOP)
+
+Spring是一个用来 整合其他框架 的框架，不只是用来开发web(java EE)，还可以开发其他程序。
+
+IOC:(全称:Inverse Of Control )控制反转，容器主动将资源推送给它所管理的组件，组件所做的是选择一种合理的方式接受资源。
+简单的理解：把创建对象和维护之间的关系的权利由程序中转移到Spring容器的配置文件中。
+DI:(全称:Dependency Injection)依赖注入，IOC的另一种表现方式，组件以一种预先定义好的方式来接受容器注入的资源。
+IOC即DI
+
+
+-----------------------------------------
+
+SpringMVC只是 web开发中框架，
+Spring中集合了 静态图片和html以及其他前端开发文件、SpringMVC 、持久层框架(JPA、Mybatis)就可以进行web开发了。
+
+-----------------------------------------
+
+SpringBoot是在Spring的基础上发展而来，也不只是开发web，也可以开发其他应用。
+SpringBoot中也是有IOC，AOP的，可以非常快速的引入各种框架。
+相比起Spring，SpringBoot 约定大约配置，大量的减少了配置文件的使用。
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+SpringBoot各种框架介绍
+
+tkMapper
+tkMapper可以用于Mybatis的持久层框架
+tkMapper可以代替原生mapper， 简化持久层，相当于不需要自己写 数据库的增删改查方法，因为这个框架已经实现过了。
+缺点是不够灵活，特殊场景下可能无法适用
+--------------------------------------------------------------------------------------
+FastDFS用于处理大量图片的分布式存储，支持负载均衡
+FastDFS是一个开源的轻量级分布式文件系统，它对文件进行管理，功能包括：文件存储、文件同步、文件访问（文件上传、文件下载）等，解决了大容量存储和负载均衡的问题。
+特别适合以文件为载体的在线服务，如相册网站、视频网站等等。
+FastDFS为互联网量身定制，充分考虑了冗余备份、负载均衡、线性扩容等机制，并注重高可用、高性能等指标，使用FastDFS很容易搭建一套高性能的文件服务器集群提供文件上传、下载等服务。
+--------------------------------------------------------------------------------------
+前后端服务器分离
+实现前后端分离后，有了下面几点改变：
+1.服务器一分为二，前后端分别部署，静态资源放在前端服务器，业务代码放在后的服务器
+2.前端服务器需要接收Http请求（一般使用node.js）
+3.前端服务器需要进行视图解析（可以使用vue.js、angular.js）
+4.前端服务器需要处理路由（也就是页面之间的跳转逻辑）
+5.后端服务器只需要返回数据
+
+1、对于后端java工程师：（负责Model层，业务处理/数据等）
+把精力放在java基础，设计模式，jvm原理，spring+springmvc原理及源码，linux，mysql事务隔离与锁机制，
+mongodb，http/tcp，多线程，分布式架构，弹性计算架构，微服务架构，java性能优化，以及相关的项目管理等等。
+后端追求的是：三高（高并发，高可用，高性能），安全，存储，业务等等。
+2、对于前端工程师：（负责View和Controller层。）
+把精力放在html5，css3，jquery，angularjs，bootstrap，reactjs，vuejs，webpack，less/sass，gulp，nodejs，Google V8引擎，
+javascript多线程，模块化，面向切面编程，设计模式，浏览器兼容性，性能优化等等。
+前端追求的是：页面表现，速度流畅，兼容性，用户体验等等。
+
+通过将team分成前后端team，让两边的工程师更加专注各自的领域，独立治理，然后构建出一个全栈式的精益求精的team。
+开发模式流程，以前老的方式是：
+产品经历/领导/客户提出需求===》UI做出设计图 ===》前端工程师做html页面===》后端工程师将html页面套成jsp页面（前后端强依赖，后端必须要等前端的html做好才能套jsp。如果html发生变更，就更痛了，开发效率低）===》集成出现问题 ===》前端返工 ===》后端返工===》二次集成 ===》集成成功 ==》交付
+新的方式是：
+产品经历/领导/客户提出需===》UI做出设计图 ===》前后端约定接口&数据&参数 ===》前后端并行开发（无强依赖，可前后端并行开发，如果需求变更，只要接口&参数不变，就不用两边都修改代码，开发效率高）===》前后端集成 ===》前端页面调整 ===》集成成功 ===》交付
+
+请求方式，以前老的方式是： 
+1、客户端请求
+2、服务端的servlet或controller接收请求（后端控制路由与渲染页面，整个项目开发的权重大部分在后端）
+3、调用service,dao代码完成业务逻辑
+4、返回jsp
+5、jsp展现一些动态的代码
+新的方式是：
+1、浏览器发送请求
+2、直接到达html页面（前端控制路由与渲染页面，整个项目开发的权重前移）
+3、html页面负责调用服务端接口产生数据（通过ajax等等，后台返回json格式数据，json数据格式因为简洁高效而取代xml）
+4、填充html，展现动态效果，在页面上进行解析并操作DOM。
+总结一下新的方式的请求步骤：
+大量并发浏览器请求--->web服务器集群(nginx)--->应用服务器集群(tomcat)--->文件/数据库/缓存/消息队列服务器集群同时又可以玩分模块，还可以按业务拆成一个个的小集群，为后面的架构升级做准备。
+ 
+ 前后分离的优势
+1、可以实现真正的前后端解耦，前端服务器使用nginx。前端/WEB服务器放的是css，js，图片等等一系列静态资源（甚至你还可以css，js，图片等资源放到特定的文件服务器，例如阿里云的oss，并使用cdn加速），前端服务器负责控制页面引用&跳转&路由，前端页面异步调用后端的接口，后端/应用服务器使用tomcat（把tomcat想象成一个数据提供者），加快整体响应速度。（这里需要使用一些前端工程化的框架比如nodejs，react，router，react，redux，webpack）
+2、发现bug，可以快速定位是谁的问题，不会出现互相踢皮球的现象。页面逻辑，跳转错误，浏览器兼容性问题，脚本错误，页面样式等问题，全部由前端工程师来负责。接口数据出错，数据没有提交成功，应答超时等问题，全部由后端工程师来解决。双方互不干扰，前端与后端是相亲相爱的一家人。
+3、在大并发情况下，我可以同时水平扩展前后端服务器，比如淘宝的一个首页就需要2000+台前端服务器做集群来抗住日均多少亿+的日均pv。（去参加阿里的技术峰会，听他们说他们的web容器都是自己写的，就算他单实例抗10万http并发，2000台是2亿http并发，并且他们还可以根据预知洪峰来无限拓展，很恐怖，就一个首页。。。）
+4、减少后端服务器的并发/负载压力。除了接口以外的其他所有http请求全部转移到前端nginx上，接口的请求调用tomcat，参考nginx反向代理tomcat。且除了第一次页面请求外，浏览器会大量调用本地缓存。
+5、即使后端服务暂时超时或者宕机了，前端页面也会正常访问，只不过数据刷不出来而已。
+6、也许你也需要有微信相关的轻应用，那样你的接口完全可以共用，如果也有app相关的服务，那么只要通过一些代码重构，也可以大量复用接口，提升效率。（多端应用）
+7、页面显示的东西再多也不怕，因为是异步加载。
+8、nginx支持页面热部署，不用重启服务器，前端升级更无缝。
+9、增加代码的维护性&易读性（前后端耦在一起的代码读起来相当费劲）。
+10、提升开发效率，因为可以前后端并行开发，而不是像以前的强依赖。
+11、在nginx中部署证书，外网使用https访问，并且只开放443和80端口，其他端口一律关闭（防止黑客端口扫描），内网使用http，性能和安全都有保障。
+12、前端大量的组件代码得以复用，组件化，提升开发效率，抽出来！
+
+目前的前后端分离的架构应用分为两种情况：
+前后端完全分离，前后端分别拥有自己的域名和服务器。
+前后端开发分离，但是部署时是一个域名和一台服务器。
+
+前端性能优化 
+1.内容优化
+(1)减少HTTP请求数
+(3)避免重定向
+(4)使用Ajax缓存
+(5)延迟加载组件,预加载组件
+(6)减少DOM元素数量
+(7)避免404
+2.服务器优化
+(1)使用内容分发网络（CDN）：把网站内容分散到多个、处于不同地域位置的服务器上可以加快下载速度。
+(2)GZIP压缩
+(3)设置ETag：ETags（Entity tags，实体标签）是web服务器和浏览器用于判断浏览器缓存中的内容和服务器中的原始内容是否匹配的一种机制。
+(4)提前刷新缓冲区
+(5)对Ajax请求使用GET方法
+(6)避免空的图像src
+3.Cookie优化
+(1)减小Cookie大小
+(2)针对Web组件使用域名无关的Cookie
+4.CSS优化
+1)将CSS代码放在HTML页面的顶部
+2)避免使用CSS表达式
+(3)使用<link>来代替@import
+(4)避免使用Filters
+5.javascript优化
+(1)将JavaScript脚本放在页面的底部。
+(2)将JavaScript和CSS作为外部文件来引用：在实际应用中使用外部文件可以提高页面速度，因为JavaScript和CSS文件都能在浏览器中产生缓存。
+(3)缩小JavaScript和CSS
+(4)删除重复的脚本
+(5)最小化DOM的访问：使用JavaScript访问DOM元素比较慢。
+(6)开发智能的事件处理程序
+(7)javascript代码注意：谨慎使用with,避免使用eval Function函数,减少作用域链查找。
+6.图像优化
+(1)优化图片大小
+(2)通过CSS Sprites优化图片
+(3)不要在HTML中使用缩放图片
+(4)favicon.ico要小而且可缓存
+四、前端安全问题
+1.算法加密：
+(1)   RSA加密
+(2)   MD5加密
+(3)   SHA256加密
+
+--------------------------------------------------------------------------------------
+Apache与Tomcat都是Apache开源组织开发的用于处理HTTP服务的项目，两者都是免费的，都可以做为独立的
+Web服务器运行。Apache是Web服务器而Tomcat是Java应用服务器。 Apache服务器 只处理 静态HTML 
+tomcat服务器 静态HTML 动态 JSP Servlet 都能处理。
+
+一般是把 Apache服务器 与 tomcat服务器 搭配在一起用 
+Apache服务器 负责处理所有 静态的 页面/图片 等信息。 
+Tomcat 只处理动态的 部分。 
+Apache：是C语言实现的，专门用来提供HTTP服务。
+特性：简单、速度快、性能稳定、可配置（代理）
+Tomcat：是Java开发的一个符合JavaEE的Servlet规范的JSP服务器（Servlet容器），是 Apache 的扩展。 
+特性：免费的Java应用服务器
+
+主要用于解析JSP/Servlet，侧重于Servlet引擎；
+支持静态页，但效率没有Apache高；支持Servlet、JSP请求；
+Tomcat本身也内置了一个HTTP服务器用于支持静态内容，可以通过Tomcat的配置管理工具实现与Apache整合
+--------------------------------------------------------------------------------------
+1. Nginx和tomcat的区别
+nginx常用做静态内容服务和代理服务器，直接外来请求转发给后面的应用服务器（tomcat，Django等），tomcat更多用来做一个应用容器，让java web app泡在里面的东西。
+严格意义上来讲，Apache和nginx应该叫做HTTP Server，而tomcat是一个Application Server是一个Servlet/JSO应用的容器。
+客户端通过HTTP Server访问服务器上存储的资源（HTML文件，图片文件等），HTTP Server是中只是把服务器上的文件如实通过HTTP协议传输给客户端。
+应用服务器往往是运行在HTTP Server的背后，执行应用，将动态的内容转化为静态的内容之后，通过HTTP Server分发到客户端
+注意：nginx只是把请求做了分发，不做处理！！！
+
+2. nginx和Apache的区别
+Apache是同步多进程模型，一个连接对应一个进程，而nginx是一步的，多个连接（万级别）可以对应一个进程。
+nginx轻量级，抗并发，处理静态文件好
+Apache超稳定，对PHP支持比较检单，nginx需要配合其他后端用，处理动态请求有优势
+建议使用前端nginx抗并发，后端apache集群，配合起来会更好
+
+nginx可以用来做负载均衡
+
+严格的来说，Apache/Nginx 应该叫做「HTTP Server」；
+而 Tomcat 则是一个「Application Server」，或者更准确的来说，是一个「Servlet/JSP」应用的容器（Ruby/Python 等其他语言开发的应用也无法直接运行在 Tomcat 上）。
+--------------------------------------------------------------------------------------
+Vue.js 前端框架全家桶：
+是一套用于构建用户界面的渐进式JavaScript框架。与其它大型框架不同的是，Vue 被设计为可以自底向上逐层应用。Vue 的核心库只关注视图层，方便与第三方库或既有项目整合。
+Vue.js 的 API 是参考了AngularJS、KnockoutJS、Ractive.js、Rivets.js。
+Vue.js 的 API 的对于其他框架的参考也只是参考，其中也包含了许多 Vue.js 的独特功能。
+--------------------------------------------------------------------------------------
+分布式搜索引擎 ElasticSearch
+ElasticSearch就是一款基于Lucene框架的分布式搜索引擎，并且也是一款为数不多的基于JSON进行索引的搜索引擎。ElasticSearch特别适合在云计算平台上使用。
+官方网站：http://www.elasticsearch.org/
+--------------------------------------------------------------------------------------
 
 
