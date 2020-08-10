@@ -1,0 +1,527 @@
+idea快键：ctrl+o   添加方法(overide method)
+idea快键：ctrl+i   添加抽象和接口方法(implements method)
+idea快键：alt+insert   添加get和set方法
+idea快键：ctrl+shift+/   xml注释 
+idea快键：ctrl+alt+L   格式化代码（自动对齐） 
+idea快键：ctrl+P   参数提示 parameter info
+
+
+idea 黑色风格：file -> settings -> appearance -> Theme,选择darcula
+
+
+
+
+window:alt+F4  关闭当前窗口
+window:window+m  所有窗口最小化
+
+sourcetree: http://www.56.com/u46/v_MTA3NjQ0MzYz.html?qq-pf-to=pcqq.c2c
+
+
+vim:
+:wq   退出，在vim的普通模式（移动光标模式）下，冒号加wq即可
+
+<Ctrl-d>：向下移动半屏。
+<Ctrl-u>：向上移动半屏。
+
+gg：到文件首
+^ (shift+6)移动到行首
+$ (shift+4)移动到行尾
+0 (数字0)移动到本行第一个字符上
+* (shift+8)搜索功能：跳的与当前光标所在单词相同的下一个单词
+% (shift+5)括号跳转功能，可以跳转当前光标所在的括号对应的另一个括号上
+
+i：在当前字符的左边插入
+a：在当前字符的右边插入（比i好用）
+A：在当前行尾插入
+O：在当前行上面插入一个新行
+
+v：按字符选择。经常使用的模式，所以亲自尝试一下它。
+V(shift+v)：按行选择。这在你想拷贝或者移动很多行的文本的时候特别有用。
+
+ctrl + q：列选择
+
+选中一列之后
+shift + i 
+输入字符"k"
+双击 esc键
+会在所有的选中列前输入字符串"k"
+
+
+d：剪贴选择的内容到剪贴板。
+dd:剪切单行
+y：拷贝选择的内容到剪贴板。
+
+粘贴很简单，按 p。
+
+w 向前移动一个单词
+
+b 向后移动一个单词 
+
+> 全选缩进
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+adb shell 命令略等于linux 终端命令，即大部分命令的相同的，是只能运行在android机器上的命令，例如在android机器上复制目录、文件到android机器上的另一个目录
+而adb 命令则不同于linux 终端命令，可以用于android机器于编译环境（电脑）的交互，例如从android机器上复制文件到电脑上
+
+adb 命令
+------------------
+
+adb shell dumpsys meminfo pkgName
+
+------------------
+
+adb shell dumpsys activity | grep "mFocusedActivity"   //linux下命令行，查看当前activity
+
+adb shell dumpsys activity | findstr "mFocusedActivity"   //windows下命令行，查看当前activity
+
+------------------
+adb shell am start -n breakan.test/breakan.test.TestActivity //启动activity
+adb shell am force-stop com.my.app.package 停止一个app
+
+------------------
+adb shell su 获取权限，可以查看data目录下的文件,只有root的手机可以使用 su 命令
+------------------
+adb pull  从真机上拷贝文件到PC上
+adb push  从PC上复制一份文件到的手机机上
+实测window下也可以执行
+adb push ./openvpn-keys /sdcard  
+
+
+使用 adb shell 命令， 查看data/data下文件夹时，如果不能查看，则必须使用root手机，并且使用 su 命令
+
+使用adb shell 命令复制文件夹或者文件时，也必须使用root手机，使用 su 命令，使用cp命令
+例如cp -r /tmp/a /root/a （cp [选项] 源文件或目录 目的文件或目录）
+首先使用cp命令将文件复制在sd卡上，然后在直接使用usb数据线将文件复制在电脑上
+
+(进入到 /data/data下的一个文件夹内，把名为files的文件夹复制到 内置存储器的根目录下，
+	在解决实际问题当中，发现android机器上不可以使用 intent 把 /data/data/app 下的图片分享出去，因为其他的分享接收应用没法获取该文件)
+// 要复制文件夹要加 -r
+	cp -r files ../../../mnt/sdcard/
+
+
+在删除和复制等等命令中，会遇到系统只读权限
+1. 最简单的，adb remount
+2. 不行的话，adb shell su之后将文件系统remount为读写权限： mount -o rw,remount /system。
+出于安全考虑，记得完事后remount回只读： mount -o ro,remount /system
+
+------------------
+
+删除apk
+adb uninstall <package_name>
+
+------------------
+
+在手机中导出apk：
+查看所有的apk包名
+adb shell pm list packages
+选择一个apk包名，打印出路径
+adb shell pm path com.mms.emojiplugin.twemoji
+将打印出的路径作为参数，导出一个apk包，第三个参数为上一个命令的输出，第四个参数为apk的保存路径
+adb pull /data/app/com.mms.emojiplugin.twemoji-1/base.apk ./com.mms.emojiplugin.twemoji-1.apk
+
+
+------------------
+
+在写代码时，会出现由于权限问题，dirOne.listFiles()为0的问题
+
+adb shell下，设置所有用户都有 读、写、执行的 ./Blink/ 这个目录的权限
+chmod 777 ./Blink/
+
+------------------
+
+有时需要将data/data下的文件导出，由于没有权限无法导出，
+方法一:使用cp 命令将data/data下的文件复制到sdcard上，再使用pull命令导出
+方法二:使用 豌豆荚 导出，如果不能导出，使用 豌豆荚 root ，再导出
+
+------------------
+停止app
+adb shell am force-stop com.xyz.package;
+启动app
+adb shell am start -n com.xyz.package/.SomeMainActivity
+
+adb shell pm clear <packagename>
+清除缓存 和 清除数据
+
+------------------
+列出所有app的包名
+adb shell pm list packages
+
+------------------
+adb shell下执行
+切换屏幕分辨率
+wm size 800x480
+wm size 1024x600
+wm是高通平台（MTK平台类似的命令为am）下对手机分辨率、像素密度、显示区域进行设置的命令。
+
+------------------
+adb setprop/getprop/watchprops 
+
+getprop命令的作用就是从系统的各种配置文件中读取一些设备的信息:
+查询所有的配置 : adb shell getprop
+加过滤条件: adb shell getprop | grep dalvik
+这些文件在我们的手机设备中是可以找到的：
+init.rc
+default.prop
+/system/build.prop
+
+setprop可以对手机一些配置进行设置，当然这些配置必须是可写的。 
+命令格式：setprop [key] [value] 
+修改进程默认分配的可使用堆内存大小：
+adb shell setprop dalvik.vm.heapgrowthlimit 512m
+
+watchprops命令用来监听系统属性的变化，如果期间系统的属性发生变化则把变化的值显示出来。
+
+一些参数说明
+dalvik.vm.heapgrowthlimit：默认给进程分配的可使用堆内存
+dalvik.vm.heapsize：设置了android:largeHeap以后可使用的内存大小
+ro.product.brand：手机品牌
+ro.product.device：设备名称
+ro.product.model：设备内部代号
+ro.product.name：设备名称
+ro.product.manufacturer：设备制造商
+ro.serialno：设备序列号
+ro.sf.lcd_density：设备屏幕密度
+ro.config.ringtone：默认来电铃声
+ro.config.notification_sound：默认通知铃声
+ro.config.alarm_alert：默认闹钟铃声
+dalvik.vm.stack-trace-file：trace文件放置目录
+
+----------------------------
+
+签名安装失败，
+INSTALL_FAILED_VERIFICATION_FAILURE
+在ADB安装过程中，需要禁用对APK的验证。如果安全性中的设置为灰色或不工作，
+则应尝试对设备进行轰击，并根据您的API级别(全局、系统、安全)运行设置数据库的设置：
+adb shell settings put global verifier_verify_adb_installs 0
+disable the package verifier as well using:
+adb shell settings put global package_verifier_enable 0
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+git 命令：
+git log 查看commit
+git add --all 加入所有的，提交之前要执行 
+git commit -m "" 提交 ""中写备注
+git push origin master 提交到远程仓库，注意master是主分支，有时分支不一样
+git commit --amend  修改提交的备注
+git pull origin master 下载远程仓库，origin远程仓库名，master远程分支名
+
+git diff 查看当前修改的代码，红色为删除的代码并带有"-"(减号)，绿色为增加的代码并带有"+"(加号)，git add 命令之前可以使用
+git diff > patch.diff  把当前diff的内容导入到patch.diff文本文件中，patch.diff位于当前使用git命令的目录中
+
+git reset --hard commitId  回滚到某个commit，使用git log可以查看commitId
+git reset . 将所有的add内容回滚
+git reset HEAD filename 将单个add内容回滚
+
+git status        add前可以执行，查看修改了哪些文件，add之后也可以查看，add了哪些文件
+git checkout .             未add时回滚所有文件
+git checkout filename      未add时回滚单个文件
+
+注：分支问题，commit 会把当前修改提交到当前分支，当commit之后再切换其他分支，修改的代码会还原
+git branch -a   查看当前所有分支，前缀带*为当前分支
+git branch master2  创建master2本地分支
+git branch origin/master2  创建master2分支，origin远程仓库名，master2为分支名(repository/branch)
+git checkout origin/master2  切换到分支
+git branch -d xxxxx  删除本地分支
+
+// 切换到master分支，在master分支上把develop分支的内容合并过来
+git checkout master
+git merge develop
+
+git show commitId  查看某个commitId的提交内容
+
+// 将本地的git仓库绑定地址为git://127.0.0.1/abc.git 的一个远程仓库
+git remote add origin git://127.0.0.1/abc.git
+
+//本地创建的仓库关联远程仓库
+git init 创建一个本地git仓库
+git add README.md 添加一个README.md文件
+git commit -m "first commit" 第一次提交
+git remote add origin https://github.com/wuruixiong/WRXDocument.git  将这个仓库和远程仓库绑定
+git push -u origin master  提交到远程仓库
+
+将已有的仓库和远程仓库绑定:
+git remote add origin https://github.com/wuruixiong/WRXDocument.git
+git push -u origin master
+
+删除所有未追踪文件(untracked files)
+git clean -f
+删除文件和目录
+git clean -df
+
+可以查看已add未commit的diff，新加文件可以看到diff
+git diff HEAD
+
+已经commit未提交到远程，和远程当前的master-rel分支对比
+git diff origin/master-rel HEAD
+
+远程仓库改名之后，对本地仓库先删除远程，再加入新的uri
+git remote rm origin
+git remote add origin [url]
+
+
+// 可以查看所有分支的所有操作记录
+// 本人主要用来查看 分支合并记录
+git reflog
+// 回滚提交前的版本
+git reset --hard HEAD~
+				
+				
+git reflog 例如：
+
+fbb0c0f HEAD@{0}: commit (merge): Merge branch 'master' into my-branch
+43b6032 HEAD@{1}: checkout: moving from master to my-branch
+e3753a7 HEAD@{2}: rebase finished: returning to refs/heads/master
+e3753a7 HEAD@{3}: pull --rebase: checkout e3753a71d92b032034dcb299d2df2edc09b5830e
+b41ea52 HEAD@{4}: reset: moving to HEAD^
+8400a0f HEAD@{5}: rebase: aborting
+
+回滚到分支合并之前
+git reset --hard 43b6032
+				
+				
+git revert 是生成一个新的提交来撤销某次提交，此次提交之前的commit都会被保留
+git reset 是回到某次提交，提交及之前的commit都会被保留，但是此次之后的修改都会被退回到暂存区
+				
+				
+Git必须知道当前版本是哪个版本，在git中，用HEAD表示当前版本，也就是最新的提交3628164...882e1e0（注意我的提交ID和你的肯定不一样），
+上一个版本就是HEAD^，上上一个版本就是HEAD^^，当然往上100个版本写100个^比较容易数不过来，所以写成HEAD~100。
+HEAD指向的版本就是当前版本，因此，Git允许我们在版本的历史之间穿梭，使用命令git reset --hard commit_id。
+穿梭前，用git log可以查看提交历史，以便确定要回退到哪个版本。
+要重返未来，用git reflog查看命令历史，以便确定要回到未来的哪个版本。
+				
+HEAD 就是当前活跃分支的游标。形象的记忆就是：你现在在哪儿，HEAD 就指向哪儿，所以 Git 才知道你在那儿！
+不过 HEAD 并非只能指向分支的最顶端（时间节点距今最近的那个），实际上它可以指向任何一个节点，它就是 Git 内部用来追踪当前位置的。
+
+
+打标签
+git tag -a v1.01 -m "Relase version 1.01"
+注解：git tag 是打标签的命令，-a 是添加标签，其后要跟新标签号，-m 及后面的字符串是对该标签的注释。
+
+提交标签到远程仓库
+git push origin --tags
+注解：就像git push origin master 把本地修改提交到远程仓库一样，-tags可以把本地的打的标签全部提交到远程仓库。
+
+删除标签
+git tag -d v1.01
+注解：-d 表示删除，后面跟要删除的tag名字
+
+删除远程标签
+git push origin :refs/tags/v1.01
+注解：就像git push origin :branch_1 可以删除远程仓库的分支branch_1一样， 冒号前为空表示删除远程仓库的tag。
+
+查看标签
+git tag
+或者
+git tag -l
+
+利用tag回滚代码
+git checkout v1.01
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+eclipse 关闭鼠标悬停提示：Window->Preferences->Java->Editor->Hovers-> Combined Hover
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	
+Linux shell	
+=========================================
+
+查找：grep -Irn yourSearchWord .
+=========================================
+
+多命令执行，用 ; 分号隔开，无论前边的命令执行成功与否都会继续执行下一条命令：
+echo 1; echo 2; echo 3; echo 4
+=========================================
+
+echo命令
+输出文字，例如： echo -e “hello\a”
+echo [-ne][字符串]或 echo [--help][--version]
+-n 不要在最后自动换行
+-e 若字符串中出现以下字符，则特别加以处理，而不会将它当成一般
+文字输出：
+   \a 发出警告声；
+   \b 删除前一个字符；
+   \c 最后不加上换行符号；
+   \f 换行但光标仍旧停留在原来的位置；
+   \n 换行且光标移至行首；
+   \r 光标移至行首，但不换行；
+   \t 插入tab；
+   \v 与\f相同；
+   \\ 插入\字符；
+   \nnn 插入nnn（八进制）所代表的ASCII字符；
+–help 显示帮助
+–version 显示版本信息
+=========================================
+
+新创建的 .sh （shell脚本） 在运行之前要加这个命令， ./filename.sh 就可以直接运行shell脚本了
+chmod命令用于改变linux系统文件或目录的访问权限
+chmod u+x
+
+chmod [-cfvR] [--help] [--version] mode file   
+权限范围：
+u 代表用户. 
+g 代表用户组. 
+o 代表其他. 
+a 代表所有.
+权限代号：
+r ：读权限，用数字4表示
+w ：写权限，用数字2表示
+x ：执行权限，用数字1表示
+- ：删除权限，用数字0表示
+s ：特殊权限 
+
+这意味着chmod u+x somefile 只授予这个文件的所属者执行的权限 
+而 chmod +x somefile 和 chmod a+x somefile 是一样的 
+
+=========================================
+增加临时路径
+PATH=$PATH:source/
+查看路径，path属性
+printenv
+=========================================
+
+图片压缩
+mogrify -resize 64x64 *.png
+
+=========================================
+
+1、删除文件夹实例：
+rm -rf /var/log/httpd/access
+将会删除/var/log/httpd/access目录以及其下所有文件、文件夹
+
+2、删除文件使用实例：
+rm -f /var/log/httpd/access.log
+将会强制删除/var/log/httpd/access.log这个文件
+
+=========================================
+
+remount
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+apktool 安装教程
+https://ibotpeaches.github.io/Apktool/install/
+Windows下
+需要将以下链接保存成apktool.bat，（可以创建文本文件，将链接的内容复制到文本文件中，再将该文件的文件名改为apktool.bat即可）
+https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/windows/apktool.bat
+在从以下链接处下载apktool_2.2.1.jar，再将其修改文件名为apktool.jar
+https://bitbucket.org/iBotPeaches/apktool/downloads
+最后将一个apk文件和apktool.bat和apktool.jar共置于一个文件夹内
+即可运行apktool命令
+
+Mac下的apktool，安装了java环境之后，只需要将 apktool.jar 和 .apk文件放置于同一文件夹下
+在运行以下命令即可
+java -jar apktool.jar d metronome.apk
+
+apktool 反编译命令
+apktool.bat d -f test.apk 
+apktool d test.apk
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Android studio
+
+
+在Messages栏目中出现以下报错
+
+Manifest merger failed with multiple errors, see logs
+
+在左边栏目中，点击 show console output 项，可以打开 gradle console 查看错误详情
+
+写好一个函数之后，在函数前面写上 /** 然后直接回车(Enter键啊），会自动生成注释，函数所有参数都自动帮你写上了，然后你自己加上一些说明就可以了
+
+-------------
+配置调试activity
+在 Edit Configuations 下的 Launcher Options，下拉菜单选择 Specfied Activity 可对其他activity调试
+如果选择 Default Activity，则对应的是manifest文件中的 category.DEFAULT的activity
+如果项目中配置的多个category.DEFAULT就需要选择 Specfied Activity进行调试
+
+-------------
+logcat栏，最右边下拉菜单，选择No Filters不过滤，打印所有app的log。
+选择Show Only Selected Application 打印目标app的log
+
+
+------------------------------------------------
+
+
+// 清除res下，不用的资源，包括layout
+Refactor -> Remove Unused Resources
+
+
+Android studio下修改包名（原包名 com.pkg1, 准备改成cn.pkg2）
+1，文件夹浏览器 打开项目的java文件， com.pkg1是 com文件夹下的pkg1文件夹，在com下创建一个文件夹
+此时Android studio会可以选中com文件夹，右击com文件夹，Recactor->Rename成 cn（修改后包括layout里面的自定义view的路径，也会由com修改为cn）,修改完之后，就可以把之前在com文件夹（现在的cn）中创建的那个临时文件夹删除了
+
+2，右击pkg1，Recactor->Rename成pkg2
+
+3，修改AndroidManifest.xml和build.gradle中的包名,
+
+4, 全局替换.R , 如果编译错误是.R文件，
+在Edit->Find->Replace Path中将 “import com.pkg1.R” 替换为”import cn.pkg2.R”
+
+
+5, 全局查找com.pkg1，查看是否有漏掉的修改, 
+
+
+
+android gradle 配置
+
+android {
+  compileSdkVersion 23 //要编译的sdk版本号
+  buildToolsVersion "23.0.1"
+
+  defaultConfig {
+    applicationId "com.example.checkyourtargetsdk"
+    minSdkVersion 7 //sdk向下兼容的最低版本号
+    targetSdkVersion 23 //sdk行为版本号
+    versionCode 1
+    versionName “1.0”
+  }
+}
+
+
+androidTestCompile和testCompile是测试用的依赖配置
+
+dependencies {
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    testCompile 'junit:junit:4.12'
+    testCompile 'com.squareup.okhttp3:mockwebserver:3.6.0'
+}
+
+使用studio创建一个新工程，app/src目录下有三个目录
+test
+androidTest
+main
+
+test可以使用testCompile导入的库
+androidTest可以使用androidTestCompile导入的库
+main目录下的主工程，则不能使用testCompile导入的库
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+build.gradle中的dependencies，依赖的包 不单单只包含aar和jar
+大多情况下都会多一个AndroidManifest.xml，就像添加module一样，也常会有jni和res文件夹 （jni里面有 armeabi-v7a、x86等文件夹，存放着.so)
+Android studio环境 偷工减料，通常只会显示aar和jar和res里面的内容，但其实不止包含aar或jar文件，是有其他的文件的
+
+解压jar命令:
+jar xvf classes.jar
+
+
+
+
+

@@ -1,4 +1,8 @@
 
+
+----------------------------------------
+
+
 session认证
 
 早期Java Servlet所用到的认证方式
@@ -25,6 +29,321 @@ token认证
 
 ----------------------------------------
 
+Spring security
+
+一般的情况下，用户登录成功之后，我们会根据用户类型，判断用户的资源访问权限，
+例如 管理员可以做哪些事，查看哪些资料，管理哪些用户，增删改查哪些数据库，而普通用户可以做哪些事，等等。
+
+涉及到两个关键点：
+用户身份确认 就是登录
+用户权限控制 就是授权，这个授权指的是系统或者某个资源 授予用户的访问和使用权限。
+
+认证（Authentication）
+授权（Authorization）
+
+基于spring aop和servlet过滤器的安全框架。提供全面的安全性解决方案，同时在web请求级和方法调用级处理身份确认和授权
+
+核心功能：
+1.认证（你是谁，用户/设备/系统）
+2.验证（你能干什么，也叫权限控制/授权，允许执行的操作）
+3.攻击防护（仿制伪装身份）
+
+技术原理
+Filter（过滤器），Servlet，spring di(ioc)，spring aop
+
+常用框架有 spring security， apache shiro
+
+
+封装并实现了，登录，拦截，验证，只需要调用即可
+
+---------------------------------------------
+
+
+Spring Security
+
+简单demo1
+1.创建springboot项目。导入以下依赖：
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+2.编写一个controller
+@RestController
+public class STController {
+    @RequestMapping("/hello")
+    public String helloWorld () {
+        return "helloWorld";
+    }
+}
+
+3.执行springboot项目，查看打印日志，会打印密码，例如：Using generated security password: 23ed0b8e-2b84-4464-9aae-f7d76c184dbc
+访问：http://localhost/hello 会自动跳转（重定向）至 http://localhost/login，这是security自动实现的 登录认证 功能
+输入默认的用户名 user 和日志里面打印出来的密码
+登录认证成功之后才会出现helloWorld内容
+
+4.properties配置用户名密码
+spring.security.user.name=wrx
+spring.security.user.password=123456
+修改完成之后重新run，就不再会打印密码了，而是替换为配置好的用户名密码
+
+5.如果pom依赖里面把security删掉，再次执行时不再需要输入密码
+
+---------------------------------------------
+
+@Conﬁguration使用 
+　　官方文档描述：
+　　用@Conﬁguration注释类表明其主要目的是作为bean定义的源
+　　@Conﬁguration类允许通过调用同一类中的其他@Bean方法来定义bean之间的依赖关系
+
+指示一个类声明一个或多个@Bean方法，并且可以由Spring容器处理，以便在运行时为这些bean生成BeanDefinition和服务请求
+也就是说，@Conﬁguration注解的类里面，就是用来创建@Bean方法和实例的
+
+@Conﬁguration内部实现的@Component注解，所以会在application初始化的时候被扫描
+
+Spring 容器在启动时，会加载默认的一些PostPRocessor，其中就有ConfigurationClassPostProcessor，这个后置处理程序专门处理带有@Configuration注解的类，这个程序会在bean 定义加载完成后，在bean初始化前进行处理。主要处理的过程就是使用cglib动态代理增强类，而且是对其中带有@Bean注解的方法进行处理。
+
+使用@Configuration注解后，在调用方法 fox()创建 fox实例的时候，需要参数 cat，
+调用方法cat()生成cat实例，此时会去spring的单例bean工厂获取cat的单例bean的实例；
+不使用@Configuration注解，实例化fox的时候，每次都会创建一个新的 cat对象，供实例化fox使用；
+
+总结：也就是说@Conﬁguration下的@Bean都是单例，
+普通的@Bean都是new创建的
+
+---------------------------------------------
+
+简单demo2
+
+1.上面的demo1改造，增加自定义类继承自WebSecurityConfigurerAdapter,进而实现对Spring Security更多的自定义配置
+并且重写以下方法
+@Configuration
+public class STConfig extends WebSecurityConfigurerAdapter {
+    // 设置没有密码加密
+    @Bean
+    PasswordEncoder passwordEncoder(){
+        return NoOpPasswordEncoder.getInstance();
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        // 增加内存用户，基于内存的认证
+        // 增加3个用户，给予不同的权限，权限有 ADMIN DBA USER
+        auth.inMemoryAuthentication()
+                .withUser("root").password("123").roles("ADMIN","DBA")
+                .and()
+                .withUser("admin").password("123").roles("ADMIN","USER")
+                .and()
+                .withUser("cc").password("123").roles("USER");
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.formLogin()                    //  定义当需要用户登录时候，转到的登录页面。
+                .and()
+
+                .authorizeRequests()        // 定义哪些URL需要被保护、哪些不需要被保护
+                // 能访问 /admin的只有 "ADMIN" 权限
+                .antMatchers("/admin/**")
+                .hasRole("ADMIN")
+                .antMatchers("/user/**")
+                .access("hasAnyRole('ADMIN','USER')")
+                // 能访问 /db/下的资源的用户，要同时拥有'ADMIN' 和 'DBA'
+                .antMatchers("/db/**")
+                .access("hasAnyRole('ADMIN') and  hasRole('DBA')")
+                .anyRequest()               // 任何请求,登录后可以访问
+                .authenticated();
+    }
+}
+
+2.定义mapper进行访问
+    @RequestMapping("/db/hello")
+    public String hello3(){
+        return "db";
+    }
+
+    @RequestMapping("/admin/hello")
+    public String hello2(){
+        return "admin";
+    }
+
+    @RequestMapping("/user/hello")
+    public String hello4(){
+        return "user";
+    }
+
+如果访问/db/hello 时，登录的是用户名 cc，则会显示错误，因为权限不足
+
+---------------------------------------------
+
+关闭security验证
+当我们把pring-boot-starter-security的pom依赖加到项目里面时，访问任何资源都会自动实现登录验证，
+这时把原先继承了WebSecurityConfigurerAdapter的类的代码删除
+让这个方法不做任何处理即可
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+    }
+
+或者配置上想要忽略的url
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers("/hello");
+    }
+或者加上permitAll()，之后还可以接着写需要权限访问的url
+        http
+                .formLogin()               
+                .and()
+                .authorizeRequests()     
+
+                .antMatchers("/hello")
+                .permitAll()
+
+                .antMatchers("/admin/**")
+                .hasRole("ADMIN")
+
+                .anyRequest()               
+                .authenticated();
+
+permitAll() 和 ignoring() 的区别就是 ignoring()是完全屏蔽，而permitAll()是在身份认证的基础上对所有人开放了url
+
+
+---------------------------------------------
+
+配置多个httpSecurity，内部类去继承即可，使用@Configuration和@Order注解优先配置
+@Order(1)
+这个注解去实现，默认为1，1优先级最高
+配置多个config继承自WebSecurityConfigurerAdapter，并加上@Configuration和@Order注解
+
+---------------------------------------------
+
+登录失败之后的处理
+
+
+
+---------------------------------------------
+
+
+自定义登录界面，由于前后端分离，不可能使用到的spring-security的登录界面，所以要加载前端的登录界面：
+
+
+
+
+---------------------------------------------
+
+密码加密解密
+
+解决2个问题：
+注册时密码加密后存入数据库
+登录时密码加密校验
+
+先看 BCrypt加密
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            String encodePassword = passwordEncoder.encode(userBean.getPassword());
+            System.out.print("encodePassword: " + encodePassword + "\n");
+            System.out.println("match result:" + passwordEncoder.matches(userBean.getPassword(),encodePassword));
+
+BCrypt加密，拿原字符串再进行匹配，如果配对成功表示两段字符串是一致的
+
+
+1.修改代码
+@Configuration
+public class STConfig extends WebSecurityConfigurerAdapter {
+......
+    // 设置没有密码加密
+    @Bean
+    PasswordEncoder passwordEncoder(){
+        //return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
+    }
+......
+}
+
+2.BCrypt加密一段密码，并存入数据库
+例如，123456进行BCrypt加密之后是这样的
+$2a$10$4Wk2crU.I9/js7zAkn8Y6OVMsPF9pdQBOCeLTURRa4F4lC7PKvJhm
+
+注意，如果在代码中实现，那么controller获取到密码之后，就要进行BCrypt加密，再通过service存入数据库
+也就是说要保证存入数据库的密码是加密的，这样数据库就可以不用存储 明文密码
+
+3.登录时输入123456为密码即可
+
+---------------------------------------------
+
+Demo
+持久层在数据库中 获取用户，判断登录用户是否存在
+
+1.创建mybatis持久层，mapper，service，serviceimpl等
+
+2.继承UserDetailsService，重写方法
+@Component
+public class UserServiceSecurity implements UserDetailsService {
+    @Autowired
+    UserService userService;
+    @Override
+    public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
+        // 从数据库中获取用户信息
+        SecurityUserBean securityUserBean = userService.selectUserByName(s);
+        if (securityUserBean == null) {
+            throw new UsernameNotFoundException("用户不存在！");
+        }
+        List<GrantedAuthority> list = new ArrayList<>();
+        // "ROLE_"前缀必须加，不然检测不出来
+        list.add(new SimpleGrantedAuthority("ROLE_" + securityUserBean.getRole().toString()));
+        // User的jar包不能导错
+        // 返回数据库中的密码等信息，接下来准备进行校验密码
+        User user = new User(securityUserBean.getUsername(), securityUserBean.getPassword(), list);
+        return user;
+    }
+}
+
+3.修改配置文件
+@Configuration
+public class STConfig extends WebSecurityConfigurerAdapter {
+    @Autowired
+    UserServiceSecurity userServiceSecurity;
+    // 设置没有密码加密
+    @Bean
+    PasswordEncoder passwordEncoder(){
+        return NoOpPasswordEncoder.getInstance();
+    }
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userServiceSecurity);
+    }
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.formLogin()
+                .and()
+                .authorizeRequests()
+                .antMatchers("/hello")
+                .permitAll()
+                .antMatchers("/admin/**")
+                .hasRole(SecurityUserBean.Roles.admin.toString())
+                .antMatchers("/normal/**")
+                .hasRole(SecurityUserBean.Roles.normal.toString())
+                .anyRequest()
+                .authenticated();
+    }
+}
+
+4.注意，这个demo里面只有两种权限，并且每个用户只有一种权限，所以只需要一个变量role，此时只需要1张数据库表格，
+但是实际应用中，不止这种情况，有可能一个用户同时拥有几种权限，那么，需要额外多一张表来存储这种对应关系，需要一个列表变量List(Role) roles,
+思路是，表里面记录了 用户id，权限id这两字段，将用户id作为查询条件，获取权限id列表，再把权限列表加入到角色的roles列表里面。
+
+
+---------------------------------------------
+
+
+spring-security-oauth2
+
+
+
+
+---------------------------------------------
 
 
 

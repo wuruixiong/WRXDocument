@@ -385,6 +385,43 @@ private String id;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
+JPA
+springdata jpa、jpa和hibernate三者关系
+通俗来讲springdata jpa是对jpa规范的一层封装，hibernate实现了jpa规范。
+java代码----->springdata jpa ------>jpa规范------>hibernate------>jdbc ----->mysql数据库
+我们使用java代码调用springdata jpa的api，springdata jpa封装了jpa规范，并且内部使用的是hibernate实现，hibernate封装了jdbc进行数据库操作。
+
+也就是说springdata jpa的底层就是hibernate
+
+1.导入依赖
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+2.
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.url=jdbc:mysql://127.0.0.1:3306/test?useSSL=false
+spring.datasource.username=root
+spring.datasource.password=tianya
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.database-platform=org.hibernate.dialect.MySQL5Dialect
+server.port=8010
+logging.level.org.springframework=error
+#spring.jpa.generate-ddl=
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.type=trace
+spring.jpa.properties.hibernate.use_sql_comments=true
+spring.jpa.properties.hibernate.jdbc.batch_size=50
+logging.level.org.hibernate.type.descriptor.sql=trace
+
+3.创建bean
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
 application.properties文件配置
 可以在上一级目录中添加config目录，在创建application.properties文件
 

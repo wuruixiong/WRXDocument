@@ -1,0 +1,108 @@
+
+设计模式
+
+java代码
+	JDK JRE
+	基础语法，数据类型
+	算法
+	jdk8
+
+java高级
+	高级特性
+	注解
+	jvm虚拟机
+		内存分区
+		新生代回收器，老生代回收器
+		强、弱、软，虚引用
+		gc机制
+	java11和java14高级特性
+	
+高并发，多线程，线程同步，反射，异常
+内存泄漏
+死锁，活锁，乐观锁，悲观锁
+数据脏读，幻读
+缓存击穿，雪崩
+熔断，降级，监控
+负载均衡
+
+spring开发
+	springmvc
+	结构分层：表现层，业务层，持久层
+	ioc控制反转(或者叫di依赖注入)，aop面对切面编程，ioc容器
+	spring boot，底层代码解析，注解实现
+	spring cloud 重要组件
+		Netflix Eureka注册中心
+		Ribbon负载均衡
+		Fegin
+		Hystrix
+		Zuul网关
+	pring security
+	spring data
+	中间件
+		rabbitMQ消息队列
+		kafka
+	restful风格
+	阿里框架
+		dubbo，zookeeper
+	两种注册中心的对比，也是http和rpc协议的对比
+		eureka，zookeeper
+	springCloud netflix 
+	springCloud alibaba
+		spring cloud中的几乎所有的组件都使用Netflix公司的产品，在其基础上做了一层starter的封装
+		然而Netflix的服务发现组件Eureka已经停止更新
+		将来的框架选型可能会更多的偏向springCloud alibaba
+
+数据库相关
+	基础sql语言的使用
+	nosql，redis，MongoDB
+	sql，mysql，sqllite
+	持久层框架，mybatis，jpa，ORM框架 对象关系映射
+
+
+数据安全，加密，网络协议
+数据安全
+	数据库的数据加密存储方案
+	加密RSA的衍生协议
+	对称加密，非对称加密，不可逆加密
+	实际应用
+	数字签名，摘要算法
+网络协议
+	网络协议基础，tcp/ip五层结构
+		tcp握手
+	http
+		通讯过程
+	https：结合数据安全，保证通讯安全
+		通讯过程
+
+部署工具
+	docker
+	k8s
+
+版本控制工具
+	git
+	svn
+
+项目构建工具
+	maven
+	gradle
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
