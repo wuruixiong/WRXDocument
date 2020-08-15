@@ -94,6 +94,8 @@ spring.security.user.password=123456
 
 5.如果pom依赖里面把security删掉，再次执行时不再需要输入密码
 
+6.@EnableWebSecurity 这个注解似乎不需要了
+
 ---------------------------------------------
 
 @Conﬁguration使用 
@@ -339,6 +341,183 @@ public class STConfig extends WebSecurityConfigurerAdapter {
 
 
 spring-security-oauth2
+
+OAuth 是一个开放标准，该标准允许用户让第三方应用访问该用户在某一网站上存储的私密资源（如头像、照片、视频等），
+而在这个过程中无须将用户名和密码提供给第三方应用。实现这一功能是通过提供一个令牌（token），而不是用户名和密码来访问他们存放在特定服务提供者的数据。
+每一个令牌授权一个特定的网站在特定的时段内访问特定的资源。这样，OAuth 让用户可以授权第三方网站灵活地访问存储在另外一些资源服务器的特定信息，
+而非所有内容。目前主流的 qq，微信等第三方授权登录方式都是基于 OAuth2 实现的。
+
+oauth2根据使用场景不同，分成了4种模式
+授权码模式（authorization code）
+简化模式（implicit）
+密码模式（resource owner password credentials）
+客户端模式（client credentials）
+
+重点就是授权码模式：
+授权码模式：授权码模式是功能最完整、流程最严谨的授权模式。它的特点就是通过客户端的服务器与授权服务器进行交互，国内常见的第三方平台登录功能基本 都是使用这种模式。
+
+OAuth 2 角色
+OAuth 2 标准中定义了以下几种角色：
+资源所有者（Resource Owner）：即代表授权客户端访问本身资源信息的用户，客户端访问用户帐户的权限仅限于用户授权的“范围”。
+客户端（Client）：即代表意图访问受限资源的第三方应用。在访问实现之前，它必须先经过用户者授权，并且获得的授权凭证将进一步由授权服务器进行验证。
+授权服务器（Authorization Server）：授权服务器用来验证用户提供的信息是否正确，并返回一个令牌给第三方应用。
+资源服务器（Resource Server）：资源服务器是提供给用户资源的服务器，例如头像、照片、视频等。
+
+步骤1：客户端（第三方应用）向用户请求授权。
+步骤2：用户单击客户端所呈现的服务授权页面上的同意授权按钮后，服务端返回一个授权许可凭证给客户端。
+步骤3：客户端拿着授权许可凭证去授权服务器申请令牌。
+步骤4：授权服务器验证信息无误后，发放令牌给客户端。
+步骤5：客户端拿着令牌去资源服务器访问资源。
+步骤6：资源服务器验证令牌无误后开放资源。
+
+
+
+代码流程：
+新建一个module，
+原项目基础上，把代码复制到module上
+此外，我们还可以自定义TokenServices来设置token的失效时间，只需要在config类里面使用即可。
+
+授权服务器
+1. 添加依赖，client server 授权服务器和资源服务器 都可以用这个
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-oauth2</artifactId>
+        </dependency>
+2.添加授权服务器配置
+//授权服务器配置
+@Configuration
+@EnableAuthorizationServer //开启授权服务
+public class AuthorizationConfig extends AuthorizationServerConfigurerAdapter {
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Override
+    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+        //允许表单提交
+        security.allowFormAuthenticationForClients()
+                .checkTokenAccess("isAuthenticated()");
+    }
+
+    @Override
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        // @formatter: off
+        clients.inMemory()
+                .withClient("client-a") //client端唯一标识
+                .secret(passwordEncoder.encode("client-a-secret")) //客户端的密码，这里的密码应该是加密后的
+                .authorizedGrantTypes("authorization_code") //授权模式标识
+                .scopes("read_user_info") //作用域
+                .resourceIds("resource1") //资源id
+                .redirectUris("http://localhost:9001/callback"); //回调地址
+        // @formatter: on
+    }
+}
+
+-------------
+
+资源服务器：
+1.在新建另一个module，端口设置为9001
+2.添加资源服务器配置
+@Configuration
+@EnableResourceServer
+public class ResourceConfig extends ResourceServerConfigurerAdapter {
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+    @Primary
+    @Bean
+    public RemoteTokenServices remoteTokenServices() {
+        final RemoteTokenServices tokenServices = new RemoteTokenServices();
+        //设置授权服务器check_token端点完整地址
+        tokenServices.setCheckTokenEndpointUrl("http://localhost:8001/oauth/check_token");
+        //设置客户端id与secret，注意：client_secret值不能使用passwordEncoder加密！
+        tokenServices.setClientId("client-a");
+        tokenServices.setClientSecret("client-a-secret");
+        return tokenServices;
+    }
+
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        //设置创建session策略
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED);
+        //@formatter:off
+        //所有请求必须授权
+        http.authorizeRequests()
+                .anyRequest().authenticated();
+        //@formatter:on
+    }
+
+    @Override
+    public void configure(ResourceServerSecurityConfigurer resources) {
+        resources.resourceId("resource1").stateless(true);
+    }
+}
+3.添加一个控制器
+@RestController
+public class ResController {
+    @RequestMapping("/hello")
+    public String helloWorld () {
+        return "helloWorld";
+    }
+    @RequestMapping("/admin/hello")
+    public String hello2(){
+        return "res admin";
+    }
+}
+
+-------------
+使用流程：
+同时启动资源服务器，授权服务器
+
+1.测试资源服务器，访问
+http://localhost:9001/hello
+发现访问失败，
+接来下，如果获取到token，post请求是附带token，会发现可以访问成功
+
+2.访问链接：
+这些参数都是代码里面写好的，需要一致
+http://localhost:8001/oauth/authorize?client_id=client-a&client_secret=client-a-secret&response_type=code
+此时会有一个登陆框，输入账号密码，登录完成之后
+会弹出如下是否授权的页面，选择approve(授权)，点击authorize(批准)
+OAuth Approval
+Do you authorize "client-a" to access your protected resources?
+scope.read_user_info: Approve Deny
+
+接着会跳转至如下链接，里面code就是授权码
+http://localhost:9001/callback?code=4gSFf8
+
+3.有了授权码之后再去获取token
+postman软件，post请求访问
+http://localhost:8001/oauth/token
+3.1 Authorization选择Basic Auth
+验证附带登录信息：这些参数都是代码里面写好的，需要一致
+Username: client-a
+Password: client-a-secret
+3.2 Post请求体附带参数如下：这些参数都是代码里面写好的，需要一致
+code=4gSFf8
+grant_type=authorization_code
+redirect_uri=http://localhost:9001/callback
+scope=read_user_info
+
+然后会得到回调信息
+{
+    "access_token": "5d878752-de99-4166-9710-cac2480c98d0",
+    "token_type": "bearer",
+    "expires_in": 43199,
+    "scope": "read_user_info"
+}
+
+4.有了token之后我们再去访问资源服务器的controller
+postman软件，get请求访问
+http://localhost:9001/hello
+http://localhost:9001/admin/hello
+Authorization选择Bearer Token
+验证附带token信息5d878752-de99-4166-9710-cac2480c98d0
+然后就访问成功了
+
+
+
 
 
 
