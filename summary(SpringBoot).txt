@@ -266,7 +266,29 @@ Spring注解@Component、@Repository、@Service、@Controller区别
 @Service用于service的注解
 @Controller用于Controller的注解
 
+------------------
+@Qualifier
+这个注解和    @Autowired连用，当定义了多个相同类型的bean时，可以通过这个注解去查找
+例如：
+@Service("a")
+public class EmployeeServiceImpl implements EmployeeService {
+......
+}
 
+@Service("b")
+public class EmployeeServiceImpl1 implements EmployeeService {
+......
+}
+
+@Controller
+public class EmployeeInfoControl {
+    ......
+    @Autowired
+    @Qualifier("b")
+    EmployeeService employeeService;
+    ......
+}
+------------------
 
 
 
@@ -1033,5 +1055,254 @@ Vue.js 的 API 的对于其他框架的参考也只是参考，其中也包含�
 ElasticSearch就是一款基于Lucene框架的分布式搜索引擎，并且也是一款为数不多的基于JSON进行索引的搜索引擎。ElasticSearch特别适合在云计算平台上使用。
 官方网站：http://www.elasticsearch.org/
 --------------------------------------------------------------------------------------
+
+
+spring事务
+Spring也有事务的概念，也要遵循ACID原则。原子性、一致性、隔离性、持久性
+
+事务传播特性
+所谓事务的传播行为是指，如果在开始当前事务之前，一个事务上下文已经存在，此时有若干选项可以指定一个事务性方法的执行行为。在TransactionDefinition定义中包括了如下几个表示传播行为的常量：
+TransactionDefinition.PROPAGATION_REQUIRED：如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务。这是默认值。
+TransactionDefinition.PROPAGATION_REQUIRES_NEW：创建一个新的事务，如果当前存在事务，则把当前事务挂起。
+TransactionDefinition.PROPAGATION_SUPPORTS：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行。
+TransactionDefinition.PROPAGATION_NOT_SUPPORTED：以非事务方式运行，如果当前存在事务，则把当前事务挂起。
+TransactionDefinition.PROPAGATION_NEVER：以非事务方式运行，如果当前存在事务，则抛出异常。
+TransactionDefinition.PROPAGATION_MANDATORY：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常。
+TransactionDefinition.PROPAGATION_NESTED：如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于TransactionDefinition.PROPAGATION_REQUIRED。
+
+通俗的说就是方法1调用了方法2，此时如果两个方法里面都有事务，该怎么处理
+
+--------------
+
+编程式事务
+
+实际开发中，编程式事务比较少用，更多的是用声明式事务。
+在没有添加事务管理的情况下，默认地，一条事务就是一次对数据库的操作，即调用一个DAO的方法（mybatis应该叫做mapper的方法）
+
+
+准备工作：创建项目，用mybatis写好持久层，spring写好业务层和表现层
+
+编程式事务xml配置方式
+1. resources下增加文件applicationContext.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <!-- 事务管理器 -->
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    <!-- 事务管理模板 -->
+    <bean id="transactionTemplate"
+          class="org.springframework.transaction.support.TransactionTemplate">
+        <!-- 选择创建的事务管理器注入到模板 -->
+        <property name="transactionManager" ref="transactionManager" />
+    </bean>
+</beans>
+
+2.application扫描文件
+@ImportResource("classpath:applicationContext.xml")
+public class PTXApplication {
+....
+}
+
+3.service-impl中注入一个transactionTemplate，将多个数据库操作代码放在同一个transactionTemplate里面执行，这样这些代码就构成了一条事务
+例如：以下执行两条指令，算是一个事务，中间因为抛出异常，上面那条执行会回滚，并不会提交到数据库
+    @Autowired
+    TransactionTemplate transactionTemplate;
+    @Override
+    public void transferTransaction() {
+        transactionTemplate.execute(
+                // 整个可以看做是一个事务，两条指令
+                // 如果中间报错，第一条指令会回滚
+                transactionStatus -> {
+                userMapper.updateBalance("Tom", 900);
+                int x = 10;
+                if (x == 10) {
+                    throw new RuntimeException("出错");
+                }
+                userMapper.updateBalance("Jerry", 1100);
+                return null;
+            }
+        );
+    }
+
+
+
+编程式事务annotation配置方式
+
+1.增加一个配置类，大致和xml配置相似
+@Configuration
+public class PTConfig {
+    // 这个DataSource是可以自动依赖注入的，因为在properties里面已经配置了连接的DataSource
+    // IOC容器已经自动实现了DataSource实例
+    @Autowired
+    private DataSource dataSource;
+    @Bean
+    public TransactionTemplate transactionTemplate(DataSourceTransactionManager dataSourceTransactionManager) {
+        TransactionTemplate transactionTemplate = new TransactionTemplate();
+        transactionTemplate.setTransactionManager(dataSourceTransactionManager);
+        return transactionTemplate;
+    }
+
+    @Bean
+    public DataSourceTransactionManager dataSourceTransactionManager() {
+        DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();
+        dataSourceTransactionManager.setDataSource(dataSource);
+        return dataSourceTransactionManager;
+    }
+}
+
+2.service的实例中注入一个transactionTemplate，将多个数据库操作代码放在同一个transactionTemplate里面执行，这样这些代码就构成了一条事务
+例如：以下执行两条指令，算是一个事务，中间因为抛出异常，上面那条执行会回滚，并不会提交到数据库
+    @Autowired
+    TransactionTemplate transactionTemplate;
+    @Override
+    public void transferTransaction() {
+        transactionTemplate.execute(
+                // 整个可以看做是一个事务，两条指令
+                // 如果中间报错，第一条指令会回滚
+                transactionStatus -> {
+                userMapper.updateBalance("Tom", 900);
+                int x = 10;
+                if (x == 10) {
+                    throw new RuntimeException("出错");
+                }
+                userMapper.updateBalance("Jerry", 1100);
+                return null;
+            }
+        );
+    }
+
+
+--------------
+
+声明式事务
+
+Spring使用AOP来完成声明式的事务管理   有annotation和xml两种形式
+
+传播特性、隔离级别可以配置
+AOP的切点point-cut、切面advisor可以配置
+
+0.创建项目，用mybatis写好持久层，spring写好业务层和表现层
+声明式事务xml配置方式
+1.导入pom依赖
+    <dependencies>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.8.10</version>
+        </dependency>
+    </dependencies>
+
+2.resources下增加文件applicationContext.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+    <!-- 事务管理器 -->
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    <!--AspectJ tx定义 声明式事务 配置事务的通知（事务增强）-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <!--<tx:method name="read*" propagation="REQUIRED" rollback-for="Exception" />-->
+            <tx:method name="*" propagation="REQUIRED" read-only="false"
+                       isolation="DEFAULT" rollback-for="java.lang.Exception" />
+        </tx:attributes>
+    </tx:advice>
+    <aop:config>
+        <aop:pointcut id="interceptorPointCuts"
+                      expression="execution(* wrx.sp.transaction.service..*.*(..))" />
+        <aop:advisor advice-ref="txAdvice"
+                     pointcut-ref="interceptorPointCuts" />
+    </aop:config>
+</beans>
+
+3.application扫描文件
+@ImportResource("classpath:applicationContext.xml")
+public class PTXApplication {
+....
+}
+
+注意: 这样算是配置好了，因为aop:pointcut已经指定了 wrx.sp.transaction.service包下所有的类的所有的方法都要拦截，会自动把方法里面的操作设为一个事务
+事务管理器 transactionManager 也需要配置
+tx:method还可以配置各种属性，
+例如：
+	name 加*号可以进行模糊匹配
+        isolation 隔离级别，一般设置为 default
+        propagation 传播行为，一般设置为 required
+        read-only="false" 不是只读
+        timeout 超时时间
+        rollback-for 发生哪些异常时回滚
+        no-rollback-for 发生哪些异常时不回滚
+
+
+声明式事务annotation配置方式
+1.增加配置文件，开启事务管理器@EnableTransactionManagement
+@Configuration
+@EnableTransactionManagement
+public class PTConfig {
+
+    // 这个DataSource是可以自动依赖注入的，因为在properties里面已经配置了连接的DataSource
+    // IOC容器已经自动实现了DataSource实例
+    @Autowired
+    private DataSource dataSource;
+
+    @Bean
+    public TransactionTemplate transactionTemplate(DataSourceTransactionManager dataSourceTransactionManager) {
+        TransactionTemplate transactionTemplate = new TransactionTemplate();
+        transactionTemplate.setTransactionManager(dataSourceTransactionManager);
+        return transactionTemplate;
+    }
+
+    @Bean
+    public DataSourceTransactionManager dataSourceTransactionManager() {
+        DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();
+        dataSourceTransactionManager.setDataSource(dataSource);
+        return dataSourceTransactionManager;
+    }
+
+}
+
+2. 在类或者方法添加注解，这样这个方法就算是一个事务
+    @Override
+    @Transactional(isolation = Isolation.DEFAULT, propagation = Propagation.REQUIRED)
+    public void transferTransaction() {
+        // 一个操作可以看做是一个事务，执行到一半报错，不会影响已经提交的数据
+        userMapper.updateBalance("Tom", 900);
+
+        int x = 10;
+        if (x == 10) {
+            throw new RuntimeException("出错");
+        }
+        userMapper.updateBalance("Jerry", 1100);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------------
+
+
+
+
+
 
 
