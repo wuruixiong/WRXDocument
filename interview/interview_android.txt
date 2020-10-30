@@ -1,0 +1,31 @@
+
+
+Android体系（不包括 java基础，jvm，计算机网络，多线程）
+
+四大组件、生命周期
+
+android activity task
+
+activity启动方式
+
+android 各种manager，例如：ActivityManager
+
+框架 RXJava，reforit，okhttp，Picasso/Fresco/Glide
+
+进程通讯技术：AIDL
+
+AndroidNDK、JNI 等c++相关技术
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------

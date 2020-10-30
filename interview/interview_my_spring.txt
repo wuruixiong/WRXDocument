@@ -24,6 +24,7 @@ java高级
 缓存击穿，雪崩
 熔断，降级，监控
 负载均衡
+秒杀
 
 spring开发
 	springmvc
@@ -56,13 +57,32 @@ spring开发
 		然而Netflix的服务发现组件Eureka已经停止更新
 		将来的框架选型可能会更多的偏向springCloud alibaba
 
+rcp框架
+	zookeeper
+	kafka 消息中间件
+
+rabbitMQ消息队列
+	集群模式
+	集群，镜像模式，方向代理，负载均衡
+	haproxy
+	五种工作模式
+
+
 数据库相关
 	基础sql语言的使用
-	nosql，redis，MongoDB
+	nosql，MongoDB
 	sql，mysql，sqllite
 	持久层框架，mybatis，jpa，ORM框架 对象关系映射
 
- 搜索
+缓存
+	Redis
+		集群，哨兵模式
+		基础数据结构
+	MongoDB
+		
+
+
+搜索
 	ElasticSearch
 
 
@@ -97,6 +117,28 @@ spring开发
 
 Spring
 
+全家桶的优点：
+1.内置web容器，还可以选择各种容器，比起之前的开发，我们打war包的时代方便很多
+2.解耦，微服务是一个个小的独立个体，之间通过restful规则去连接，彼此之间互不影响，可以分开开发
+
+
+restful规范
+所有的东西都是资源，所有的操作都是通过对资源的增删改查
+资源可以看到是一个url，因为一个url的路径最终就指向了一个资源
+对资源的增删改查对应url的 post delete put get
+无状态
+
+/资源名/资源id/
+/资源名/资源id/子资源名/子资源id
+
+例如说登录认证，
+登录就是 post请求 去访问 /authorization ，而传统做法可能是 /authorization/login，这里不再使用其他路径，而是使用对应的post请求去区别对资源的增删改查
+退出就是 delete请求 去访问  /authorization，而传统做法可能是 /authorization/logout
+注意，在springboot的控制器中，就要使用 @PostMapping @DeleteMapping
+
+
+---------------------------------------------------------------------------------
+
 IOC
 IOC（Inverse of Control）反转控制，就是将原本在程序中手动创建类对象的控制权，交由Spring框架管理。
 DI（Dependency Injection）依赖注入，就是在Spring创建某个对象的过程中，将这个对象所依赖的属性（变量或其它类对象）注入进去。
@@ -105,7 +147,15 @@ IOC就是典型的工厂模式，通过BeanFactory去注入实例。
 
 IOC简单例子
 创建Person类、applicationContext.xml配置文件（在配置文件中配置Bean标签，对Person添加id，并对成员变量赋值）
-在mian方法中创建ApplicationContext，通过id创建Person对象
+在mian方法中创建ApplicationContext，通过id创建Person对象，
+例如：
+ApplicationContext ac = new ClassPathXmlApplicationContext("spring-config.xml");
+Person student = (Person)ac.getBean("person");
+
+//创建基于注解的springIOC容器
+ApplicationContext applicationContext = new AnnotationConfigApplicationContext(AopBeanConfig.class);
+//创建基于配置文件的springIOC容器
+ApplicationContext applicationContext = new ClassPathXmlApplicationContext("/spring-beans.xml");
 
 在我们加载IOC容器后，Spring就会全自动的为我们创建相应的对象，此时我们就无需再自己 new 创建对象了
 这就是所谓的控制反转，将创建对象的权限反转给Spring IoC容器，
@@ -115,26 +165,45 @@ IOC简单例子
 Spring IoC设计的核心是Bean容器
 BeanFactory采用了java经典的工厂模式，通过从xml配置文件中读取javaBean的定义，来实现javaBean的创建、配置和管理bean与bean之间的依赖关系，
 所以BeanFactory可以称为IoC容器。
-ApplicationContext的中文含义是: 应用上下文，继承自BeanFactory接口
+ApplicationContext的中文含义是: 应用上下文，是从BeanFactory接口层层继承下来的，中间继承经过了  AbstractApplicationContext（很多关键代码都在这个类里面）
+
+自我总结的流程：
+1.SpringApplication.run();  -> createApplicationContext();  选择三种类型来创建context
+2.SpringApplication.run();  -> prepareContext() -> refreshContext() -> refresh() -> prepareContext()扫描component并注册，AbstractApplicationContext.refresh()  在refresh()处理beanFactory
+3.finishBeanFactoryInitialization() -> getBean() -> AbstractBeanFactory.doGetBean() -> 创建完了之后 存储在 Map<String, RootBeanDefinition> mergedBeanDefinitions 里面
+4.在Spring中,关于bean定义,其Java建模模型是接口BeanDefinition, 其变种有RootBeanDefinition，AnnotatedGenericBeanDefinition等大概7/8种。
+
+5. doGetBean  -> createBean  ->  AbstractAutowireCapableBeanFactory.createBean
+setBeanClass() 设置类名
+instanceWrapper = createBeanInstance(beanName, mbd, args);    Bean实例的创建，
+populateBean(beanName, mbd, instanceWrapper);    为Bean实例设置属性，
+exposedObject = initializeBean(beanName, exposedObject, mbd);   调用Bean的初始化方法，
+Bean实例的创建，为Bean实例设置属性(属性注入，其实就是依赖注入真正发生的地方)，调用Bean的初始化方法
+
+6.AbstractAutowireCapableBeanFactory.doCreateBean - > createBeanInstance -> instantiateBean -> SimpleInstantiationStrategy.instantiate
+非重点，xml注入
+
+7. AbstractAutowireCapableBeanFactory.doCreateBean -> populateBean() -> autowireByType()/autowireByName()
+@autowire依赖注入
+
+8. AutowiredAnnotationBeanPostProcessor. postProcessPropertyValues() -> findAutowiringMetadata()
+findAutowiringMetadata(beanName, bean.getClass(), pvs);方法会寻找在当前类中的被@Autowire，@Resource，@Value，@Inject等具备注入功能的注解的属性。
+
+9. AutowiredAnnotationBeanPostProcessor .inject -> beanFactory.resolveDependency()
+通过BeanFactory 解决依赖关系
+比如在webController中注入了webService，这个会去BeanFactory中去获取webService，也就是getBean()的逻辑。
+如果存在直接返回，不存在再执行createBean()逻辑。
+
+
+狭义上来说，BeanFactory获取里面的 map表，可以算是ioc容器，而context其实也继承了BeanFactory，所以也可以算是ioc容器
+
+总结：
+从run方法开始，创建beanfactory，创建BeanDefinition，创建bean，向bean中的 被Autowired注解的变量进行注入
+例如 Controller注解类中的 被 AutoWrite注解的Service，全局扫描时，可以扫描出所有的 @component，扫描后就获得了这个 component下面是否有Autowired注解
 
 
 IOC工厂模式详情
-
-
-------
-spring 支持几种 bean 的作用域？
-
-当通过spring容器创建一个Bean实例时，不仅可以完成Bean实例的实例化，还可以为Bean指定特定的作用域。Spring支持如下5种作用域：
-
-singleton：单例模式，在整个Spring IoC容器中，使用singleton定义的Bean将只有一个实例
-prototype：原型模式，每次通过容器的getBean方法获取prototype定义的Bean时，都将产生一个新的Bean实例
-equest：对于每次HTTP请求，使用request定义的Bean都将产生一个新实例，即每次HTTP请求将会产生不同的Bean实例。只有在Web应用中使用Spring时，该作用域才有效
-session：对于每次HTTP Session，使用session定义的Bean豆浆产生一个新实例。同样只有在Web应用中使用Spring时，该作用域才有效
-globalsession：每个全局的HTTP Session，使用session定义的Bean都将产生一个新实例。典型情况下，仅在使用portlet context的时候有效。同样只有在Web应用中使用Spring时，该作用域才有效
-其中比较常用的是singleton和prototype两种作用域。对于singleton作用域的Bean，每次请求该Bean都将获得相同的实例。容器负责跟踪Bean实例的状态，负责维护Bean实例的生命周期行为；如果一个Bean被设置成prototype作用域，程序每次请求该id的Bean，Spring都会新建一个Bean实例，然后返回给程序。在这种情况下，Spring容器仅仅使用new 关键字创建Bean实例，一旦创建成功，容器不在跟踪实例，也不会维护Bean实例的状态。
-
-如果不指定Bean的作用域，Spring默认使用singleton作用域。Java在创建Java实例时，需要进行内存申请；销毁实例时，需要完成垃圾回收，这些工作都会导致系统开销的增加。因此，prototype作用域Bean的创建、销毁代价比较大。而singleton作用域的Bean实例一旦创建成功，可以重复使用。因此，除非必要，否则尽量避免将Bean被设置成prototype作用域。
-
+反射与工厂模式
 
 -------------------
 
@@ -156,6 +225,248 @@ AOP一般适用于具有横切逻辑的场合，如访问控制、事务管理�
 
 AOP代理模式详情
 
+AOP可以用 xml，注解两种方法来实现
+
+AOP增强
+众所周知，一旦提到AOP，相信大家都是条件反射的想到JDK代理和CGLib代理，没错，这两个代理都是在运行时内存中临时生成代理类，
+故而又称作运行时增强——动态代理。
+
+
+AOP的几个概念：
+1. 切面（Aspect）：@Aspect注解定义一个切面，切面可以用来放置切点Pointcut和增强Advice，规定了多个切点，并且在切点的什么时机执行增强
+
+2. 通知(Advice)：围绕切点，在切点执行之前或者之后执行其他的代码。
+也叫增强，在通知的类型包括"around"，"before"，"after"等等。许多AOP框架，包括Spring 都是以拦截器作为通知的模型，并维护一个以连接点为中心的拦截器链。
+总之就是AOP对连接点的处理通过通知来执行。个人理解：Advice指当一个方法被AOP拦截到的时候要执行的代码。
+
+
+连接点（Join point）：程序执行过程中某个特定的点，
+切入点（Pointcut）：指定某个点，或者多个带有相同特征的点，这些点其实就是方法，一个类里面的方法，一个包里面的类的方法，多个带有相同特征的方法
+匹配连接点（Join point）的断言。Spring默认使用AspectJ作为切入点语法。
+个人理解：通过切入点的表达式来确定哪些方法要被AOP拦截，之后这些被拦截的方法会执行相对应的Advice代码。
+
+引入（Introduction）：声明额外的方法或字段。
+目标对象（Target object）：被一个或多个切面（Aspect）所通知（Advice）的对象，
+AOP代理（AOP proxy）：AOP框架创建的对象，用来实现切面契约（aspect contract）（包括通知方法执行等功能），在Spring中AOP可以是JDK动态代理或者是CGLIB代理。
+织入（Weaving）：把切面（aspect）连接到其他的应用程序类型或者对象上，并创建一个被通知对象。这些可以在编译时（例如使用AspectJ编译器），类加载时和运行时完成。
+Spring和其他纯AOP框架一样，在运行时完成织入。个人理解：把切面跟对象关联并创建该对象的代理对象的过程。
+
+
+通知(Advice)的类型：
+前置通知（Before advice）：在某个连接点（Join point）之前执行的通知，但这个通知不能阻止连接点的执行（除非它抛出一个异常）。
+返回后通知（After returning advice）：在某个连接点（Join point）正常完成后执行的通知。例如，一个方法没有抛出任何异常正常返回。
+抛出异常后通知（After throwing advice）：在方法抛出异常后执行的通知。
+后置通知（After（finally）advice）：当某个连接点（Join point）退出的时候执行的通知（不论是正常返回还是发生异常退出）。
+环绕通知（Around advice）：包围一个连接点（Join point）的通知，如方法调用。这是最强大的一种通知类型。环绕通知可以在方法前后完成自定义的行为。它也会选择是否继续执行连接点或直接返回它们自己的返回值或抛出异常来结束执行。
+
+
+JDK和CGLIB动态代理原理，可以在源码DefaultAopProxyFactory中查看，JdkDynamicAopProxy，ObjenesisCglibAopProxy
+
+1、JDK动态代理
+JdkDynamicAopProxy实现了InvocationHanlder，使用Proxy.newProxyInstance(classLoader, proxiedInterfaces, this);的方法来生成动态代理类。
+在调用具体方法前调用InvokeHandler的invoke方法来处理。
+
+2、CGLIB动态代理
+利用ASM开源包，对代理对象类的class文件加载进来，通过修改其字节码生成子类来处理。
+
+3、动态代理技术必须依托接口来实现，代码里面也写得很清楚targetClass.isInterface()，如果代理类没有实例化任何接口，那么使用CGlib
+如果使用了接口，就使用JDK。
+还可以配置强制使用CGLIB动态代理
+具体可以去查看java动态代理的实现。
+
+4、如何强制使用CGLIB实现AOP？
+1）添加CGLIB库(aspectjrt-xxx.jar、aspectjweaver-xxx.jar、cglib-nodep-xxx.jar)
+2）在Spring配置文件中加入<aop:aspectj-autoproxy proxy-target-class="true"/>
+
+JDK动态代理和CGLIB字节码生成的区别？
+1）JDK动态代理只能对实现了接口的类生成代理，而不能针对类。
+2）CGLIB是针对类实现代理，主要是对指定的类生成一个子类，覆盖其中的方法，
+     并覆盖其中方法实现增强，但是因为采用的是继承，所以该类或方法最好不要声明成final，
+     对于final类或方法，是无法继承的。
+
+
+AOP 的代理bean创建流程，已经如何实现切面编程的原理：
+创建过程可以重点理解 JDK动态代理，Cglib代理是怎么生成的。
+
+1. 在BeanPostProcessor 后置处理中创建代理
+2. 在DefaultAopProxyFactory中选择 JDK动态代理，Cglib代理
+3. JDK动态代理是用 Proxy.newProxyInstance 把classload放进去最终生成一个动态代理类的
+    每次我们调用动态代理类，其实都是使用了 invoke方法 把方法、参数进行调用的，在invoke之前和之后可以进行增强。
+4. Cglib是继承被代理类，生成一个子类，重写它的方法中实现增强。
+
+------------------------------------------------------------------------
+
+介绍一下aop的两种写法
+
+1. 在面向切面编程时，我们一般会用<aop:aspect>，<aop:aspect>定义切面（包括通知（前置通知，后置通知，返回通知等等）和切点（pointcut））
+<aop:aspect>大多用于日志、缓存。
+
+2. 在进行事务管理时，我们一般会用<aop:advisor>,<aop:advisor>定义通知其(通知器跟切面一样，也包括通知和切点)。
+<aop:advisor>大多用于事务管理。
+
+找了一下资料，发现aspect是有注解的，可以用注解方式实现aop日志
+advisor是没有注解的，只能用xml方式来实现声明式事务。
+或者使用@Transactional来实现声明式事务，就可以不用xml，纯用注解实现。 
+
+
+
+------------------------------------------------------------------------
+
+Bean的生命周期
+这一部分是难点，涉及到 IOC容器， AOP代理模式如何实现，bean的创建和初始流程，循环依赖，三级缓存，
+
+
+个人理解为四个阶段
+1.实例化 Instantiation
+2.属性赋值 Populate
+3.初始化 Initialization
+4.销毁 Destruction
+
+实例化就是调用构造，创建实例
+属性赋值就是 属性注入，就是全局变量注入，如果一个bean里面有@autowrite注解的变量的话，就需要注入
+初始化就是判断接口是否实现，并且调用各种拓展接口，调用自定义的初始化方法，
+销毁就是调用自定义的销毁接口方法，
+
+关键点：如果看源码的话，可以从AbstractAutowireCapableBeanFactory.doCreateBean开始看
+（1）实例化就是调用构造，创建实例
+
+（2）属性注入 涉及到bean的三级缓存和循环依赖问题。
+
+（3）初始化涉及到 bean是否实现了各种接口：
+1. 检查bean是否实例了Aware接口，如果有就调用
+若 Spring 检测到 bean 实现了 Aware 接口，则会为其注入相应的依赖。所以通过让bean 实现 Aware 接口，则能在 bean 中获得相应的 Spring 容器资源。
+Spring 中提供的 Aware 接口有：
+BeanNameAware：注入当前 bean 对应 beanName；
+BeanClassLoaderAware：注入加载当前 bean 的 ClassLoader；
+BeanFactoryAware：注入 当前BeanFactory容器 的引用。
+
+以上是针对 BeanFactory 类型的容器，而对于 ApplicationContext 类型的容器，也提供了 Aware 接口，只不过这些 Aware 接口的注入实现，是通过 BeanPostProcessor 的方式注入的，但其作用仍是注入依赖。
+EnvironmentAware：注入 Enviroment，一般用于获取配置属性；
+EmbeddedValueResolverAware：注入 EmbeddedValueResolver（Spring EL解析器），一般用于参数解析；
+ApplicationContextAware（ResourceLoader、ApplicationEventPublisherAware、MessageSourceAware）：注入 ApplicationContext 容器本身。
+
+2. BeanPostProcessor 前置处理
+BeanPostProcessor 是 Spring 为修改 bean提供的强大扩展点，其可作用于容器中所有 bean
+对于标记接口的实现类，进行自定义处理。例如3.1节中所说的ApplicationContextAwareProcessor，为其注入相应依赖；再举个例子，自定义对实现解密接口的类，将对其属性进行解密处理；
+为当前对象提供代理实现。例如 Spring AOP 功能，生成对象的代理类，然后返回。
+
+再次说明一下，前置处理和后置处理，我们可以实现一个BeanPostProcessor，可以自动地在bean初始化之后做一些前置和后置处理。
+
+3. 检查是否实例InitializingBean接口，是否有自定义的init-method，如果有就调用
+InitializingBean 和 init-method 是 Spring 为 bean 初始化提供的扩展点。
+InitializingBean接口
+public interface InitializingBean {  void afterPropertiesSet() throws Exception; }
+或者配置init-method方法
+<bean id="demo" class="com.chaycao.Demo" init-method="init()"/>
+
+4. BeanPostProcessor 后置处理
+BeanPostProcessor 可以自定义一些BeanPostProcessor来处理业务，
+默认的BeanPostProcessor就是生产AOP代理bean的地方
+
+
+
+（4）销毁
+DisposableBean接口和destroy-method
+
+
+---------------------------------------------------------------------------------
+
+Spring 循环依赖问题
+
+实例互相持有
+IOC创建时，实例化 A 的时候发现 A 依赖于 B 于是去实例化 B（此时 A 创建未结束，处于创建中的状态），而发现 B 又依赖于 A ，于是就这样循环下去，最终导致 OOM
+
+Java中的循环依赖分两种，一种是构造器的循环依赖，另一种是属性的循环依赖。
+1.构造器循环依赖 无解，因为双方的构造方法都需要对方的实例。所以无解。
+2.属性的循环依赖是通过spring的三级缓存去处理的。
+3.prototype作用域bean的循环依赖。这种循环依赖同样无法解决，因为spring不会缓存‘prototype’作用域的bean，而spring中循环依赖的解决正是通过缓存来实现的。
+
+实例：
+解决循环依赖的代码，使用@autowrite 自动注入：
+@Service
+public class A {
+    @Autowired
+    private B b;
+}
+
+@Service
+public class B {
+    @Autowired
+    private A a;
+}
+
+------------------
+
+Spring的单例对象的初始化主要分为三步：
+bean初始化
+（1）createBeanInstance：实例化，其实也就是调用对象的构造方法实例化对象
+（2）populateBean：填充属性，这一步主要是多bean的依赖属性进行填充
+（3）initializeBean：调用spring xml中的init 方法。
+单例bean初始化步骤我们可以知道，循环依赖主要发生在第一、第二步。也就是构造器循环依赖和field循环依赖。
+
+Spring 为了解决单例的循环依赖问题，使用了 三级缓存 ，递归调用时发现 Bean 还在创建中即为循环依赖
+
+Spring解决循环依赖的原理分析
+
+A 创建过程中需要 B，于是 A 将自己放到三级缓里面 ，去实例化 B
+B 实例化的时候发现需要 A，于是 B 先查一级缓存，没有，再查二级缓存，还是没有，再查三级缓存，找到了！
+然后把三级缓存里面的这个 A 放到二级缓存里面，并删除三级缓存里面的 A
+B 顺利初始化完毕，将自己放到一级缓存里面（此时B里面的A依然是创建中状态）
+然后回来接着创建 A，此时 B 已经创建结束，直接从一级缓存里面拿到 B ，然后完成创建，并将自己放到一级缓存里面
+如此一来便解决了循环依赖的问题
+先让最底层对象完成初始化，通过三级缓存与二级缓存提前曝光创建中的 Bean，让其他 Bean 率先完成初始化。
+
+// 从上至下 分表代表这“三级缓存”
+DefaultSingletonBeanRegistry.class
+Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256); //一级缓存
+Map<String, Object> earlySingletonObjects = new HashMap<>(16); // 二级缓存
+Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16); // 三级缓存
+
+补充：
+1.要区分一下第三级缓存和其他缓存的区别，三级缓存Map的value是ObjectFactory，缓存的是一个用来生产对应bean的工厂
+2.从代码可知，三级缓存ObjectFactory是这么创建的：把一个已经构造方法执行完成的Object转换为ObjectFactory，然后存入Map表
+3.如果向二级缓存中存入对象，那么三级缓存就需要删除对应的对象
+
+4.为什么要做三级缓存，1级singletonObjects存放了完全初始化的bean，2级存放未初始化的bean，3级存放bean工厂
+   3级缓存是为了通过工厂对象，是可以拿到最终形态的代理后的bean，第3级缓存为了实现 AOP而增加的。
+   aop的主力beanPostProcessor，主要就是利用了工厂类去生产代理对象的，我们注入到实例里面的对象，其实就是一个代理类
+
+   再补充，第三级缓存就是存放了工厂类的缓存，我们把bean交给工厂，工厂生产出一个 bean的代理类，最后注入类其实只是 bean的代理类
+   代码可以看一下 AbstractAutoProxyCreator#getEarlyBeanReference#wrapIfNecessary#createProxy（实现了动态代理工厂ProxyFactory的创建）
+			      ProxyFactory#createAopProxy().getProxy(classLoader)	ProxyCreatorSupport	DefaultAopProxyFactory
+
+加入singletonFactories三级缓存的前提是执行了构造器，所以构造器的循环依赖没法解决。
+看源码可知，object是这么生产的：
+ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
+if (singletonFactory != null) {
+	singletonObject = singletonFactory.getObject();
+	this.earlySingletonObjects.put(beanName, singletonObject);
+	this.singletonFactories.remove(beanName);
+}
+
+
+------------------------------------------------------------
+
+
+spring 支持几种 bean 的作用域？
+
+当通过spring容器创建一个Bean实例时，不仅可以完成Bean实例的实例化，还可以为Bean指定特定的作用域。Spring支持如下5种作用域：
+
+singleton：单例模式，在整个Spring IoC容器中，使用singleton定义的Bean将只有一个实例
+prototype：原型模式，每次通过容器的getBean方法获取prototype定义的Bean时，都将产生一个新的Bean实例
+request：对于每次HTTP请求，使用request定义的Bean都将产生一个新实例，即每次HTTP请求将会产生不同的Bean实例。只有在Web应用中使用Spring时，该作用域才有效
+session：对于每次HTTP Session，使用session定义的Bean豆浆产生一个新实例。同样只有在Web应用中使用Spring时，该作用域才有效
+globalsession：每个全局的HTTP Session，使用session定义的Bean都将产生一个新实例。典型情况下，仅在使用portlet context的时候有效。同样只有在Web应用中使用Spring时，该作用域才有效
+
+其中比较常用的是singleton和prototype两种作用域。对于singleton作用域的Bean，每次请求该Bean都将获得相同的实例。容器负责跟踪Bean实例的状态，负责维护Bean实例的生命周期行为；如果一个Bean被设置成prototype作用域，程序每次请求该id的Bean，Spring都会新建一个Bean实例，然后返回给程序。在这种情况下，Spring容器仅仅使用new 关键字创建Bean实例，一旦创建成功，容器不在跟踪实例，也不会维护Bean实例的状态。
+
+如果不指定Bean的作用域，Spring默认使用singleton作用域。Java在创建Java实例时，需要进行内存申请；销毁实例时，需要完成垃圾回收，这些工作都会导致系统开销的增加。因此，prototype作用域Bean的创建、销毁代价比较大。而singleton作用域的Bean实例一旦创建成功，可以重复使用。因此，除非必要，否则尽量避免将Bean被设置成prototype作用域。
+
+使用@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE/SCOPE_SINGLETON)
+可以指定原型或者单例
+
+后面三种仅使用于webapplicationcontext，就是旧时代servlet的equest 传过来的bean的作用域
+
 
 ---------------------------------------------------------------------------------
 
@@ -163,26 +474,28 @@ Spring MVC运行流程：
 
 在这里插入图片描述Spring运行流程描述：
 
-用户向服务器发送请求，请求被Spring 前端控制Servelt DispatcherServlet捕获；
+(1)用户向服务器发送请求，请求被Spring 前端控制Servelt DispatcherServlet捕获；
 
-DispatcherServlet对请求URL进行解析，得到请求资源标识符（URI）。然后根据该URI，调用HandlerMapping获得该Handler配置的所有相关的对象（包括Handler对象以及Handler对象对应的拦截器），最后以HandlerExecutionChain对象的形式返回；
+(2)DispatcherServlet对请求URL进行解析，得到请求资源标识符（URI）。然后根据该URI，调用HandlerMapping获得该Handler配置的所有相关的对象（包括Handler对象以及Handler对象对应的拦截器），
+最后以HandlerExecutionChain对象的形式返回；
 
-DispatcherServlet 根据获得的Handler，选择一个合适的HandlerAdapter；（附注：如果成功获得HandlerAdapter后，此时将开始执行拦截器的preHandler(…)方法）
+(3)DispatcherServlet 根据获得的Handler，选择一个合适的HandlerAdapter；（附注：如果成功获得HandlerAdapter后，此时将开始执行拦截器的preHandler(…)方法）
 
-提取Request中的模型数据，填充Handler入参，开始执行Handler（Controller)。 在填充Handler的入参过程中，根据你的配置，Spring将帮你做一些额外的工作：
+(4)提取Request中的模型数据，填充Handler入参，开始执行Handler（Controller)。 在填充Handler的入参过程中，根据你的配置，Spring将帮你做一些额外的工作：
 
 1、HttpMessageConveter： 将请求消息（如Json、xml等数据）转换成一个对象，将对象转换为指定的响应信息
 2、数据转换：对请求消息进行数据转换。如String转换成Integer、Double等
 3、数据根式化：对请求消息进行数据格式化。 如将字符串转换成格式化数字或格式化日期等
 4、数据验证： 验证数据的有效性（长度、格式等），验证结果存储到BindingResult或Error中
 
-Handler执行完成后，向DispatcherServlet 返回一个ModelAndView对象；
+(5)Handler执行完成后，向DispatcherServlet 返回一个ModelAndView对象；
 
-根据返回的ModelAndView，选择一个适合的ViewResolver（必须是已经注册到Spring容器中的ViewResolver)返回给DispatcherServlet ；
+(6)根据返回的ModelAndView，选择一个适合的ViewResolver（必须是已经注册到Spring容器中的ViewResolver)返回给DispatcherServlet ；
 
-ViewResolver 结合Model和View，来渲染视图；
+(7)ViewResolver 结合Model和View，来渲染视图；
 
-将渲染结果返回给客户端。
+(8)将渲染结果返回给客户端。
+
 
 
 
@@ -197,58 +510,749 @@ Interceptors ：拦截器，负责拦截我们定义的请求然后做处理工�
 
 ---------------------------------------------------------------------------------
 
+
+@Resource  @Autowired的区别：
+Autowired是按类型type查找的，如果要按名查找需要加上Qualifier注解
+Resource是按名查找的
+以下代码功能相同
+    @Autowired
+    @Qualifier("mypaging")
+    PagingBean pagingBean;
+
+    @Resource(name = "mypaging2")
+
+---------------------------------------------------------------------------------
+
+异常拦截器
+
+浏览器，前端，controller，service，dao，
+如果在这个过程中出现异常，会层层返回，最终把异常返回到浏览器中显示，对为暴露异常会影响安全性，并且对用户也不友好。
+
+异常处理器就是在 前端处增加一个 阶段，如果有异常，经过异常处理器的处理，转换成对应的错误页面，给浏览器显示。
+
+@ControllerAdvice：增强型控制器，对于控制器的全局配置放在同一个位置，全局异常的注解，放在类上。
+@ControllerAdvice默认只会处理controller层抛出的异常，如果需要处理service层的异常，需要定义一个自定义的MyException来继承RuntimeException类，然后@ExceptionHandler（MyException）即可。
+
+@ExceptionHandler：指明需要处理的异常类型以及子类。注解放在方法上面。
+
+例如：以下代码就会捕获到从dao到controller的异常
+@ControllerAdvice
+@ResponseBody
+public class GlobalExceptionHandler {
+    @ExceptionHandler(value = Exception.class)
+    public <T> ReturnDto<T> exceptionHandler(HttpServletRequest request, Exception e) throws FeignException {
+        String msg = e.getMessage();
+        ReturnDto<T> returnDto = new ReturnDto<>();
+        returnDto.setStatus(100);
+        returnDto.setMsg(msg);
+        return returnDto;
+
+    }
+}
+---------------------------------------------------------------------------------
+
+核心注解：
+@SpringBootConfiguration
+@EnableAutoConfiguration
+@ComponentScan(excludeFilters = { @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
+		@Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
+
+
+@SpringBootConfiguration
+@Configuration注解的变体，只是用来修饰Spring Boot的配置而已。
+
+@EnableAutoConfiguration
+允许SpringBoot自动配置注解，开启这个注解之后，SpringBoot就能根据当前类路径下的包或者类来配置Spring Bean。
+帮助SpringBoot应用将所有符合条件的@Configuration配置都加载到当前SpringBoot创建并使用的IoC容器。
+
+@ComponentScan
+Spring 3.1添加的一个注解，用来代替配置文件中的component-scan配置，开启组件扫描，自动扫描包路径下的@Component注解进行注册bean实例放到context(容器)中。
+
+
+
+
+---------------------------------------------------------------------------------
+
+@ResponseBody @RequestBody
+
+(1)
+@ResponseBody的作用其实是将java对象转为json格式的数据。
+
+@responseBody注解的作用是将controller的方法返回的对象通过适当的转换器转换为指定的格式之后，写入到response对象的body区，通常用来返回JSON数据或者是XML数据。
+注意：在使用此注解之后不会再走视图处理器，而是直接将数据写入到输入流中，他的效果等同于通过response对象输出指定格式的数据。
+
+@ResponseBody是作用在方法上的，@ResponseBody 表示该方法的返回结果直接写入 HTTP response body 中，一般在异步获取数据时使用【也就是AJAX】。
+注意：在使用 @RequestMapping后，返回值通常解析为跳转路径，但是加上 @ResponseBody 后返回结果不会被解析为跳转路径，而是直接写入 HTTP response body 中。 比如异步获取 json 数据，加上 @ResponseBody 后，会直接返回 json 数据。@RequestBody 将 HTTP 请求正文插入方法中，使用适合的 HttpMessageConverter 将请求体写入某个对象。
+
+后台 Controller类中对应的方法：
+@RequestMapping("/login.do")
+@ResponseBody
+public Object login(String name, String password, HttpSession session) {
+	user = userService.checkLogin(name, password);
+	session.setAttribute("user", user);
+	return new JsonResult(user);
+}
+ 
+@RequestBody是作用在形参列表上，用于将前台发送过来固定格式的数据【xml格式 或者 json等】封装为对应的 JavaBean 对象，
+封装时使用到的一个对象是系统默认配置的 HttpMessageConverter进行解析，然后封装到形参上。
+如上面的登录后台代码可以改为：
+@RequestMapping("/login.do")
+@ResponseBody
+public Object login(@RequestBody User loginUuser, HttpSession session) {
+	user = userService.checkLogin(loginUser);
+	session.setAttribute("user", user);
+	return new JsonResult(user);
+}
+
+
+(2)
+@RequestBody
+@RequestBody 注解则是将 HTTP 请求正文插入方法中，使用适合的 HttpMessageConverter 将请求体写入某个对象。
+作用：
+
+1) 该注解用于读取Request请求的body部分数据，使用系统默认配置的HttpMessageConverter进行解析，然后把相应的数据绑定
+    到要返回的对象上； 
+2) 再把HttpMessageConverter返回的对象数据绑定到 controller中方法的参数上。
+使用时机：
+
+A) GET、POST方式提时， 根据request header Content-Type的值来判断:
+
+    application/x-www-form-urlencoded， 可选（即非必须，因为这种情况的数据@RequestParam, @ModelAttribute
+也可以处理，当然@RequestBody也能处理）； 
+    multipart/form-data, 不能处理（即使用@RequestBody不能处理这种格式的数据）； 
+    其他格式， 必须（其他格式包括application/json, application/xml等。这些格式的数据，必须使用@RequestBody来处理）；
+B) PUT方式提交时， 根据request header Content-Type的值来判断:
+
+application/x-www-form-urlencoded， 必须；multipart/form-data, 不能处理；其他格式， 必须；
+说明：request的body部分的数据编码格式由header部分的Content-Type指定；
+
+例如：
+
+@RequestMapping(value = "user/login")
+@ResponseBody
+// 将ajax（datas）发出的请求写入 User 对象中
+public User login(@RequestBody User user) {   
+// 这样就不会再被解析为跳转路径，而是直接将user对象写入 HTTP 响应正文中
+    return user;    
+}
+
+---------------------------------------------------------------------------------
+
+声明式事务原理
+
+两种方式实现声明式事务
+1. <aop:advisor> 标签 + <tx:advice> + <aop:pointcut> 
+2. @Transactional
+
+aop:advisor 整体流程
+1. 在一个方法里面写一些对数据库的操作代码
+2.  <tx:advice> 把这个方法定义为切点pointcut，把一个事务管理器DataSourceTransactionManager 定义为增强Advice
+3. 用advisor把这些包括起立，定义为一个切面 <aop:advisor>
+
+最后在 方法相当于一个事务，如果提交过程中中断，那么之前执行的代码会回滚
+
+
+不同的技术对应不同的实现，JDBC技术则对应一个DataSourceTransactionManager、Hibernater技术对应HibernateTransactionManager等等。
+上面这两个接口都继承自PlatformTransaction，创建事物的过程，这个过程是委托给具体的事物管理器来创建的
+
+调用时：
+事务管理器拿到 代理类，创建或加入一个事务，接着调用代理类的 代理方法，如果执行代理方法成功就提交commit事务，失败就回滚rollback事务
+
+一般情况下，@Transactional注解是写在serviceImpl上的，在ioc容器初始化时，就会扫描全部类的全部方法，当扫描到@Transactional注解时，
+TransactionProxyFactoryBean 就会用 ProxyBeanFactory生成一个代理类 给到事务管理器，
+
+这一切的执行都是在事务拦截器中执行的 TransactionInterceptor
+TransactionInterceptor；保存了事务属性信息，事务管理器；
+ 					他是一个 MethodInterceptor；
+ 					在目标方法执行的时候；
+ 						执行拦截器链；
+ 						事务拦截器：
+ 							1）、先获取事务相关的属性
+ 							2）、再获取PlatformTransactionManager，如果事先没有添加指定任何transactionmanger
+ 								最终会从容器中按照类型获取一个PlatformTransactionManager；
+ 							3）、执行目标方法
+ 								如果异常，获取到事务管理器，利用事务管理回滚操作；
+ 								如果正常，利用事务管理器，提交事务
+
+
+那什么时候Spring的TransactionInterceptor被注入到Spring AOP中成为Advisor中的一部分呢？我们看到在TransactionProxyFactoryBean中，这个方法在IOC初始化bean的时候被执行：
+
+---------
+
+创建事务代理的 代码流程：
+（1）Spring Bean 实例化创建 事务代理对象 
+AbstractAutowireCapableBeanFactory.initializeBean() -> 后置处理applyBeanPostProcessorsAfterInitialization() -> 
+for (BeanPostProcessor processor : getBeanPostProcessors()) {
+	Object current = processor.postProcessAfterInitialization(result, beanName);
+
+查看 InfrastructureAdvisorAutoProxyCreator 的类图，最后我们的 @Transactional 注解的类会执行该类中的 postProcessAfterInitialization 方法，
+
+（2） InfrastructureAdvisorAutoProxyCreator 父类 AbstractAutoProxyCreator -> postProcessAfterInitialization() -> wrapIfNecessary
+
+（3）关键方法wrapIfNecessary() 获取事务切面，获取的过程是一个非常复杂的过程，
+获取过程：调用getAdvicesAndAdvisorsForBean()，从实现类的类、方法、接口上获取 事务信息，事务信息就是 传播特性，隔离特性这些
+例如从 AbstractFallbackTransactionAttributeSource获取到BeanFactoryTransactionAttributeSourceAdvisor
+把获取到的事务切面作为参数去创建代理对象，这个方法里，还会调用ProxyFactory去生成代理对象
+
+InfrastructureAdvisorAutoProxyCreator这个bean，结合spring @EnableAspectJAutoProxy背后的那些事(spring AOP源码赏析)。中的分析我们可以得出，
+这个类就是开启transaction切面的类，它的核心代码和aop的原理一样，实现了BeanPostProcessor接口，在bean装载完成后会调用postProcessAfterInitialization，在postProcessAfterInitialization方法中会去加载切面，
+并且根据切点匹配相应的方法，对对象进行动态代理。具体的代码在父类AbstractAutoProxyCreator中，并且我们在spring @EnableAspectJAutoProxy背后的那些事(spring AOP源码赏析)也分析过，这里不在赘述。
+
+所以AutoProxyRegistrar就是负责装载InfrastructureAdvisorAutoProxyCreator，来开启事务的代理，那么用来代理的切面和切点在哪里呢，没错，另一个配置类
+
+ProxyTransactionManagementConfiguration,就是用来装载事务的切面和切点：
+这里主要有3个类：
+BeanFactoryTransactionAttributeSourceAdvisor，AnnotationTransactionAttributeSource，TransactionInterceptor
+这三个类的作用分别是：BeanFactoryTransactionAttributeSourceAdvisor为事务aop提供建言advisor，里面包含了切点的判定AnnotationTransactionAttributeSource，和切面的逻辑：TransactionInterceptor。
+
+ 
+
+（4）
+代理类执行  JdkDynamicAopProxy#invoke
+代理会执行到： ReflectiveMethodInvocation#proceed 方法
+最终会执行到：TransactionInterceptor#invoke 方法
+
+---------
+
+AOP核心，会用这个创建 事务代理或者普通代理，创建流程很复杂
+AbstractAutoProxyCreator，这个类不光会创建用户定义的 事务aop和普通aop。同时也会创建一堆spring内置的切面
+
+
+---------------------------------------------------------------------------------
+
+spring 拦截器 
+
+
+Definition
+
+---------------------------------------------------------------------------------
+
+SpringCloud分布式开发五大组件详解
+服务发现——Netflix Eureka
+
+客服端负载均衡——Netflix Ribbon
+
+断路器——Netflix Hystrix
+
+服务网关——Netflix Zuul
+
+分布式配置——Spring Cloud Config
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 Netflix Eureka注册中心
-Ribbon负载均衡
-Fegin
-Hystrix
-Zuul网关
+
+Eureka 解析：
+分为三部分：Eureka Server, Eureka Client Consumer, Eureka Client Provider, 即 服务端，客户端消费者，客户端提供者
+
+流程：
+Provider向Server注册，提供ip/port等信息
+Consumer从Server中获取 Provider注册列表信息，Consumer不需要注册
+Consumer远程调用Provider
+
+详细工作流程：
+1、Eureka Server 启动成功，等待服务端注册。在启动过程中如果配置了集群，集群之间定时通过 Replicate 同步注册表，每个 Eureka Server 都存在独立完整的服务注册表信息
+2、Eureka Client 启动时根据配置的 Eureka Server 地址去注册中心注册服务
+3、Eureka Client 会每 30s 向 Eureka Server 发送一次心跳请求，证明客户端服务正常
+4、当 Eureka Server 90s 内没有收到 Eureka Client 的心跳，注册中心则认为该节点失效，会注销该实例
+5、单位时间内 Eureka Server 统计到有大量的 Eureka Client 没有上送心跳，则认为可能为网络异常，进入自我保护机制，不再剔除没有上送心跳的客户端
+6、当 Eureka Client 心跳请求恢复正常之后，Eureka Server 自动退出自我保护模式
+7、Eureka Client 定时全量或者增量从注册中心获取服务注册表，并且将获取到的信息缓存到本地
+8、服务调用时，Eureka Client 会先从本地缓存找寻调取的服务。如果获取不到，先从注册中心刷新注册表，再同步到本地缓存
+9、Eureka Client 获取到目标服务器信息，发起服务调用
+10、Eureka Client 程序关闭时向 Eureka Server 发送取消请求，Eureka Server 将实例从注册表中删除
+
+
+
+心跳机制
+服务提供者在启动后，周期性（默认30秒）向Eureka Server发送心跳，以证明当前服务是可用状态。
+Eureka Server在一定的时间（默认90秒）未收到客户端的心跳，则认为服务宕机，注销该实例。
+
+
+服务下线
+Cancel(服务下线)：当provider关闭时会向Eureka发送消息，把自己从服务列表中删除。防止consumer调用到不存在的服务。
+
+
+保护机制
+固定时间内大量实例被注销，可能会严重威胁整个微服务架构的可用性。为了解决这个问题，Eureka 开发了自我保护机制，那么什么是自我保护机制呢？
+Eureka Server 在运行期间会去统计心跳失败比例在 15 分钟之内是否低于 85%，如果低于 85%，Eureka Server 即会进入自我保护机制。
+
+Eureka Server 进入自我保护机制，会出现以下几种情况：
+(1 Eureka 不再从注册列表中移除因为长时间没收到心跳而应该过期的服务
+(2 Eureka 仍然能够接受新服务的注册和查询请求，但是不会被同步到其它节点上(即保证当前节点依然可用)
+(3 当网络稳定时，当前实例新的注册信息会被同步到其它节点中
+Eureka 自我保护机制是为了防止误杀服务而提供的一个机制。当个别客户端出现心跳失联时，则认为是客户端的问题，剔除掉客户端；当 Eureka 捕获到大量的心跳失败时，则认为可能是网络问题，进入自我保护机制；当客户端心跳恢复时，Eureka 会自动退出自我保护机制。
+如果在保护期内刚好这个服务提供者非正常下线了，此时服务消费者就会拿到一个无效的服务实例，即会调用失败。对于这个问题需要服务消费者端要有一些容错机制，如重试，断路器等。
+
+
+
+集群同步机制
+Eureka Server 集群相互之间通过 Replicate 来同步数据，相互之间不区分主节点和从节点，所有的节点都是平等的。
+另外 Eureka Server 的同步遵循着一个非常简单的原则：只要有一条边将节点连接，就可以进行信息传播与同步。
+
+如果存在多个节点，只需要将节点之间两两连接起来形成通路，那么其它注册中心都可以共享信息。
+每个 Eureka Server 同时也是 Eureka Client，多个 Eureka Server 之间通过 P2P 的方式完成服务注册表的同步。
+
+如果某台 Eureka Server 宕机，Eureka Client 的请求会自动切换到新的 Eureka Server 节点。当宕机的服务器重新恢复后，Eureka 会再次将其纳入到服务器集群管理之中。
+Eureka Server 集群之间的状态是采用异步方式同步的，所以不保证节点间的状态一定是一致的，不过基本能保证最终状态是一致的。
+
+
+
+分区
+Eureka 提供了 Region 和 Zone 两个概念来进行分区，这两个概念均来自于亚马逊的 AWS:
+可以理解为现实中的大区（Region）和机房（Zone）
+Eureka Client 在启动时需要指定 Zone，它会优先请求自己 Zone 的 Eureka Server 获取注册列表
+同样的，Eureka Server 在启动时也需要指定 Zone，如果没有指定的话，其会默认使用 defaultZone
+
+-------------------
+
+Eureka的集群分区方式，涉及到Eureka的集群模式，Eureka 宕机问题，CAP原则，
+
+
+CAP原则又称CAP定理，指的是在一个分布式系统中，一致性（Consistency）、可用性（Availability）、分区容错性（Partition tolerance）。
+CAP 原则指的是，这三个要素最多只能同时实现两点，不可能三者兼顾。
+
+eureka遵守AP原则,zookeeper遵守CP原则
+
+CA-单点集群,满足一致性,可用性的系统,通常在可扩展性上不太强大
+CP-满足一致性,分区容忍必的系统,通常性能不是特别高。
+AP-满足可用性,分区容忍性的系统,通常可能对一致性要求低一些
+
+Zookeeper
+
+当向注册中心查询服务列表时,我们可以容忍注册中心返回的是几分钟以前的注册信息,但不能接受服务直接down掉不可用。也就是说,服务注册功能对可用性的要求要高于一致性。
+但是zk会出现这样一种情况,当master节点因为网络故障与其他节点失去取系时,剩余节点会重新进行leader选举。问题在于,选举leader的时间太长, 30 ~ 120s,且选举期间整个2k集群都是不可用的,这就导致在选举期间注册服务瘫痪。在云部署的环境下,因网络问题使得zk集群失去master节点是较大概率会发生的事,虽然服务能够恢复,但是漫长的选举时间导致的注册长期不可用是不能容忍的.
+
+ 
+Eureka
+Eureka着明白了这一点,因此在设计时就优先保证可用性。
+Eureka各个节点都是平等的,几个节点挂掉不会影响正常节点的工作剩余的节点依然可以提供注册和查询服务。
+而Eureka的客户端在向某个Eureka注册或时如果发现连接失败,则会自动切换至其它节点,只要有一台Eureka还在,就能保证注册服务可用(保证可用性),只不过查到的信息可能不是最新的(不保证强一致性)。
+除此之外, Eureka还有一种自我保护机制,如果在15分钟内超过85%的节点都没有正常的心跳,那么Eureka就认为客户端与注册中心出现了网络故障,此时会出现以下几种情况
+
+1, Eureka不再从注册列表中移除因为长时间没收到心跳而应该过期的服务
+2.Eureka仍然能够接受新服务的注册和查询请求,但是不会被同步到其它节点上(即保证当前节点依然可用)
+3,当网络稳定时,当前实例新的注册信息会被同步到其它节点中.
+因此, Eureka可以很好的应对因网络故障导致部分节点失去联系的情况,而不会像zookeeper那样便整个注册服务瘫痪。
+
 
 -------------------
 
 Hystrix
+Hystrix、RxJava、观察者模式
 服务熔断，服务降级
 
+熔断机制是应对雪崩效应的一种微服务链路保护机制，
+
+雪崩效应：是一种因服务提供者的不可用导致服务调用者的不可用,并将不可用逐渐放大的过程。
+比如我们去访问一个服务的时候，发现这个服务崩了，然后我们一直在访问，后面的也一直排队等访问，但是我们有没有成功，导致后面所有的请求在排队，
+就越来越多的请求等待，这时候系统的资源也会被逐渐的给耗尽，导致所有的服务都可能崩。
+
+服务熔断：就是当这个服务出现故障的时候，来访问我的请求我会直接响应他一个fallback而不会让他一直等待请求。
+
+服务降级：当服务器压力剧增的情况下，根据当前业务情况及流量对一些服务和页面有策略的降级，以此释放服务器资源以保证核心任务的正常运行。
+
+熔断 可以在任何可能失败抛出异常的微服务上做熔断，最好是在 provider上做，使用的时候需要添加@EnableCircuitBreaker，并且@HystrixCommand(fallbackMethod = "xxx")，设置一个熔断方法
+
+降级是在 consumer上做的，有两种降级方法，Feign框架降级，zuul网关降级
+
+熔断VS降级
+相同点：
+目标一致 都是从可用性和可靠性出发，为了防止系统崩溃；
+用户体验类似 最终都让用户体验到的是某些功能暂时不可用；
+
+不同点：
+触发原因不同 服务熔断一般是某个服务（下游服务）故障引起，而服务降级一般是从整体负荷考虑
+
+
+总结：
+1. 降级，当一个服务超时、崩溃时，指定一个fall back 返回一个错误信息
+2. 熔断，当某一个服务的失败率达到一定阈值时，自动触发 降级机制
+3. 隔离，提供一个Hystrix 线程池，隔离 tomcat的线程池
+
+
+
+
+-------------------
+
+介绍几个概念和原理，隔离，熔断，降级
+
+
+体会隔离之前，先了解tomcat
+当大多数人在使用Tomcat时，多个HTTP服务会共享一个线程池，假设其中一个HTTP服务访问的数据库响应非常慢，这将造成服务响应时间延迟增加，
+大多数线程阻塞等待数据响应返回，导致整个Tomcat线程池都被该服务占用，甚至拖垮整个Tomcat。因此，如果我们能把不同HTTP服务隔离到不同的线程池，
+则某个HTTP服务的线程池满了也不会对其他服务造成灾难性故障。这就需要线程隔离或者信号量隔离来实现了。
+
+
+隔离：
+隔离也是处理雪崩问题的
+两种隔离技术：线程池(thread pool)和信号量(semaphore)
+1)线程隔离，默认方式
+Hystrix在用户请求和服务之间加入了线程池。
+Hystrix为每个依赖调用分配一个小的线程池，如果线程池已满调用将被立即拒绝，默认不采用排队.加速失败判定时间。线程数是可以被设定的。
+原理：用户的请求将不再直接访问服务，而是通过线程池中的空闲线程来访问服务，如果线程池已满，则会进行降级处理，用户的请求不会被阻塞，
+至少可以看到一个执行结果（例如返回友好的提示信息），而不是无休止的等待或者看到系统崩溃。
+2)信号隔离：
+信号隔离也可以用于限制并发访问，防止阻塞扩散, 与线程隔离最大不同在于执行依赖代码的线程依然是请求线程
+（该线程需要通过信号申请, 如果客户端是可信的且可以快速返回，可以使用信号隔离替换线程隔离,降低开销。信号量的大小可以动态调整, 线程池大小不可以。
+
+总结：线程隔离的意思就是，给每一个接口创建一个小线程池，这样如果某个接口挂了不会影响到其他线程
+每一条请求，都用线程池创建线程去完成，因为线程池有线程数上限，所以超出上限的就降级。
+
+这里的服务，我理解为一个 ServiceImpl方法 或者一个 @RequestMapping注解方法
+
+线程隔离可以在@ HystrixCommand注解中配置：
+@HystrixCommand(fallbackMethod = "paymentCircuitBreaker_Thread",
+	// 属性设置参考：HystrixCommandProperties
+	commandProperties = {
+	// 隔离策略，有THREAD和SEMAPHORE
+	@HystrixProperty(name="execution.isolation.strategy", value="THREAD")
+	 },
+	threadPoolProperties = {
+	   // 线程池核心线程数
+	       @HystrixProperty(name = "coreSize", value = "3"),
+	       // 队列最大长度
+	     @HystrixProperty(name = "maxQueueSize", value = "5"),
+	           // 排队线程数量阈值，默认为5，达到时拒绝，如果配置了该选项，队列的大小是该队列
+	              @HystrixProperty(name = "queueSizeRejectionThreshold", value = "7")
+	    })
+
+
+-------------------
+熔断：
+如果某个目标服务调用慢或者有大量超时，此时，熔断该服务的调用，对于后续调用请求，不继续调用目标服务，直接返回，快速释放资源。如果目标服务情况好转则恢复调用。
+
+
+熔断器:Circuit Breaker
+熔断器是位于线程池之前的组件。用户请求某一服务之后，Hystrix会先经过熔断器，此时如果熔断器的状态是打开（跳起），则说明已经熔断，
+这时将直接进行降级处理，不会继续将请求发到线程池。熔断器相当于在线程池之前的一层屏障。每个熔断器默认维护10个bucket ，
+每秒创建一个bucket ，每个blucket记录成功,失败,超时,拒绝的次数。当有新的bucket被创建时，最旧的bucket会被抛弃。
+
+熔断的三种状态
+Closed：熔断器关闭状态，调用失败次数积累，到了阈值（或一定比例）则启动熔断机制；
+Open：熔断器打开状态，此时对下游的调用都内部直接返回错误，不走网络，但设计了一个时钟选项，默认的时钟达到了一定时间（这个时间一般设置成平均故障处理时间，也就是MTTR），到了这个时间，进入半熔断状态；
+Half-Open：半熔断状态，允许定量的服务请求，如果调用都成功（或一定比例）则认为恢复了，关闭熔断器，否则认为还没好，又回到熔断器打开状态；
+
+流程说明:
+1:每次调用创建一个新的HystrixCommand，把依赖调用封装在run()方法中。
+2:执行execute()/queue做同步或异步调用。
+3:判断熔断器(circuit-breaker)是否打开，如果打开跳到步骤8，进行降级策略，如果关闭进入步骤。
+4:判断线程池/队列/信号量是否跑满，如果跑满进入降级步骤8，否则继续后续步骤。
+5:调用HystrixCommand的run方法。运行依赖逻辑
+5a:依赖逻辑调用超时，进入步骤8。
+6:判断逻辑是否调用成功
+6a:返回成功调用结果
+6b:调用出错，进入步骤8。
+7:计算熔断器状态，所有的运行状态(成功, 失败, 拒绝,超时)上报给熔断器，用于统计从而判断熔断器状态。
+8:getFallback()降级逻辑。
+  以下四种情况将触发getFallback调用：
+ (1)：run()方法抛出非HystrixBadRequestException异常
+ (2)：run()方法调用超时
+ (3)：熔断器开启拦截调用
+ (4)：线程池/队列/信号量是否跑满
+8a:没有实现getFallback的Command将直接抛出异常
+8b:fallback降级逻辑调用成功直接返回
+8c:降级逻辑调用失败抛出异常
+9:返回执行成功结果
+
+总结：
+网上很多博客说，熔断就是
+个人感觉，其实熔断和降级的概念是一起的，熔断器控制降级Fallback，如果满足熔断添加，就返回一个不可用的Fallback信息，这也算是降级吧
+
+-------------------
+
+熔断器阈值的配置
+hystrix.command.default.circuitBreaker.enabled 用来跟踪circuit的健康性，如果未达标则让request短路。默认true
+hystrix.command.default.circuitBreaker.requestVolumeThreshold 一个rolling window内最小的请求数。如果设为20，那么当一个rolling window的时间内（比如说1个rolling window是10秒）收到19个请求，即使19个请求都失败，也不会触发circuit break。默认20
+hystrix.command.default.circuitBreaker.sleepWindowInMilliseconds 触发短路的时间值，当该值设为5000时，则当触发circuit break后的5000毫秒内都会拒绝request，也就是5000毫秒后才会关闭circuit。默认5000
+hystrix.command.default.circuitBreaker.errorThresholdPercentage错误比率阀值，如果错误率>=该值，circuit会被打开，并短路所有请求触发fallback。默认50
+hystrix.command.default.circuitBreaker.forceOpen 强制打开熔断器，如果打开这个开关，那么拒绝所有request，默认false
+hystrix.command.default.circuitBreaker.forceClosed 强制关闭熔断器 如果这个开关打开，circuit将一直关闭且忽略circuitBreaker.errorThresholdPercentage
+
+
+例如
+    @GetMapping("/dept/get/{id}")
+    @HystrixCommand(fallbackMethod = "hystrixGet",
+            commandProperties = {
+                    @HystrixProperty(name = "circuitBreaker.enable", value = "true"), 
+                    @HystrixProperty(name = "circuitBreaker.requestVolumeThreshold", value = "20"),
+            }
+    )
+    public Dept get(@PathVariable("id") Long id){
+	xxxxxx	
+    }
+
+
+---------------------------------------------------------
+
+Ribbon
+
+负载均衡有两种，
+集中式，消费者和提供者之间再封装一层，所有的请求都过这一层，在这一层里面用负载均衡算法实现，将nginx可以做集中式负载均衡
+进程式，在消费者开始访问之前就确定要访问哪一个提供者
+
+ribbon是进程式，通常是在客户端(就是消费者)做的
+
+使用方式：
+1. consumer加上@RibbonClient注解即可，还可以自定义负载均衡算法，例如：
+@RibbonClient(name = "SPRINGCLOUD-PROVIDER-DEPT",configuration = XXXRule.class)
+public class SCConsumerDept80Application {......}
+
+需要配置多个提供者，名字都相同即可，例如 spring.application.name = springcloud-provider-dept
+
+注意：这个XXXRule.class是一个配置文件，里面配置了 IRule接口实例
+
+2. 配置文件直接配置
+server:
+  port: 8015 #端口号
+spring:
+  application:
+    name: loadbalance-service # 服务名称
+
+#取消Ribbon使用Eureka
+ribbon:
+  eureka:
+    enabled: false;
+
+#设置一个服务客户端的Ribbon配置
+helloword-service:
+  ribbon:
+    #配置Ribbon能访问 的微服务节点，多个节点用逗号隔开
+    listOfServers: localhost:8001,localhost:8002,localhost:8003,localhost:8004,localhost:8005
+    #配置Ribbon负载均衡策略
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule;
+
+
+---------------
+
+重点关注 负载均衡流程、负载均衡算法
+
+(1) 负载均衡流程
+1. 假设微服务B(provider), 多个微服务B集群向注册中心注册，注册中心维护一张 服务清单
+2. consumer 从注册中心获取服务清单，开始准备访问 微服务B
+3. 通过负载均衡算法决定要访问 集群的哪一个微服务B实例, 这样就完成了一次请求
+
+
+(2) 负载均衡算法
+
+1.RandomRule策略(com.netflix.loadbalancer.RandomRule)
+RandomRule策略：该策略实现了从服务实例清单中随机选择一个服务实例，作为请求服务对象。
+
+2.RoundRobinRule策略(com.netflix.loadbalancer.RandomRule)
+RoundRobinRule：该策略实现了按照线性轮询的方式一次轮询服务清单上的每个服务实例。
+
+3.RetryRule策略（com.netflix.loadbalancer.RetryRule）
+RetryRule：该策略具备重试机制的实例选择功能，在给定时间内能够得到选择到具体的服务实例就返回，
+当超过时间还有没选到就返回null，参数maxRetryMillis控制这个超时时间。
+
+
+4. 重点是：WeightedResponseTimeRule策略(com.netflix.loadbalancer.WeightedResponseTimeRule)
+WeightedResponseTimeRule：该策略是对RoundRobinRule的扩展，增加了根据实例的响应时间来计算权重，并从权重中选择对应的实例。
+该策略实现主要有三个核心内容
+
+定时任务
+WeightedResponseTimeRule策略在初始化的时候会启动一个定时任务，默认每隔30秒计算一次每个服务实例的权重
+
+权重计算
+累计所有实例的响应时间，得到总的totalResponseTime，然后为实例清单中的每个实例逐个计算权重
+
+实例选择
+WeightedResponseTimeRule策略会在[0,最大权重值)之间随机选取一个数，然后在看这个数落在哪个实例的权重区间内，
+接着WeightedResponseTimeRule就会去选择该实例。
+
+可以看出，响应时间越短，获取的权重区间就会越大，随机数落到的概率就会越大
+
+
+5.ClientConfigEnableRoundRobinRule策略（com.netflix.loadbalancer.ClientConfigEnableRoundRobinRule）
+ClientConfigEnableRoundRobinRule：该策略一般不直接使用，有些高级的策略会继承该类，完成一些高级的策略，ClientConfigEnableRoundRobinRule策略默认使用
+RoundRibinRule的线性轮询机制
+
+6.BestAvailableRule策略(com.netflix.loadbalancer.BestAvailableRule)
+BestAvailableRule策略继承ClientConfigEnableRoundRobinRule，通过遍历负载均衡中维护的所有服务实例，会过滤掉故障实例，并找出并发数请求数最小的实例，所以该策略的特性就是选出最空闲的实例
+
+7.PredicateBasedRule策略(com.netflix.loadbalancer.PredicateBasedRule)
+PredicateBasedRule策略继承ClientConfigEnableRoundRobinRule，该策略主要特性是“先过滤，在轮询”，也就是先过滤掉一些实例，得到过滤后的实例清单，然后轮询该实例清单，PredicateBasedRule中“过滤”功能没有实现，需要继承它的类完成，也就是说不同继承PredicateBasedRule的类有不同的“过滤特性”
+
+8.AvailabilityFilteringRule策略(com.netflix.loadbalancer.PredicateBasedRule)
+AvailabilityFilteringRule策略继承PredicateBasedRule策略的“先过滤，在轮询”特性，
+AvailabilityFilteringRule策略的过滤特性是
+1：是否故障，即断路器是否生效已断开
+2：实例的并发请求数大于阈值，默认2的32次方减一，该阈值可以通过
+<clientName>.<nameSpace>.ActiveConnectionsLimit来设置，只要满足其中一个那么就会过滤掉
+
+
+
+-------------------
+
+Zuul网关
+
+Zuul也是一个微服务，需要注册在 Eureka上，在访问Eureka上的微服务之前，都要通过zuul进行跳转。
+
+新创建一个module作为zuul网关，导入依赖后，加上注解@EnableZuulProxy，配置好properties文件即可。
+这个配置就是配置一个 对外的路径，隐藏和关闭内部访问路径，外部访问时，就是通过zuul配置的对外路径进行访问
+
+例如
+zuul:
+  routes:
+    mydept.serviceId: springcloud-provider-dept-hystrix   #某个微服务的名称
+    mydept.path: /mydept/**   #微服务  /mydept 下所有的路径都要过网关
+  ignored-services: "*"  # 不能再使用这个路径访问了，ignored ： 忽略,隐藏全部的~
+  prefix: /wrx # 设置公共的前缀
+
+
+核心功能就是 过滤和路由
+路由就是把外部的请求发到具体的微服务实例上，是实现外部访问统一入口的基础
+过滤就是验证请求。
+zuul的核心是一系列的filters, 其作用类比Servlet框架的Filter，或者AOP。
+zuul把请求路由到用户处理逻辑的过程中，这些filter参与一些过滤处理，比如Authentication，Load Shedding等
+
+
+网关有以下几个作用：
+统一入口：未全部为服务提供一个唯一的入口，网关起到外部和内部隔离的作用，保障了后台服务的安全性。
+鉴权校验：识别每个请求的权限，拒绝不符合要求的请求。
+动态路由：动态的将请求路由到不同的后端集群中。
+减少客户端与服务端的耦合：服务可以独立发展，通过网关层来做映射。
+
+
+ZuulServlet类似SpringMvc的DispatcherServlet，所有的Request都要经过ZuulServlet的处理
+三个核心的方法preRoute(),route(), postRoute()，zuul对request处理逻辑都在这三个方法里
+ZuulServlet交给ZuulRunner去执行。
+1. pre filter，前置，权限校验，参数校验，限流
+2. routing filter，请求转发到微服务，微服务再响应到routing
+3. post filter，拿到响应之后可以 做一些 日志打印，添加特殊的响应头，
+    后置最后响应给客户端
+
+
+工作流程：
+网关接收到请求之后，经过一层过滤，再分发到对应的服务上，服务返回结果到网关，网关再返回到浏览器
+
+
+
+
+-------------------
+
+以下是zuul功能的配置
+
+1.拦截非法请求，
+zuul.ignored-services: serviceName	#拦截这个微服务的所有的请求
+zuul.ignored-patterns: /**/my/**		#如果有请求的url带有 my 字段，拦截
+
+zuul.ignored-services: *  所有的微服务名全部失效
+
+2.服务名称更换别名，大多数情况下，我们都不希望微服务的名称对外暴露，所以需要做一个替换
+kuo只是一个自定义名，可以随便起，可以随便创建很多个 自定义名
+serviceId是指服务名
+path是指替代的路径，之后访问 serviceName/下的路径改为由 /nn/**
+
+zuul:
+  routes:
+    kuo:
+      serviceId: serviceName
+      path: /nn/**
+
+
+
+-------------------
+
+Spring Cloud Config
+分布式配置
+目前SpringCloud Config的使用主要是通过Git/SVN方式做一个配置中心，然后每个服务从其中获取自身配置所需的参数。
+这样，就可以达到 动态修改配置的目的，不用再编译部署了
+
+这个配置主要是远程云端上的yml或者properties文件
+目的：配置与代码解耦
+
 ---------------------------------------------------------------------------------
 
+Fegin 声明式web 服务调用服务
 
+和ribbon的区别
 
+在springcloud体系中实现rpc的组件有2个，一个是ribbon，另一个是feign，
+feign在底层封装了ribbon
 
-缓存穿透、缓存击穿、缓存雪崩
+feign是声明式的web service客户端，它让微服务之间的调用变得更简单了，类似controller调用service
+可以使用Feign时提供负载均衡的http客户端。
 
-缓存 redis
+总起来说，Feign具有如下特性：（feign可以用来做降级和复负载均衡）
+可插拔的注解支持，包括Feign注解和JAX-RS注解;
+支持可插拔的HTTP编码器和解码器;
+支持Hystrix和它的Fallback;
+支持Ribbon的负载均衡;
+支持HTTP请求和响应的压缩。
+这看起来有点像我们springmvc模式的Controller层的RequestMapping映射。这种模式是我们非常喜欢的。Feign是用@FeignClient来映射服务的。
 
 
+Feign的一个关键机制就是使用了动态代理
 
 
+---------------------------------
 
----------------------------------------------------------------------------------
+feign是声明式服务：
+通过Spring Cloud Feign提供的声明式服务绑定功能来实现对服务接口的调用。
 
-SQL
-mybatis
+@FeignClient注解是注解在Service上的，注解了这个接口之后，只需要再@Bean创建对象即可。
+这是对RestTemplate的进一步封装
 
+例如以下例子，我们就可以在 使用HelloServiceFeign直接对  远程的其他微服务的一个url资源 /demo/getHost进行访问
 
+@FeignClient(value = "hello-service-provider")
+public interface HelloServiceFeign {
+    @RequestMapping(value = "/demo/getHost", method = RequestMethod.GET)
+    public String getHost(String name);
+}
 
+@RestController
+public class RestClientController {
+    @Autowired
+    private HelloServiceFeign client;
 
+    @RequestMapping(value = "/client/getHost", method = RequestMethod.GET)
+    public String getHost(String name) {
+        return client.getHost(name);
+    }
+}
 
+如果 有多个服务 同时叫做 hello-service-provider，即实现了负载均衡，@FeignClient会自动去进行负载均衡式的访问，默认的策略是 随机策略
+也可以配置文件中加入
 
 
+---------
 
+降级
+@FeignClient(value = "提供者在eureka中注册的名称",  fallbackFactory = 自定义实现一个FallbackFactory的子类.class)
 
+这样当调用 提供者服务的接口时，如果发生了熔断，将会触发服务降级，调用 FallbackFactory中指定的降级逻辑，返回error。
 
+---------------------------------
 
+feign总结
+其实可以只使用RestTemplate来做 rest服务，从消费者请求到提供者
+只是feign更加方便，只需要使用一个FeignClient
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+Spring日志，日志框架
+SLF4J+Logback
+SLF4JLogger
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+spring security
 
+古老的两种认证方式：
+（1）session和cookies，用户登录之后，把当前的session id(会话id)，存储在cookies上，通过session id确认用户身份。
+Session就是会话，只要在同一个会话内登录过一次，就算是验证身份通过了。当然，会话结束之后，下一次进来还要继续登录。
 
----------------------------------------------------------------------------------
+Session会话 这个概念，其实就是发明出来确认用户身份的，确保用户登录之后，能认出来这个登录用户。
+客户端访问服务器，服务器调用request.getSession()方法，产生session对象，用于跟踪用户的状态，同时，给session对象分配一个唯一标识sessionId。
 
-消息队列中间件
-rabbitMQ消息队列
-kafka
+（2）后来又多了一个token认证，用户登录之后，拿着登录信息去生成一个随机不重复的token，发到浏览器的cookies
+每次浏览器请求时带上token，服务器验证token证明是属于同一个用户。
 
 
+认证机制简单介绍：
 
 
 
@@ -258,148 +1262,41 @@ kafka
 
 
 
----------------------------------------------------------------------------------
 
 
-事务：
 
-所谓的事务，就是数据库事务，而spring中事务指的是对数据库事务的封装，具体也能体现在代码上。
 
-在一个典型的应用程序中，多个事务同时运行，经常会为了完成他们的工作而操作同一个数据。并发虽然是必需的，但是会导致以下问题：
-脏读（Dirty read）、脏写（Dirty write）
-不可重复读（Nonrepeatable read）
-幻读（Phantom reads）
 
-我们在实际业务场景中，经常会遇到数据频繁修改读取的问题。在同一时刻，不同的业务逻辑对同一个表数据进行修改，
-这种冲突很可能造成数据不可挽回的错乱，所以我们需要用事务来对数据进行管理。
 
-事务的概念
-事务其实就是一系列指令的集合。
-一个或者一组sql语句来完成一个功能
 
-事务必须服从ACID原则。ACID指的是原子性（atomicity）、一致性（consistency）、隔离性（isolation）和持久性（durability）。
-原子性：操作这些指令时，要么全部执行成功，要么全部不执行。只要其中一个指令执行失败，
-              所有的指令都执行失败，数据进行回滚，回到执行指令前的数据状态。
-一致性：事务的执行使数据从一个状态转换为另一个状态，但是对于整个数据的完整性保持稳定。
-隔离性：在该事务执行的过程中，无论发生的任何数据的改变都应该只存在于该事务之中，
-             对外界不存在任何影响。只有在事务确定正确提交之后，才会显示该事务对数据的改变。
-             其他事务才能获取到这些改变后的数据。
-持久性：当事务正确完成后，它对于数据的改变是永久性的。
 
 
-ACID的理解，
-一致性：个人理解，一致性的最基础的，其他三个都是为了实现最终的一致性而区分出来的。
-在数据库中：
-保证原子性，通过日志，将所有对数据的更新操作写入日志，如果事务失败，就对还未成功的指令进行undo撤销还原操作（回滚数据），
-保证持久性，对已经成功但是还未写入磁盘的操作进行redo重做流程
-保证隔离性 当并发事务执行时，每个事务（多组SQL命令）之间互不影响
-以上这些操作都是为了保证全部数据的一致性
 
 
-​当数据库对数据做修改的时候，需要把数据页从磁盘读到buffer pool中，然后在buffer pool中进行修改，那么这个时候buffer pool中的数据页就与磁盘上的数据页内容不一致，
-称buffer pool的数据页为dirty page 脏数据，如果这个时候发生非正常的DB服务重启，那么这些数据还没在内存，并没有同步到磁盘文件中（注意，同步到磁盘文件是个随机IO），
-也就是会发生数据丢失，如果这个时候，能够在有一个文件，当buffer pool 中的data page变更结束后，把相应修改记录记录到这个文件（注意，记录日志是顺序IO），
-那么当DB服务发生crash的情况，恢复DB的时候，也可以根据这个文件的记录内容，重新应用到磁盘文件，数据保持一致。
 
-------------------
 
-为了实现一致性，引入了两种锁，悲观锁、乐观锁
 
-悲观锁
 
 
 
 
 
-乐观锁
 
 
 
-------------------
 
- 数据库事务的隔离级别
-数据库事务的隔离级别有4个，这四个级别可以逐个解决脏读 、不可重复读 、幻读这几类问题。
-1. Read UnCommitted(读未提交) 不能防止 脏读 、不可重复读 、幻读
-最低的隔离级别。一个事务可以读取另一个事务并未提交的更新结果。
-2. Read Committed(读提交) 可以防止脏读
-大部分数据库采用的默认隔离级别。一个事务的更新操作结果只有在该事务提交之后，另一个事务才可以的读取到同一笔数据更新后的结果。
-3. Repeatable Read(重复读) 可以防止 脏读 、不可重复读 
-mysql的默认级别。整个事务过程中，对同一笔数据的读取结果是相同的，不管其他事务是否在对共享数据进行更新，也不管更新提交与否。
-4. Serializable(序列化) 防止  脏读 、不可重复读 、幻读
-最高隔离级别。所有事务操作依次顺序执行。注意这会导致并发度下降，性能最差。通常会用其他并发级别加上相应的并发锁机制来取代它。
 
 
-脏数据
-是指事务对缓冲池中行记录的修改，并且还没有提交。
 
-脏读
-指的是在不同事务下，当前事务可以读取到另外事务未提交的数据，简单来说就是可以读到脏数据。
-和脏页不同，如果读到了脏数据，即一个事务读取到了另外一个事务未提交的事务，显然违反了了事务的隔离性
 
-不可重复读
-指在一个事务内多次读取同一数据，在这个事务还没结束时，另一个事务也访问该数据，并修改了改数据，因此在第一个事务中的两次读取数据之间，
-由于第二个事务的修改，第一个事务两次读取到的数据可能是不一样的。这样就发生了在一个事务内两次读取的数据是不一样的，这种情况称为不可重复读。
-注意和脏读的区别：脏读读取到的是未提交的数据，不可重复读读到的是已提交的数据，但违反了数据库事务的一致性
 
-幻读
-事务A在执行读取操作，需要两次统计数据的总量，前一次查询数据总量后，此时事务B执行了新增数据的操作并提交后，这个时候事务A读取的数据总量和之前统计的不一样，就像产生了幻觉一样，平白无故的多了几条数据，成为幻读。
 
-不可重复读的重点是修改:
-同样的条件, 你读取过的数据, 再次读取出来发现值不一样了
 
-幻读的重点在于新增或者删除 (数据条数变化)
-同样的条件, 第1次和第2次读出来的记录数不一样
-幻读发生在当两个完全相同的查询执行时，第二次查询所返回的结果集跟第一个查询不相同。
 
 
-防止方法：
-脏读：修改时加排他锁，直到事务提交后才释放，读取时加共享锁，读取完释放事务1读取数据时加上共享锁后（这 样在事务1读取数据的过程中，其他事务就不会修改该数据），不允许任何事物操作该数据，只能读取，之后1如果有更新操作，
-那么会转换为排他锁，其他事务更 无权参与进来读写，这样就防止了脏读问题。
-但是当事务1读取数据过程中，有可能其他事务也读取了该数据，读取完毕后共享锁释放，此时事务1修改数据，修改 完毕提交事务，其他事务再次读取数据时候发现数据不一致，就会出现不可重复读问题，所以这样不能够避免不可重复读问题。
 
-不可重复读：读取数据时加共享锁，写数据时加排他锁，都是事务提交才释放锁。读取时候不允许其他事物修改该数据，不管数据在事务过程中读取多少次，数据都是一致的，避免了不可重复读问题
-和脏读相比，不可重复度的操作建立在事务上，只有事务提交之后才释放锁。
 
-幻读问题：采用的是范围锁RangeS RangeS_S模式，锁定检索范围为只读，这样就避免了幻影读问题
-
-
----------------------------------------------------------------------------------
-
-Spring事务
-Spring也有事务的概念，也要遵循ACID原则。原子性、一致性、隔离性、持久性
-
-
-传播特性
-
-
-
-声明式事务、编程式事务
-
-1. 编程式事务管理
-编程式事务管理是侵入性事务管理，使用TransactionTemplate或者直接使用PlatformTransactionManager，对于编程式事务管理，Spring推荐使用TransactionTemplate。
-
-2. 声明式事务管理
-声明式事务管理建立在AOP之上，其本质是对方法前后进行拦截，然后在目标方法开始之前创建或者加入一个事务，执行完目标方法之后根据执行的情况提交或者回滚。
-编程式事务每次实现都要单独实现，但业务量大功能复杂时，使用编程式事务无疑是痛苦的，而声明式事务不同，声明式事务属于无侵入式，不会影响业务逻辑的实现，只需要在配置文件中做相关的事务规则声明或者通过注解的方式，便可以将事务规则应用到业务逻辑中。
-显然声明式事务管理要优于编程式事务管理，这正是Spring倡导的非侵入式的编程方式。唯一不足的地方就是声明式事务管理的粒度是方法级别，而编程式事务管理是可以到代码块的，但是可以通过提取方法的方式完成声明式事务管理的配置。
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 

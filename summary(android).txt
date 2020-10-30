@@ -395,7 +395,7 @@ AIDL 非常简单实例：
 总结：
  其实就是服务端实现一个普通的Service，客户端实现ServiceConnection去绑定。
  绑定完了就要通信，继承Binder类的IRemoteService.Stub是为了服务端和客户端之间的数据通信。
- 所以，实现了Service和创建Binder(IRemoteService.Stub)实例的就是客户端，实现一个ServiceConnection就是客户端。
+ 所以，实现了Service和创建Binder(IRemoteService.Stub)实例的就是服务端，实现一个ServiceConnection就是客户端。
 
 服务端实例：
 1. 创建包名为wrx.aidlserver的应用。

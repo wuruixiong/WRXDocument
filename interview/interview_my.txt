@@ -1,4 +1,6 @@
 
+Api调用工程师
+
 设计模式
 
 java代码
@@ -270,57 +272,1481 @@ Full GC触发条件：
   d.通过Minor GC后进入老年代的平均大小大于老年代的可用内存
   e.由Eden区、From Space区向To Space区复制时，对象大小大于To Space可用内存，则把该对象转存到老年代，且老年代的可用内存小于该对象大小
 
----------------------------------------------------------------------------------
+--------------------
 
-Spring
+上面介绍了GC机制，在介绍一下GC算法：
 
+GC 两种算法，这是触发GC时，如果判断一个对象 是需要被回收的对象的算法
+引用计数
+可达性分析
 
+1. 引用计数
+给对象添加一个引用计数器，每当有一个地方引用它时，计数器的值就加1；当一个引用失效时，计数器的值减1。计数器值为0时，不可访问并等待释放。
 
--------------------
+主流的JAVA虚拟机并没有选用引用计数算法来管理内存，其主要原因是它很难解决对象之间的循环引用问题。
 
-Netflix Eureka注册中心
-Ribbon负载均衡
-Fegin
-Hystrix
-Zuul网关
+2. 可达性分析
+重点在于理解 GC Roots这个概念，和 引用链这个概念
 
--------------------
+以一系列的称为“GC Roots”的对象作为起始点，从这些节点开始向下搜索，搜索所走过的路径称为引用链(Reference Chain)，当一个对象到GC Roots没有任何引用链(不可达)时，证明此对象不可用了。
 
-Hystrix
-服务熔断，服务降级
+在Java语言中，常作为GC Roots的对象为：
+虚拟机栈(栈帧中的本地变量表）中引用的对象
+方法区中类静态属性引用的对象
+方法区中常量引用的对象
+本地方法栈中JNI(即一般说的Native方法)引用的对象
 
+这些对象能作为GC Roots对象的原因是：GC(Garbage Collector)是用来管理JVM中的堆，而虚拟机栈、本地方法栈、方法区和常量池并不被GC管理。
 
+可达性算法中的不可达对象并不是立即死亡的，对象拥有一次自我拯救的机会。对象被系统宣告死亡至少要经历两次标记过程：
+第一次是经过可达性分析发现没有与GC Roots相连接的引用链，第二次是在由虚拟机自动建立的Finalizer队列中判断是否需要执行finalize()方法。
 
-
--------------------
-
-缓存穿透、缓存击穿、缓存雪崩
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+finalize()方法如果没有被覆盖或者触发，则判定为不需要执行，对象死亡。finalize()方法如果在Finalizer队列中缓慢执行还没有结束或者发生了死循环，
+也会被宣告死亡。拯救自己的方法就是在finalize()方法建立起引用，那么第二次标记时对象就会被移除出“即将回收”的集合。
 
 ---------------------------------------------------------------------------------
+
+Jvm调优
+对JVM内存的系统级的调优主要的目的是减少GC的频率和Full GC的次数。
+或者使得性能更高，业务的处理能力更强
+
+通过服务器计算机的不同配置来设置jvm调优，同时也通过场景的不同来设置 并发或者串行收集器
+
+1. 如果内存允许，可以尽量设置大的堆内存空间
+如果常驻对象比较少 设置大的年轻代，年轻代还可以调整Eden 和两个 Survivor的比例， 如果常驻对象比较多，可以调整年轻代和老年代的比例
+还可以设置持久代的大小
+年轻代的几个空间，老年代的空间比例不好调整，可以使用压力测试工具，结合gc打印的辅助信息，分析性能，慢慢找出一个合适的比例
+
+2. 设置每个线程的 栈空间大小，
+
+3. 如果并发量比较大，可以修改执行器为并发执行器，年轻代，老年代都可以设置
+还可以根据cup的性能去设置并发执行线程数
+
+
+例如
+
+主要是通过设置jvm的分代来实现的，例如
+java -Xmx3550m -Xms3550m -Xmn2g –Xss128k
+
+控制参数
+
+-Xms设置堆的最小空间大小。
+-Xmx设置堆的最大空间大小。
+-XX:NewSize设置新生代最小空间大小。
+-XX:MaxNewSize设置新生代最大空间大小。
+-XX:PermSize设置永久代最小空间大小。
+-XX:MaxPermSize设置永久代最大空间大小。
+-Xss设置每个线程的栈大小。
+没有直接设置老年代的参数，但是可以设置堆空间大小和新生代空间大小两个参数来间接控制。
+
+老年代空间大小=堆空间大小-年轻代大空间大小
+
+回收器选择
+JVM 给了三种选择： 串行收集器、并行收集器、并发收集器
+
+并发，多个任务排队，排成多个队列，等待一个cup处理，并发是资源不足时，任务可以交替执行，
+并行，多个任务排队，排成多个队列，等待多个cup处理，并行是可以有多个任务。
+
+UseCMSCompactAtFullCollection 在FULL GC的时候， 对年老代的内存进行压缩。
+-XX:CMSFullGCsBeforeCompaction=0 则是代表多少次FGC后对老年代做压缩操作，默认值为0，代表每次都压缩, 把对象移动到内存的最左边，可能会影响性能,但是可以消除碎片；
+
+查看执行jvm信息
+例如启动 一个微服务，可以查看相应的信息
+
+通过端口查看微服务的进程pid
+lsof -i:9001
+
+有了pid再通过pid查看对应的jvm信息
+jinfo -flags pid(进程号)
+-XX:CICompilerCount=2 最大的并行编译数
+-XX:InitialHeapSize=16777216 JVM 的初始堆内存大小
+-XX:MaxHeapSize=257949696 JVM 的最大堆内存大小
+-XX:MaxNewSize=85983232
+-XX:MinHeapDeltaBytes=196608
+-XX:NewSize=5570560
+-XX:OldSize=11206656
+
+Jvm还可以打印 gc时的辅助信息
+-XX:+PrintGC
+-XX:+PrintGCDetails
+
+Idea里面也可以设置jvm参数，
+在 edit configuration -> environment -> vm options 里面可以配置jvm参数
+
+
+---------------------------------------------------------------------------------
+
+Java 代码基础
+
+
+------------
+
+System.identityHashCode(Object)方法可以返回对象的内存地址,不管该对象的类是否重写了hashCode()方法
+Object的hashCode()默认是返回内存地址的(native方法)，但是hashCode()可以重写，所以hashCode()不能代表内存地址的不同
+
+------------
+
+==
+基本类型：比较的是值是否相同；
+引用类型：比较的是引用是否相同，比较的是引用的对象的内存地址是否相同；
+== 对于基本类型来说是值比较，对于引用类型来说是比较的是引用；
+equals 很多类重写了 equals 方法，比如 String、Integer 等把它变成了值比较，但是默认情况下是引用比较，也就是说默认情况下 equals相当于==，例如Object里面的代码就是直接==比较
+
+------------
+
+操作字符串的类有：String、StringBuffer、StringBuilder。
+String 和 StringBuffer、StringBuilder 的区别在于 String 声明的是不可变的对象，每次操作都会生成新的 String 对象，然后将指针指向新的 String 对象，
+而 StringBuffer、StringBuilder 可以在原有对象的基础上进行操作，所以在经常改变字符串内容的情况下最好不要使用 String。
+StringBuffer 和 StringBuilder 最大的区别在于，StringBuffer 是线程安全的，而 StringBuilder 是非线程安全的，但 StringBuilder 的性能却高于 StringBuffer，
+所以在单线程环境下推荐使用 StringBuilder，多线程环境下推荐使用 StringBuffer。
+
+------------
+
+String str="i"与 String str=new String(“i”)一样吗？
+不一样，因为内存的分配方式不一样。String str="i"的方式，java 虚拟机会将其分配到常量池中（方法区的运行时常量池）；而 String str=new String(“i”) 则会被分到堆内存中。
+
+str="i" 赋值时 使用的字符串字面量，说白话点，就是直接把字符串写死，在编译期间，这种字面量会直接放入class文件的常量池中，从而实现复用，
+
+------------
+
+Java字面量（Java直接量）举例：
+数据类型					直接量描述											举例
+int						整数直接量（可用二、十、八、十六进制表示）				12/-12/+12/0b12/012/0x12
+long						在整数直接量（也就是int型）后面，加上字母l或L			12l/-12L
+float						在数字（包括整数和小数）后面，加上字母f或F				3f/-3.14F/3.14e5F/-3.14E-5f/.5f
+
+double					1.浮点数直接量										3d
+						2.科学计数法直接量									3.14e-5
+						3.在数字（包括整数和小数）后面加上字母d或D				-.5
+
+boolean					布尔直接量true、false									true/false
+
+char						1.单引号内的单个字符									‘a’    ‘中’
+						2.单引号内的转义字符									‘\n’    ‘\u0000’
+
+String					双引号内的字符序列									“abc”   “中国”
+
+null						引用类型的空指向										null
+
+
+字面量、常量和变量之间的区别
+字面量是指由字母，数字等构成的字符串或者数值，它只能作为右值出现，所谓右值是指等号右边的值，如：int a=123这里的a为左值，123为右值。
+常量和变量都属于变量，只不过常量是赋过值后不能再改变的变量，而普通的变量可以再进行赋值操作。
+例：
+int a;//a变量
+const int b=10;//b为常量,10为字面量
+string str="hello world";//str为变量,hello world为也字面量
+
+------------
+
+java修饰符
+
+访问控制修饰符
+Java中，可以使用访问控制符来保护对类、变量、方法和构造方法的访问。Java 支持 4 种不同的访问权限。
+
+default (即默认，什么也不写）: 在同一包内可见，不使用任何修饰符。使用对象：类、接口、变量、方法。
+
+private : 在同一类内可见。使用对象：变量、方法。 注意：不能修饰类（外部类）
+
+public : 对所有类可见。使用对象：类、接口、变量、方法
+
+protected : 对同一包内的类和所有子类可见。使用对象：变量、方法。 注意：不能修饰类（外部类）。
+
+
+非访问修饰符
+为了实现一些其他的功能，Java 也提供了许多非访问修饰符。
+
+static 修饰符，用来修饰类方法和类变量。
+
+final 修饰符，用来修饰类、方法和变量，final 修饰的类不能够被继承，修饰的方法不能被继承类重新定义，修饰的变量为常量，是不可修改的。
+
+abstract 修饰符，用来创建抽象类和抽象方法。
+
+synchronized 和 volatile 修饰符，主要用于线程的编程。
+
+transient 修饰符
+序列化的对象包含被 transient 修饰的实例变量时，java 虚拟机(JVM)跳过该特定的变量。
+该修饰符包含在定义变量的语句中，用来预处理类和变量的数据类型。
+
+
+重点介绍
+synchronized 和 volatile 修饰符
+
+synchronized
+采用synchronized修饰符实现的同步机制叫做互斥锁机制，它所获得的锁叫做互斥锁。关于synchronized请看多线程interview
+类的每个实例都有自己的对象级别锁。当一个线程访问实例对象中的synchronized同步代码块或同步方法时，该线程便获取了该实例的对象级别锁，
+其他线程这时如果要访问synchronized同步代码块或同步方法，便需要阻塞等待，直到前面的线程从同步代码块或方法中退出，释放掉了该对象级别锁。
+几个用法
+1.锁方法
+public synchronized void method(){
+}
+2.锁代码块
+ public  void run() {
+          synchronized(this) {
+		.....
+          }
+}
+
+当两个并发线程(thread1和thread2)访问同一个对象(syncThread)中的synchronized代码块时，在同一时刻只能有一个线程得到执行，另一个线程受阻塞，必须等待当前线程执行完这个代码块以后才能执行该代码块。
+Thread1和thread2是互斥的，因为在执行synchronized代码块时会锁定当前的对象，只有执行完该代码块才能释放该对象锁，下一个线程才能执行并锁定该对象
+
+3.锁静态方法
+public synchronized static void method() {
+   // todo
+}
+静态方法是属于类的而不属于对象的。同样的，synchronized修饰的静态方法锁定的是这个类的所有对象。
+
+4.锁类
+class ClassName {
+   public void method() {
+      synchronized(ClassName.class) {
+         // todo
+      }
+   }
+}
+本例的的给class加锁和上例的给静态方法加锁是一样的，所有对象公用一把锁
+
+
+volatile
+volatile只能锁变量
+volatile关键字的作用：保证了变量的可见性（visibility）。被volatile关键字修饰的变量，如果值发生了变更，其他线程立马可见，避免出现脏读的现象。
+如果一个字段被声明成volatile，java线程内存模型确保所有线程看到这个变量的值是一致的。
+一句话即, volatile 声明的变量可以保证多线程对这个变量的可见性.
+例如：以下代码，如果没有volatile修饰，第一个线程将不会停止
+public class MyTest {
+    public static volatile boolean flag = true;
+
+    public static void main(String[] args) throws InterruptedException {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (flag) {
+                }
+                System.out.println(Thread.currentThread().getName() + "线程停止，死循环被打开");
+            }
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                flag = false;
+                System.out.println(Thread.currentThread().getName() + "修改 flag 为" + flag);
+            }
+        }).start();
+    }
+}
+
+这一块涉及到 线程中变量的可见性
+可见性就是当一个线程修改了共享变量的值，其他线程能够立即得知这个修改。java内存模型在变量修改后将新的变量值同步回主内存，在其他线程读取该变量之前从主内存刷新变量值来实现可见性。
+
+
+
+
+------------
+
+java 中 IO 流分为几种？
+按功能来分：输入流（input）、输出流（output）。
+
+按类型来分：字节流和字符流。
+
+字节流和字符流的区别是：字节流按 8 位传输以字节为单位输入输出数据，字符流按 16 位传输以字符为单位输入输出数据。
+
+字节 1byte = 8bit
+字符 1char = 2byte = 16bit （java默认 UTF-16编码）
+
+流是个抽象的概念,是对输入输出设备的抽象，输入流可以看作一个输入通道，输出流可以看作一个输出通道。
+输入流是相对程序而言的，外部传入数据给程序需要借助输入流。
+输出流是相对程序而言的，程序把数据传输到外部需要借助输出流。
+
+字节流--传输过程中，传输数据的最基本单位是字节的流。
+
+字符流--传输过程中，传输数据的最基本单位是字符的流。
+ 
+
+字节流的类通常以stream结尾
+字节输入流：
+常用的字节输入流主要有：
+InputStream  
+FileInputStream
+BufferedInputStream
+字节输出流：
+常用的字节输出流主要有：
+OutputStream
+FileOutputStream
+BufferedOutputStream 
+
+
+字符流的类通常以reader和writer结尾
+字符输入流：
+常见的字符输入流有：
+Reader
+InputStreamReader 可以把InputStream中的字节数据流根据字符编码方式转成字符数据流。
+FileReader
+BufferedReader
+字符输出流：
+常见的字符输出流有：
+Writer
+OutputStreamWriter 可以使我们直接往流中写字符串数据，它里面会帮我们根据字符编码方式来把字符数据转成字节数据再写给输出流，它相当于一个中介\桥梁。
+FileWriter
+BufferedWriter
+
+
+------------
+
+BIO、NIO、AIO 有什么区别？
+BIO：Block IO 同步阻塞式 IO，就是我们平常使用的传统 IO，它的特点是模式简单使用方便，并发处理能力低。
+NIO：New IO 同步非阻塞 IO，是传统 IO 的升级，客户端和服务器端通过 Channel（通道）通讯，实现了多路复用。
+AIO：Asynchronous IO 是 NIO 的升级，也叫 NIO2，实现了异步非堵塞 IO ，异步 IO 的操作基于事件和回调机制。
+
+传统的 IO 大致可以分为4种类型：
+InputStream、OutputStream 基于字节操作的 IO
+Writer、Reader 基于字符操作的 IO
+File 基于磁盘操作的 IO
+Socket 基于网络操作的 IO
+
+java.net 下提供的 Scoket 很多时候人们也把它归为 同步阻塞 IO ,因为网络通讯同样是 IO 行为。
+java.io 下的类和接口很多，但大体都是 InputStream、OutputStream、Writer、Reader 的子集，所有掌握这4个类和File的使用，是用好 IO 的关键。
+
+理解 同步/异步/阻塞/非阻塞
+
+同步/异步是任务执行完成之后的通知方式
+阻塞/非阻塞是等待任务完成的等待方式
+
+同步
+调用之后一直等待结果的返回，或者是主动轮询查找调用结果。
+异步
+调用后，被调用者通过状态、通知和回调来通知调用者
+注意：判断同步和异步的方法，同步就是一直等待结果或者主动轮询算是同步，异步就是被调用者通知调用者结果
+
+阻塞
+等待结果的时候，一直等着，不处理其他任务
+非阻塞
+等待结果时，可以去执行其他指令
+注意：判断阻塞、非阻塞最直观的就是，调用之后是否可以去执行其他任务
+
+最著名的烧水事例：
+用一只烧水壶烧水
+同步阻塞就是 查看水是否烧开，在此期间不做任何其他任务
+同步非阻塞就是 在烧水的过程中，去执行其他任务，定期轮询水壶是否烧开
+异步阻塞就是 水壶加装鸣笛，水烧开时会通知，在此期间一直等待，不做任何其他任务
+异步非阻塞就是 水壶加装鸣笛，水烧开时会通知，在此期间去执行其他任务
+
+通常情况下不存在 异步阻塞，因为既然使用了异步任务通知，在此期间就可以不用等待，接着去执行其他任务。
+异步就是为了解决阻塞问题，避免线程一直等待浪费资源。
+最理想的状态当然是异步非阻塞，多线程高并发的情况，基本都要求异步非阻塞。
+
+------------
+
+java位运算
+
+左移运算只能在二进制时进行，左移1位相当于十进制*2
+右移运算只能在二进制时进行，右移1位相当于十进制/2并且取整
+
+----------------
+
+序列化
+
+Serializable标识接口，序列化，如果一个对象要序列号，就要实现这个接口
+把对象转换为字节序列的过程称为对象的序列化
+把字节序列恢复为对象的过程称为对象的反序列化
+
+
+什么情况下需要序列化?
+当我们需要把对象的状态信息通过网络进行传输，或者需要将对象的状态信息持久化，以便将来使用时都需要把对象进行序列化
+那为什么还要继承Serializable。那是存储对象在存储介质中，以便在下次使用的时候，可以很快捷的重建一个副本。
+使用代码：
+        Man man = new Man("huhx", "123456");
+        Person person = new Person(man, "刘力", 21);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("output.txt"));
+        objectOutputStream.writeObject("string");
+        objectOutputStream.writeObject(person);
+        objectOutputStream.close();
+
+
+实现克隆的两种方式
+1.实现Cloneable接口并重写Object类中的clone()方法；
+2.重点介绍，通过Serializable接口，通过对象的序列化和反序列化实现克隆，可以实现真正的深度克隆，代码如下：
+    public static <T extends Serializable> T clone(T obj) throws Exception {
+        // 4个流都需要关闭，这里close()的代码省略
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bout);
+        oos.writeObject(obj);
+
+        ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
+        ObjectInputStream ois = new ObjectInputStream(bin);
+        return (T) ois.readObject();
+    }
+
+
+------------
+
+Java 集合（容器）
+
+List 列表
+Set 类似于列表，无须，不可重复，
+Map 键值对
+
+类型
+List 继承自Collocation， 子类  ArrayList，LinkedList、Vector（这些都继承自AbstractList），Vector线程安全
+Set 继承自Collection，子类 HashSet、LinkedHashSet、TreeSet
+Map 无继承，子类 HashMap、HashTable、TreeMap，  HashTable线程安全，ConcurrentHashMap线程安全并且效率高
+
+----------------
+
+底层实现
+
+ArrayList
+ArrayList是一个其容量能够动态增长的动态数组。它继承了AbstractList，实现了List、RandomAccess, Cloneable, Serializable。
+ArrayList内部是一个数组实现的，初始长度为0的空数组。
+每次增加元素，其实就是对数组的子元素进行赋值，如果下标溢出，就通过grow()方法进行扩容。扩容就是在重新创建长度更大的数组，再把原数组复制进去。
+删除元素是直接对数组对应下标的元素置空，删除全部元素就是遍历然后逐个置空。
+Set方式就是将新元素对数组对应下标重新复制。indexof方法就是遍历数组查找。get()方法就是通过下标直接获取元素。
+
+Arraylist 添加元素时的 扩容流程：
+构造函数会把数组elementData赋值为一个长度为0的数组。
+第一次添加元素，判断是否 elementData数组长度等于0，如果是，就扩容10个长度的数组。
+之后的添加元素，如果判断 elementData数组长度 大于 元素个数(modCount)，那么就不扩容
+如果小于，就扩容 原长度+1的数组。这里的扩容指的是重新生成一个更长的数组。
+
+
+Java的数组操作应该是native方法实现的。
+
+-----
+
+LinkedList
+LinkedList是实现了List接口和Deque接口(双队列)的双端链表。用链表结构存储数据的。可以当作堆栈、队列和双向队列使用。
+底层由双向循环链表实现的，不支持随机访问。链边的一个链都有指向上一个链的链头（previous）链尾（next）
+LinkedList的get方法是需要通过循环遍历数组去查找的，add方法只需要改变一个链的头一个链的尾即可（不需要像ArrayList那样扩容）
+Remove同理，只需要一个链的头（previous）一个链的尾（next）。
+遍历时推荐使用迭代器，如果是普通for循环随机遍历效率太低。
+这就是一个链的数据结构，Item泛型表示实体，Node<E> next表示下一个链， Node<E> prev表示上一个链
+    private static class Node<E> {
+        E item;
+        Node<E> next;
+        Node<E> prev;
+    }
+LinkedList类是双向列表,列表中的每个节点都包含了对前一个和后一个元素的引用
+变量Node<E> first双向链表头部节点，Node<E> last双向链表尾部节点
+
+-----
+
+Vector
+继承自AbstractList，实现了List接口，用法基本和ArrayList差不多。
+add、indexOf、get、set等方法都被synchronized修饰过，所以是线程安全的
+
+-----
+
+HashMap  重点，
+哈希 + 数组 + 单链表/红黑树，结构比较复杂
+节点的结构：
+分为几部分去理解：
+1，这是一个以数组为主体的结构，数组的每个元素都是一条链表的表头（有了表头就等于掌握了整个链表），或者树的根节点（有了根节点就可以掌握整个树）
+链表结构：
+static class Node<K,V> implements Map.Entry<K,V> {
+	final int hash;
+	final K key;
+	V value;
+	Node<K,V> next;
+红黑树结构：
+static final class TreeNode<K,V> extends LinkedHashMap.Entry<K,V> {
+	TreeNode<K,V> parent;  // red-black tree links
+        TreeNode<K,V> left;
+        TreeNode<K,V> right;
+        TreeNode<K,V> prev;    // needed to unlink next upon deletion
+        boolean red;
+数组：
+transient Node<K,V>[] table;
+
+2. n = (tab = resize()).length;    first = tab[(n - 1) & hash];
+获取数组中的表头，
+i = (n - 1) & hash，其实i就是计算的要放入数组的下标
+为什么要用 数组长度n-1 再和 hash值进行 并&运算？
+并运算 hash是因为保证了新添加的元素不会一直添加到 数组n-1的那个 链表里面，而是散列分布到整个数组中。
+
+不管这个hash的值是多少，经过(n - 1) & hash计算出来的i 的值一定在n-1之间。刚好是底层数组的合法下标，用i这个下标值去底层数组里去取值，如果为null，创建一个Node放到数组下标为i的位置。
+例如：两个数 16和10进行并运算，只会得到一个更小的数，这个数只能小于或等于10。
+
+
+3，理解完第2点，就可以理解一下 哈希函数，为什么要拿本身的哈希值去 异或 它的高16位
+static final int hash(Object key) {
+	int h;
+	return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+}
+hashcode() 方法是Object类的native方法，返回值为int类型，根据一定的规则将与对象相关的信息（比如对象的存储地址，对象的字段等）映射成一个数值，这个数值称作为散列值。
+这里的目的是，让h为hashCode，并且把h的前16位取出来，做一个^异或处理。
+
+hashcode() 方法返回一个整型，4字节，32位，取值范围是 2的31次方+一个表示正负的符号位。
+异或，同值取0，异值取1
+所以这里取的是一半的位数16位去做异或，如果是使用原值32位去异或，那么只能得到一个全是0的数。
+
+为什么是16位？其实是为了减少碰撞，进一步降低hash冲突的几率。int类型的数值是4个字节的，右移16位异或可以同时保留高16位于低16位的特征
+
+第2点中，假设，hash值直接做&运算，当我们的数组长度比较小时，例如初始值15，即1111去做&运算，
+那么高十六位所代表的部分特征就可能被丢失，
+将高十六位无符号右移之后与低十六位做异或运算使得高十六位的特征与低十六位的特征进行了混合得到的新的数值中就高位与低位的信息都被保留了
+
+这里采用异或运算而不采用& ，| 运算的原因是 异或运算能更好的保留各部分的特征，如果采用&运算计算出来的值会向1靠拢，采用|运算计算出来的值会向0靠拢
+
+
+
+4. hashmap 的长度总是 2的n次幂，最大长度 2的31次幂。
+resize() 扩容方法中的代码  newThr = oldThr << 1，所以新长度总是旧长度的 2次幂，而初始长度又是16（2的4次幂），因此长度总是2的n次幂
+
+之前的 index = (n - 1) & hash，为了保证hash的特征全部得以保留，长度必须是2次幂，例如，16的2进制就是10000，减1就是1111，拿1111去和hash进行&运算，保留了hash的特性又能使得数组下标index不越界。
+当数组长度为2的n次幂的时候，不同的key算得的index相同的几率较小，那么数据在数组上分布就比较均匀，也就是说碰撞的几率小，相对的，查询的时候就不用遍历某个位置上的链表，这样查询效率也就较高了。 
+
+-------------------
+
+第2点、第3点、第4点的最终目的还是为了让哈希后的结果更均匀的分布，减少哈希碰撞，提升hashmap的运行效率
+
+-------------------
+
+5. 几个关键常量
+初始长度16，10000，n-1就是15，1111，也就是说初始值4位
+static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
+最大长度31
+static final int MAXIMUM_CAPACITY = 1 << 30;
+加载因子
+static final float DEFAULT_LOAD_FACTOR = 0.75f;
+使用树的阈值，当链表超过8时，使用树来装载
+static final int TREEIFY_THRESHOLD = 8;
+
+
+6.resize()方法计算出长度，在put方法中，如果判断出数组为空，那么就会执行resize()，这就会使用到初始长度
+final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
+        Node<K,V>[] tab; Node<K,V> p; int n, i;
+        if ((tab = table) == null || (n = tab.length) == 0)
+            n = (tab = resize()).length;
+
+
+总结
+1，hashmap的主结构就是数组，数组的每一个元素都是 链表的头元素，有了头元素就可以遍历链表，查找对应的 键值对了。
+2，hashmap的数组也要经历 arraylist那样的扩容，并且链表过长时会使用红黑树来取代链表
+3，扩容的容量总是 2的n次幂，并且最大容量是2的31次方
+4，为什么长度要是2的n次幂，2的n幂实际就是1后面n个0，2的n次方-1  实际就是n个1
+      (长度 - 1) & hash可以产生一个小于数组长度的hash值，n个1可以最大程度上保留原hash值，要是那种长度转成2进制之后非全1的数(例如 9的二进制1001)，可能会造成hash冲突
+5， hash冲突，hashMap的数组+链表+树的结构就是为了解决 hash冲突导致命中同一个数组元素，还有hash冲突时进行扩容resize也是为了解决hash冲突
+
+一个key 查找 数组的下标（链表头的位置）：
+HashMap的Hash算法本质上就是三步：取key的hashCode值、高位运算、取模运算。
+
+链表的遍历过程：两个临时变量：e，p，把p指向第一个元素。for循环：把p赋值e，p赋值为p.next，一直循环到p.next为空时停止循环。
+
+
+-----
+
+HashMap 树化：
+treeifyBin()  treeify()
+
+简单一句概括就是，链表的跟节点依旧为树的根节点，遍历这个链表，当前节点hash值 小于父节点的hash值，就放在树的左子树；大于就放在右子树
+
+-----
+
+HashMap 加载因子 也叫负载因子 loadFactor，默认是 DEFAULT_LOAD_FACTOR = 0.75f;
+
+1.加载因子的作用
+负载因子是和扩容机制有关的，意思是如果当前容器的容量，达到了我们设定的最大值，就要开始执行扩容操作。
+比如说当前的容器容量是16，负载因子是0.75，16*0.75=12，也就是说，当容量达到了12的时候就会进行扩容操作。
+他的作用很简单，相当于是一个扩容机制的阈值。当超过了这个阈值，就会触发扩容机制。
+
+2.为什么是0.75
+当负载因子是1.0的时候，也就意味着，数组的全部元素都填充了，才会发生扩容。这容易导致很多hash冲突，hash冲突会导致耗时。
+当负载因子是0.5时，还有很多剩余空间，然后就扩容了，会导致浪费。
+0.75即1/4，空间利用率比较高，也不会导致很多hash冲突，源码上的注释也有体现，这是综合了时间和空间的考虑。
+
+-------------------
+
+HashTable
+线程安全
+数组+链表的结构，put，get，remove，contains等公有方法都是用synchronized修饰过的，保证了线程安全
+Hash是直接取的 hashCode，index是通过取余得到的大体上类似于hashmap
+
+
+ConcurrentHashMap
+线程安全
+底层采用分段的数组+链表实现，线程安全
+通过把整个Map分为N个Segment，可以提供相同的线程安全，但是效率提升N倍，默认提升16倍。(读操作不加锁，由于HashEntry的value变量是 volatile的，也能保证读取到最新的值。)
+Hashtable的synchronized是针对整张Hash表的，即每次锁住整张表让线程独占，ConcurrentHashMap允许多个修改操作并发进行，其关键在于使用了锁分离技术
+有些方法需要跨段，比如size()和containsValue()，它们可能需要锁定整个表而而不仅仅是某个段，这需要按顺序锁定所有段，操作完毕后，又按顺序释放所有段的锁
+扩容：段内扩容（段内元素超过该段对应Entry数组长度的75%触发扩容，不会对整个Map进行扩容），插入前检测需不需要扩容，有效避免无效扩容
+
+锁分段技术
+HashTable容器在竞争激烈的并发环境下表现出效率低下的原因，是因为所有访问HashTable的线程都必须竞争同一把锁
+那假如容器里有多把锁，每一把锁用于锁容器其中一部分数据，那么当多线程访问容器里不同数据段的数据时，线程间就不会存在锁竞争，从而可以有效的提高并发访问效率
+这就是ConcurrentHashMap所使用的锁分段技术，首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问。
+
+-----------------
+
+TreeMap
+TreeMap存储K-V键值对，通过红黑树（R-B tree）实现；红黑树结构天然支持排序，默认情况下通过Key值的自然顺序进行排序；
+实体数据结构是 K key;键值，V value;对值，Entry<K,V> left;左子树，Entry<K,V> right;右子树，Entry<K,V> parent;父节点
+
+
+Set
+HashSet的底层是由HashMap实现的
+里面封装了一个HashMap，add()方法加入元素就是把元素作为key加入到HashMap里面，这就实现了set表没有重复值功能，因为HashMap的key值不允许重复
+调用map.keySet().iterator();获取iterator来遍历元素。
+元素 无须不重复
+
+TreeSet的底层是由TreeMap实现的，
+原理和HashSet类似，也是里面封装了一个TreeMap，
+add(), remove(), size(), clear()调用的全是TreeMap的方法
+
+
+LinkedHashSet
+当遍历LinkedHashSet集合里的元素时，LinkedHashSet将会按元素的添加顺序来访问集合里的元素。
+
+TreeSet
+TreeSet是SortedSet接口的实现类，TreeSet可以确保集合元素处于排序状态
+
+----------------
+
+以下接口可以不用看：
+RandomAccess 是一个标志接口，表明实现这个这个接口的 List 集合是支持快速随机访问的。
+如果是实现了这个接口的 List，那么使用for循环的方式获取数据会优于用迭代器获取数据。
+
+cloneable其实就是一个标记接口，只有实现这个接口后，然后在类中重写Object中的clone方法，然后通过类调用clone方法才能克隆成功，
+如果不实现这个接口，则会抛出CloneNotSupportedException(克隆不被支持)异常。
+
+数据结构-哈希表
+哈希表的概念比较抽象，不如链表、列表、树那样可以直观绘图。
+哈希冲突也是一个关键概念，如果减少哈希冲突。
+哈希表是根据 key值，哈希函数H() 组成 H(key) 映射到 哈希表的一个位置，快速查找得到value值。
+哈希函数是指，有一个对应关系 f ，使得每个关键字和结构中一个唯一的存储位置相对应，这样在查找时，我们不需要像传统的查找算法那样进行比较，而是根据这个对应关系 f 找到给定值K的像f（K）。
+哈希函数就是哈希算法。
+常用的构造哈希函数的方法有：
+直接定址法，数字分析法，平方取中法，折叠法，除留余数法，随机数法
+
+----------------
+
+HashMap、HashTable区别
+1.HashTable的put，get，remove，contains等公有方法都是用synchronized修饰过的，保证了线程安全
+而HashMap没有synchronized修饰，效率上比hashTable要高。
+2.结构不同 HashMap 数组+链表+树，HashTable 数组+链表
+3.hash不同，HashTable的hash是直接 key.hashCode()，取的
+hashMap是 取hashCode还要去和 hashcode高16位做异或，这是为了得到更加散列的hash值，减少hash冲突
+4.hashMap去掉了HashTable 的contains方法，但是加上了containsValue（）和containsKey（）方法。
+hashMap允许空键值，而hashTable不允许。
+初始长度也不同。
+HashMap继承了AbstractMap，HashTable继承Dictionary抽象类，两者均实现Map接口
+
+
+ArrayList，LinkedList、Vector区别
+ArrayList
+ArrayList是基于数组实现的List类，它封装了一个动态的增长的、允许再分配的Object[]数组。
+Vector
+Vector和ArrayList在用法上几乎完全相同，但由于Vector是一个古老的集合，所以Vector提供了一些方法名很长的方法，但随着JDK1.2以后，java提供了系统的集合框架，就将
+Vector改为实现List接口，统一归入集合框架体系中
+LinkedList
+implements List<E>, Deque<E>。实现List接口，能对它进行队列操作，即可以根据索引来随机访问集合中的元素。同时它还实现Deque接口，即能将LinkedList当作双端队列
+使用。自然也可以被当作"栈来使用"
+
+最明显的区别是 ArrrayList底层的数据结构是数组，支持随机访问，而 LinkedList 的底层数据结构是双向循环链表，不支持随机访问（只能做顺序访问）。
+使用下标访问一个元素，ArrayList 的时间复杂度是 O(1)，而 LinkedList 是 O(n)。
+随机访问就是使用一个小于List大小的随机的下标，去get()到List里面的元素
+
+
+
+迭代器 Iterator 
+迭代器是一种设计模式，它是一个对象，它可以遍历并选择序列中的对象，而开发人员不需要了解该序列的底层结构。迭代器通常被称为“轻量级”对象，因为创建它的代价小。
+
+
+Set
+HashSet的底层是由HashMap实现的
+TreeSet的底层是由TreeMap实现的
+
+
+集合的线程安全，线程同步问题
+
+
+---------------------------------------------------------------------------------
+
+java 多线程
+
+创建线程有哪几种方式？
+1、继承Thread类创建线程类
+2、通过Runnable接口创建线程类
+3、通过Callable和FutureTask创建线程
+创建Callable接口的实现类，并实现call()方法，该call()方法将作为线程执行体，并且有返回值。
+创建Callable实现类的实例，使用FutureTask类来包装Callable对象，该FutureTask对象封装了该Callable对象的call()方法的返回值。
+使用FutureTask对象作为Thread对象的target创建并启动新线程。
+调用FutureTask对象的get()方法来获得子线程执行结束后的返回值。
+
+
+说一下 runnable 和 callable 有什么区别？
+有点深的问题了，也看出一个Java程序员学习知识的广度。
+共同点：
+使用时，Callable实例用来构造一个FutureTask，例如FutureTask future = new FutureTask<>(new WCallable());
+两者都是用thread启动的：new Thread(future/runnable).start();
+
+Runnable接口中的run()方法的返回值是void，它做的事情只是纯粹地去执行run()方法中的代码而已；
+
+1.FutureTask层层往上，是继承自Future接口和Runnable接口的
+实例了Future接口的 FutureTask可以获取到 线程执行的状态，
+例如    
+// 主动结束进程
+boolean cancel(boolean mayInterruptIfRunning);
+
+// 获取是否完成/异常的状态
+boolean isDone();
+// 获取是否已经被取消的状态
+boolean isCancelled();
+
+// 获取执行结果
+V get()
+
+2.Callable接口和 FutureTask相比起 runnable更加先进
+call()方法是有返回值的，是一个泛型
+Callable 可以与Future、FutureTask配合可以用来获取异步执行的结果.
+Callable可以捕获异常
+
+3. FutureTask就是异步非阻塞的体现。
+
+
+-------------------------------------
+
+线程通常都有五种状态。
+
+1、新生状态
+       在程序中用构造方法（new操作符）创建一个新线程时，如new Thread(r)，该线程就是创建状态，
+此时它已经有了相应的内存空间和其它资源，但是还没有开始执行。
+
+2、就绪状态
+       新建线程对象后，调用该线程的 start()方法就可以启动线程。当线程启动时，线程进入就绪状态（runnable）。
+由于还没有分配CPU，线程将进入线程队列排队，等待 CPU 服务，这表明它已经具备了运行条件。当系统挑选一个
+等待执行的Thread对象后，它就会从等待执行状态进入执行状态。系统挑选的动作称之为“CPU调度"。一旦获得CPU
+线程就进入运行状态并自动调用自己的run方法。
+
+3、运行状态
+       当就绪状态的线程被调用并获得处理器资源时，线程就进入了运行状态。此时，自动调用该线程对象的 run()方法。
+ run()方法定义了该线程的操作和功能。运行状态中的线程执行自己的run方法中代码。直到调用其他方法或者发生阻塞
+而终止。
+
+4、阻塞状态
+       一个正在执行的线程在某些特殊情况下，如被人为挂起或需要执行耗时的输入输出操作时，将让出 CPU 并暂时中止
+自己的执行，进入堵塞状态。在可执行状态下，如果调用 sleep()、 suspend()、 wait()等方法，线程都将进入堵塞状态。
+堵塞时，线程不能进入排队队列，只有当引起堵塞的原因被消除后，线程转入就绪状态。重新到就绪队列中排队等待，
+这时被CPU调度选中后会从原来停止的位置开始继续执行。
+      记住：阻塞被消除后是回到就绪状态，不是运行状态。
+
+造成线程阻塞的方法？
+阻塞线程的方法：join、yield、sleep 和Object的wait()方法
+
+5、死亡状态
+      线程调用 stop()方法、destory()方法或 run()方法执行结束后，线程即处于死亡状态。处于死亡状态的线程不具有继续运行的能力。
+
+
+-------------------------------------
+
+sleep() 和 wait() 有什么区别？
+sleep()：方法是线程类（Thread）的静态方法，让调用线程进入睡眠状态，让出执行机会给其他线程。因为sleep() 是static静态的方法，他不能改变对象的机锁，当一个synchronized块中调用了sleep() 方法，对象的机锁没有被释放，其他线程依然无法访问这个对象。
+wait()：wait()是Object类的方法，当一个线程执行到wait方法时，它就进入到一个和该对象相关的等待池，同时释放对象的机锁，使得其他线程能够访问，可以通过notify，notifyAll方法来唤醒等待的线程
+
+notify()wait() 可用在线程中用于等待和唤醒，Lock和synchronized是用于锁住代码块的用于线程同步。
+使用时，需要配合Lock和synchronized锁住对象
+
+    private final static List<PagingBean> pagingBeans = new ArrayList<>();
+
+    private static void testNotify() {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                PagingBean p = new PagingBean();
+		// 先锁对象，之后调用.wait() 才有效
+                synchronized (pagingBeans) {
+                    try {
+                        pagingBeans.wait();
+                    } catch (Exception e) {
+                    }
+                    pagingBeans.add(p);
+                    System.out.println("list len:" + pagingBeans.size());
+                }
+            }
+        };
+        Runnable runnable3 = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(10000);
+                } catch (Exception e) {
+                }
+                System.out.println("Start notify");
+		// 锁对象
+                synchronized (pagingBeans) {
+                    pagingBeans.notifyAll();
+                }
+                System.out.println("End notify");
+            }
+        };
+        new Thread(runnable).start();
+        new Thread(runnable3).start();
+    }
+
+-------------------------------------
+
+Lock和synchronized
+Lock相比起来优势更多，可以等待一定的时间或者能够响应中断，可以通过Lock得知线程有没有成功获取到锁
+ReentrantLock创建Lock，代码块中用lock()方法锁对象，unlock()解锁，Condition对象通知
+
+synchronized 和 Lock 有什么区别？
+1.synchronized是java内置关键字，在jvm层面，Lock是个java类；
+
+2.synchronized无法判断是否获取锁的状态，Lock可以判断是否获取到锁；
+
+3.synchronized会自动释放锁(a 线程执行完同步代码会释放锁 ；b 线程执行过程中发生异常会释放锁)，Lock需在finally中手工释放锁（unlock()方法释放锁），否则容易造成线程死锁；
+用synchronized关键字的两个线程1和线程2，如果当前线程1获得锁，线程2线程等待。如果线程1阻塞，线程2则会一直等待下去，而Lock锁就不一定会等待下去，如果尝试获取不到锁，线程可以不用一直等待就结束了；
+
+4.synchronized的锁可重入、不可中断、非公平，而Lock锁可重入、可判断、可公平（两者皆可）；
+
+5.Lock锁适合大量同步的代码的同步问题，synchronized锁适合代码少量的同步问题
+
+Lock实例，以下实例使用tryLock()尝试获得锁并取得获取锁的情况，最后在finally处解锁（ tryLock 其实可以直接使用lock.lock()ß获得锁 ）
+
+Lock lock = ...;
+if(lock.tryLock()) {
+     try{
+         //处理任务
+     }catch(Exception ex){
+         
+     }finally{
+         lock.unlock();   //释放锁
+     } 
+}else {
+    //如果不能获取锁，则直接做其他事情
+}
+
+
+
+-------------------------------------
+
+线程中断：
+
+线程中断即线程运行过程中被其他线程给打断了，它与 stop 最大的区别是：stop 是由系统强制终止线程，而线程中断则是给目标线程发送一个中断信号，如果目标线程没有接收线程中断的信号并结束线程，线程则不会终止，具体是否退出或者执行其他逻辑由目标线程决定。
+
+public static boolean interrupted	测试当前线程是否已经中断。线程的中断状态 由该方法清除。换句话说，如果连续两次调用该方法，则第二次调用将返回 false（在第一次调用已清除了其中断状态之后，且第二次调用检验完中断状态前，当前线程再次中断的情况除外
+public boolean isInterrupted()	测试线程是否已经中断。线程的中断状态不受该方法的影响。
+public void interrupt()	中断线程。
+
+    public static void main(String[] args) throws InterruptedException {
+        Thread thread = new Thread(() -> {
+            while (true) {
+                // 响应中断
+                if (Thread.currentThread().isInterrupted()) {
+                    System.out.println("线程被中断");
+                    System.out.println("清除中断标记，继续执行");
+                    Thread.currentThread().interrupted();
+                    try {
+                        Thread.sleep(2000);
+                    }catch (Exception e) {
+                    }
+                }
+                if (!Thread.currentThread().isInterrupted()) {
+                    System.out.println("线程执行中");
+                }
+            }
+        });
+
+        thread.start();
+        Thread.sleep(2000);
+        thread.interrupt();
+    }
+
+如果检测到线程被中断，我们可以主动抛出异常：
+    public static void main(String[] args){
+        Thread thread = new Thread(() -> {
+            while (true) {
+                // 响应中断
+                try {
+                    if (Thread.currentThread().isInterrupted()) {
+                        throw new InterruptedException();
+                    }
+                } catch (InterruptedException e) {
+                    System.out.println("线程被中断，触发异常，退出执行");
+                    return;
+                }
+            }
+        });
+
+        thread.start();
+        thread.interrupt();
+    }
+
+
+-------------------------------------
+
+线程池的优势
+（1）通过重用已存在的线程，降低线程创建和销毁造成的消耗；
+（2）方便线程并发数的管控。避免无限创建线程。
+（3）工厂模式生产线程，规范化线程的创建，提供更强大的功能，延时定时线程池。
+
+线程池都有哪些状态？
+线程池有5种状态：Running、ShutDown、Stop、Tidying、Terminated。
+
+流程：
+corePoolSize核心线程数 -> workQueue任务队列 -> maximumPoolSize最大线程数 -> RejectedExecutionHandler 拒绝策略
+
+创建线程池有哪几种方式？
+Java通过Executors提供四种线程池，分别为： 
+1、newSingleThreadExecutor 
+创建一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。
+总结：
+SingleThreadExecutor是单一线程，核心线程数和最大线程数都只有1，并且因为只有1，也没有必要设置闲置时间了（所以直接设置成0）
+队列使用的是 长度为 2的31次方的LinkedBlockingQueue，可以看到是无限长，
+无限长的队列就可以无限加入runnable，只要超过一条，全部都会在队列中阻塞等待
+new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>()));
+执行多条任务时，这个队列会一直入队列worker线程，如果上一条线程结束，出队列一条worker到唯一的线程中执行
+
+2、newFixedThreadPool 
+创建一个定长线程池，可控制线程最大并发数，超出的线程会在队列中等待。
+总结：算是SingleThreadExecutor的多线程进阶版本，
+核心线程数和最大线程数 相等，都是用户自定义的，因此就是定长的，闲置时间也是0（即线程完成之后如果没有新的worker，将立刻被回收），
+队列使用也是LinkedBlockingQueue，无限长的队列就可以无限加入runnable，只要超过定长的数量，全部都会在队列中阻塞等待
+new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+
+
+3、newScheduledThreadPool ， 创建一个可定期或者延时执行任务的定长线程池，支持定时及周期性任务执行。
+[ˈskedʒuːld] 
+总结：
+    public ScheduledThreadPoolExecutor(int corePoolSize) {
+        super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS, new DelayedWorkQueue());
+    }
+核心线程数是用户自定义的参数corePoolSize，最大线程数Integer.MAX_VALUE，可以看做是无限长度，无限创建线程去执行，keepAliveTime是0
+这个线程池的队列它是提供了延时的功能
+ScheduledThreadPoolExecutor.DelayedWorkQueue的长度是16，可以查看源代码。
+
+表示延迟3秒执行:
+ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10);
+scheduledExecutorService.schedule(new MyRunnable(), 3, TimeUnit.SECONDS);
+
+ 
+4、newCachedThreadPool
+创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。 
+（1）创建一个可缓存的线程池。如果线程池的大小超过了处理任务所需要的线程，那么就会回收部分空闲（60秒不执行任务）的线程
+（2）当任务数增加时，此线程池又可以智能的添加新线程来处理任务
+（3）此线程池不会对线程池大小做限制，线程池大小完全依赖于操作系统（或者说JVM）能够创建的最大线程大小
+
+new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+总结：
+记住，livetime是60秒
+队列为SynchronousQueue，是一种 没有容量或者说容量只有1的的阻塞队列。
+每一次入队，下一次操作就必须出队，不然就一直阻塞。
+最大的线程池数不限制，所以可以无限创建线程。
+所以它的整体流程就是 addWorker()中比对并使用 maximumPoolSize，新任务入队后，runWorker中开始执行任务并且 新任务出队。
+
+这个线程池根据需要（新任务到来时）创建新的线程，如果有空闲线程则会重复使用，线程空闲了60秒后会被回收。
+
+
+5.或者直接new ThreadPoolExecutor()，其实是一样的，上面这几个也都是new ThreadPoolExecutor。
+
+---------------------------------------------------------------------------------
+
+Runnable和Callable都可以向线程池提交的任务，二者的区别如下：
+方法签名不同，void Runnable.run(), V Callable.call() throws Exception
+是否允许有返回值，Callable允许有返回值
+是否允许抛出异常，Callable允许抛出异常
+
+
+线程池中 submit()和 execute()方法有什么区别？
+submit最后会调用到execute，这两者都可以传入一个Runnable对象用于线程池执行。
+接收的参数不一样
+submit有返回值，而execute没有，submit就是创建了一个FutureTask再封装runnable的，所以才有返回值，详细代码看 AbstractExecutorService
+submit方便Exception处理
+
+Submit 根据参数，有三种用法：
+1. 像使用futureTask那样，自定义一种callAble并传入：<T> Future<T> submit(Callable<T> task);
+2. 传入普通的Runnable
+3. 传入futureTask，<T> Future<T> submit(Runnable task, T result)， 线程执行时就是对T result进行数据的装填，线程完成之后会直接返回
+
+
+---------------------------------------------------------------------------------
+
+源码分析：
+
+1.创建 ThreadPoolExecutor时，使用默认的Executors.defaultThreadFactory()，当然我们也可以自定义一个ThreadFactory传入
+如果想查看ThreadFactory的源码，可以看Executors中的DefaultThreadFactory内部类
+Java 提供的常用的5种线程池类的线程工厂也用的是这个Executors.DefaultThreadFactory
+
+线程工厂 threadFactory，这个线程工厂在线程池类ThreadPoolExecutor中使用，专门用于创建线程
+
+2.ThreadPoolExecutor.Worker，这是个继承自Runnable接口
+记住：Worker是Runnable的实例。
+worker里面有两个关键变量， Thread thread，Runnable firstTask
+thread是线程工厂创建的，firstTask就是 ThreadExecutor的 execute()/submit()传进来的runnable
+
+3. 查看Executors.DefaultThreadFactory， ThreadPoolExecutor.Worker 的源码可以发现：
+构造Worker时，调用了getThreadFactory().newThread(this)。
+
+总结：worker 和 thread是相互持有的关系，worker持有thread变量，而thread里面的runnable就是worker。
+
+4.把一个Runnable放进线程池里面执行，最后还是要由Worker的run()方法中执行传入的Runnable，再去执行我们的Runnable.run()方法
+new ThreadPoolExecutor().execute(new Runnable());
+
+5. 线程启动流程：
+ThreadPoolExecutor().execute() 会调用到 addWorker()，然后worker的thread开始start()
+thread调用start()，worker调用run()，ThreadPoolExecutor调用runWorker()，firstTask调用run()
+
+注意：在addWorker()、runWorker()的代码中，可以很明显的看到 都是加锁的代码操作。
+
+总结：
+线程池实际上就是ThreadPoolExecutor。
+
+-------------
+
+ThreadPoolExecutor源码中的入队和出队操作：
+
+入队：
+可以看到源码中workQueue.offer(command)，实现了runnable的 入队操作
+    public void execute(Runnable command) {
+        。。。。。。
+        if (isRunning(c) && workQueue.offer(command)) {
+	。。。。。。
+        }
+	。。。。。。
+    }
+
+出队：
+runWorker() 调用 task = getTask()，
+getTask() 调用队列的出队操作并返回一个runnable，poll和take都可以实现出队
+Runnable r = timed ? workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) : workQueue.take();
+
+---------------------------------------------------------------------------------
+
+
+线程池的主要参数
+public ThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
+    this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, Executors.defaultThreadFactory(), defaultHandler);
+}
+1、corePoolSize（核心线程池的线程数量）：
+线程池长期维持的线程数，即使线程处于Idle状态，也不会回收。
+当向线程池提交一个任务时，若线程池已创建的线程数小于corePoolSize，即便此时存在空闲线程，也会通过创建一个新线程来执行该任务，
+直到已创建的线程数大于或等于corePoolSize时，（除了利用提交新任务来创建和启动线程（按需构造），也可以通过 prestartCoreThread() 或 prestartAllCoreThreads() 方法来提前启动线程池中的基本线程。）
+
+2、maximumPoolSize（线程池最大大小）：线程池所允许的最大线程个数。
+当队列满了，且已创建的线程数小于maximumPoolSize，则线程池会创建新的线程来执行任务。另外，对于无界队列，可忽略该参数。
+
+3、keepAliveTime（线程存活保持时间）超过corePoolSize的线程的 idle（闲置）时长，超过这个时间，多余的线程会被回收，直到总的线程数小于等于核心线程数。
+unit是keepAliveTime的时间单位，可以选择TimeUnit.SECONDS，TimeUnit.HOURS等等大概7个时间单位
+
+4、workQueue（任务队列）：任务的排队队列，用于传输和保存等待执行任务的阻塞队列。
+
+5、threadFactory（线程工厂）：用于创建新线程。threadFactory创建的线程也是采用new Thread()方式，threadFactory创建的线程名都具有统一的风格：pool-m-thread-n（m为线程池的编号，n为线程池内的线程编号）。
+
+6、RejectedExecutionHandler handler（拒绝策略）：当线程池和队列都满了，不能再添加线程进入线程池，此时会执行这个策略。
+默认的拒绝策略是：ThreadPoolExecutor .AbortPolicy() 这个策略很简单，就是 抛出异常。
+
+
+流程：
+corePoolSize核心线程数 -> workQueue任务队列 -> maximumPoolSize最大线程数 -> RejectedExecutionHandler 拒绝策略
+
+---------------------------------------------------------------------------------
+
+private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
+
+AtomicInteger是一个提供原子操作的Integer类，通过线程安全的方式操作加减。它作为整数参与多线程计算时，可以保证数据的原子性。
+
+---------------------------------------------------------------------------------
+
+workQueue队列
+
+默认长度是Integer.MAX_VALUE（2的31次方 减1）
+Executors.newSingleThreadExecutor()使用了LinkedBlockingQueue<Runnable>
+
+
+newFixedThreadPool也是使用LinkedBlockingQueue
+
+
+newCachedThreadPool()   SynchronousQueue
+
+
+长度16
+newScheduledThreadPool   ScheduledThreadPoolExecutor   ScheduledThreadPoolExecutor .DelayedWorkQueue
+
+---------
+
+workQueue任务队列，分为直接提交队列、有界任务队列、无界任务队列、优先任务队列；
+
+1. 直接提交队列：设置为SynchronousQueue队列，SynchronousQueue是一个特殊的BlockingQueue，它没有容量，每执行一个插入操作就会阻塞，需要再执行一个删除操作才会被唤醒，反之每一个删除操作也都要等待对应的插入操作。
+
+2. 有界的任务队列：有界的任务队列可以使用ArrayBlockingQueue实现，如下所示
+
+pool = new ThreadPoolExecutor(1, 2, 1000, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(10),Executors.defaultThreadFactory(),new ThreadPoolExecutor.AbortPolicy());
+使用ArrayBlockingQueue有界任务队列，若有新的任务需要执行时，线程池会创建新的线程，直到创建的线程数量达到corePoolSize时，则会将新的任务加入到等待队列中。若等待队列已满，即超过ArrayBlockingQueue初始化的容量，则继续创建线程，直到线程数量达到maximumPoolSize设置的最大线程数量，若大于maximumPoolSize，则执行拒绝策略。
+
+3. 无界的任务队列：有界任务队列可以使用LinkedBlockingQueue实现，如下所示
+
+pool = new ThreadPoolExecutor(1, 2, 1000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(),Executors.defaultThreadFactory(),new ThreadPoolExecutor.AbortPolicy());
+使用无界任务队列，线程池的任务队列可以无限制的添加新的任务，而线程池创建的最大线程数量就是你corePoolSize设置的数量，也就是说在这种情况下maximumPoolSize这个参数是无效的，哪怕你的任务队列中缓存了很多未执行的任务，当线程池的线程数达到corePoolSize后，就不会再增加了；若后续有新的任务加入，则直接进入队列等待，当使用这种任务队列模式时，一定要注意你任务提交与处理之间的协调与控制，不然会出现队列中的任务由于无法及时处理导致一直增长，直到最后资源耗尽的问题。
+
+4. 优先任务队列：优先任务队列通过PriorityBlockingQueue实现，PriorityBlockingQueue它其实是一个特殊的无界队列，它其中无论添加了多少个任务，线程池创建的线程数也不会超过corePoolSize的数量，只不过其他队列一般是按照先进先出的规则处理任务，而PriorityBlockingQueue队列可以自定义规则根据任务的优先级顺序先后执行。
+
+
+---------------------------------------------------------------------------------
+
+拒接策略
+
+ThreadPoolExecutor.AbortPolicy:丢弃任务并抛出RejectedExecutionException异常。
+ThreadPoolExecutor.DiscardPolicy：也是丢弃任务，但是不抛出异常。   
+ThreadPoolExecutor.DiscardOldestPolicy：丢弃队列最前面的任务，然后重新尝试执行任务（重复此过程）  
+ThreadPoolExecutor.CallerRunsPolicy：由调用线程处理该任务
+
+---------------------------------------------------------------------------------
+
+
+线程池代码：
+
+使用submit：
+        ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+        HashMap<String, PagingBean> hashMap = new HashMap<>();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                // 假设pagingBean设置变量是一个耗时的操作，那么就必须放在子线程中子项
+                PagingBean pagingBean = new PagingBean();
+                pagingBean.setPhone("123456");
+                pagingBean.setName("hello");
+                pagingBean.setId(211);
+                hashMap.put("211", pagingBean);
+
+            }
+        };
+        // 调用summit，让子线程执行之后返回结果
+        Future<HashMap<String, PagingBean>> future = singleThreadExecutor.submit(runnable, hashMap);
+        try {
+            HashMap<String, PagingBean> hashMap2 = future.get();
+            System.out.println(hashMap2.size());
+        } catch (Exception e) {
+        }
+
+
+--------------
+
+
+SingleThreadExecutor是单一线程，核心线程数和最大线程数都只有1，并且因为只有1，也没有必要设置闲置时间了（所以直接设置成0）
+队列使用的是 长度为 2的31次方的LinkedBlockingQueue，可以看到是无限长
+new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>()));
+
+执行多条任务时，这个队列会一直入队列worker线程，如果上一条线程结束，出队列一条worker到唯一的线程中执行
+    private static void newSingleThreadExecutor () {
+        ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+        for (int i = 1; i <= 10; i++)  {
+            singleThreadExecutor.execute(new MyRunnable(i));
+        }
+    }
+
+    private static class MyRunnable implements Runnable {
+        int mNumber;
+        public MyRunnable(int number) {
+            mNumber = number;
+        }
+        @Override
+        public void run() {
+            System.out.println(Thread.currentThread().getName() + " 开始耗时操作:" + mNumber);
+            try{
+                Thread.sleep(1000);
+            } catch (Exception e) {
+            }
+            System.out.println(Thread.currentThread().getName() + " 结束耗时操作:" + mNumber);
+        }
+    };
+
+在源码处下断点，可以看到队列workQueue.offer，不断地进行入队操作
+    public void execute(Runnable command) {
+	。。。。。。
+        if (isRunning(c) && workQueue.offer(command)) {
+	。。。。。。
+        }
+	。。。。。。
+    }
+
+
+---------------------------------------------------------------------------------
+
+高级特性
+
+反射
+反射就是只需要知道包名类名方法名，即可获取到类对象，调用到方法。
+例如用Class.forName获取到 Class对象，method.invoke()调用方法
+Class rtClass = Class.forName("wrx.sp.transaction.bean.UserBean");
+Object object = rtClass.newInstance();
+
+Method method = rtClass.getMethod("setId", Integer.class);
+method.invoke(object, 211);
+
+rtClass.getAnnotations();
+rtClass.getMethods();
+rtClass.getConstructor();
+method.getParameterTypes();
+
+
+----------------------
+
+泛型 
+泛型就是用 单个字母 代指一个 对象类型，使用时需要在类的定义处加上 <>，例如<T> <T,U>
+使用泛型机制编写的程序代码要比那些杂乱地使用Object变量，然后再进行强制类型转换的代码具有更好的安全性和可读性。
+泛型对于集合类尤其有用，例如，ArrayList就是一个无处不在的集合类。
+
+泛型的使用
+泛型有三种常用的使用方式：泛型类，泛型接口和泛型方法
+
+泛型方法定义
+    public <T> void show(T t){
+        System.out.println(t);
+    }
+    public <U,T> void sum(U u,T t){
+        System.out.println(u+" version is "+t);
+    }
+
+泛型类
+public class Pair<T> {
+    private T name;
+    private T price;
+...
+}
+继承Pair可以选择对泛型T进行类型限定，如果泛型限定的是Object，那也可以不需要写<Object>，
+以下两处代码效果相同
+public class PairString extends Pair {
+......
+}
+public class PairString extends Pair<Object> {
+......
+}
+也可以限定其他类，如果限定了String类，以后泛型T就是指String，包括了成员变量和方法参数，都是指String
+public class PairString extends Pair<String> {
+......
+}
+多个泛型
+public class Pair2<T, U, K> {
+    T mT;
+    U mU;
+    K mK;
+	......
+}
+
+
+
+泛型接口
+public interface Generator<T> {
+    public T next();
+}
+继承接口：
+public class FruitGenerator implements Generator<String> {
+    @Override
+    public String next() {
+        return "Fruit";
+    }
+}
+或者也可以这样：
+public class FruitGenerator<T> implements Generator<T> {
+    private T next;
+    public FruitGenerator(T next) {
+        this.next = next;
+    }
+    @Override
+    public T next() {
+        return next;
+    }
+}
+
+----------------------
+
+代理
+
+先了解普通代理(静态代理)
+
+普通代理要写三个部分：
+1.代理接口、2.代理类、3.被代理类，其中代理类和被代理类 都要实例化代理接口，
+代理类 调用 被代理类的 接口方法，这样就形成了代理。
+
+例如：
+代理接口
+public interface Person {
+    void say();
+}
+被代理类
+public class Student implements Person {
+    @Override
+    public void say() {
+       System.out.println("hello");
+    }
+}
+代理类
+public class StudentsProxy implements Person {
+    //被代理的学生
+    Student stu;
+    public StudentsProxy(Person stu) {
+        // 只代理学生对象
+        if(stu.getClass() == Student.class) {
+            this.stu = (Student)stu;
+        }
+    }
+//代理
+    @Override
+    public void say() {
+        stu.say();
+    }
+}
+Main方法调用
+    public static void main(String[] args) {
+        //被代理的学生张三
+        Person zhangsan = new Student();
+        //生成代理对象，并将 被代理 传给代理对象
+        Person monitor = new StudentsProxy(zhangsan);
+        //班长代理上交班费
+        monitor.say();
+    }
+
+
+StudentsProxy的say方法还能在 stu.say();之前或者之后调用一些其他操作，例如
+    @Override
+    public void say() {
+	System.out.println("zhangsan saying: ");
+        stu.say();
+    }
+
+在Spring中的面向切面编程（AOP），我们能在一个切点之前执行一些操作，在一个切点之后执行一些操作，这个切点就是一个个方法。这些方法所在类肯定就是被代理了，在代理过程中切入了一些其他操作。
+
+如果代理类有很多个，那么每一处都要改一下代码，这里就可以直接使用动态代理来解决。
+
+--------------------
+
+动态代理
+
+代理类在程序运行时创建的代理方式被成为动态代理。 普通的代理类是自己先定义好的，在程序运行之前就已经编译完成。
+然而动态代理，代理类并不是在Java代码中定义的，而是在运行时根据我们在Java代码中的“指示”动态生成的。
+相比于静态代理， 动态代理的优势在于可以很方便的对代理类的函数进行统一的处理，而不用修改每个代理类中的方法。
+
+在java的java.lang.reflect包下提供了一个Proxy类和一个InvocationHandler接口，通过这个类和这个接口可以生成JDK动态代理类和动态代理对象。
+
+动态代理的优势在于可以很方便的对代理类的函数进行统一的处理，而不用修改每个代理类中的方法。是因为所有被代理执行的方法，
+都是通过在InvocationHandler中的invoke方法调用的，所以我们只要在invoke方法中统一处理，就可以对所有被代理的方法进行相同的操作了
+
+总结，就是实例化InvocationHandler接口，还可以在InvocationHandler 的接口invoke()方法对Bean对象进行代理(代理前后进行日志输出)
+再放入Proxy.newProxyInstance()中，创建一个代理对象，在invoke前、后、环绕处 加入增强
+例如下面的 Person stuProxy，就是一个继承了Proxy类和实例Person接口的对象，
+由于代理类已经继承了 Proxy类，因此 动态代理技术只能针对接口进行代理。
+
+实例
+
+     public static void main(String[] args) {
+
+        //创建一个实例对象，这个对象是被代理的对象
+        Person zhangsan = new Student();
+
+        //创建一个与代理对象相关联的InvocationHandler
+        InvocationHandler stuHandler = new StuInvocationHandler<Person>(zhangsan);
+
+        //创建一个代理对象stuProxy来代理zhangsan，代理对象的每个执行方法都会替换执行Invocation中的invoke方法
+        Person stuProxy = (Person) Proxy.newProxyInstance(Person.class.getClassLoader(), new Class<?>[]{Person.class}, stuHandler);
+
+        //代理执行方法
+        stuProxy.say();
+    }
+
+    public interface Person {
+        void say();
+    }
+    public static class Student implements Person {
+        @Override
+        public void say() {
+            try {
+                //假设准备一秒时间
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("hello");
+        }
+    }
+    public static class StuInvocationHandler<T> implements InvocationHandler {
+        //invocationHandler持有的被代理对象
+        T target;
+
+        public StuInvocationHandler(T target) {
+            this.target = target;
+        }
+
+        /**
+         * proxy:代表动态代理对象
+         * method：代表正在执行的方法
+         * args：代表调用目标方法时传入的实参
+         */
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            System.out.println("代理执行" +method.getName() + "方法");
+            Object result = method.invoke(target, args);
+            return result;
+        }
+    }
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+异常：
+
+最顶层的接口是Throwable，分为两种，error，exception
+
+error是程序中无法处理的错误，表示运行应用程序中出现了严重的错误。此类错误一般表示代码运行时JVM出现问题。
+通常有Virtual MachineError（虚拟机运行错误）、NoClassDefFoundError（类定义错误）OutOfMemoryError（内存溢出错误）。
+此类错误发生时，JVM将终止线程。非代码性错误。因此，当此类错误发生时，应用不应该去处理此类错误。
+
+exception
+又分为两种
+1. 运行时异常，基类为RuntimeException
+RuntimeException类极其子类表示JVM在运行期间可能出现的错误。编译器不会检查此类异常，并且不要求处理异常，
+比如用空值对象的引用（NullPointerException）、数组下标越界（ArrayIndexOutBoundException）。
+此类异常属于不可查异常，一般是由程序逻辑错误引起的，在程序中可以选择捕获处理，也可以不处理。
+
+2.受检异常，没有基类
+Exception中除RuntimeException极其子类之外的异常。编译器会检查此类异常，如果程序中出现此类异常，
+比如说IOException（读写异常），InterruptedException（线程中断异常）必须对该异常进行处理，要么使用try-catch捕获，要么使用throws语句抛出，否则编译不通过。
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+设计模式
+
+工厂模式
+
+
+抽象工厂模式
+
+
+
+观察者
+
+
+
+代理
+
+
+
+
+单例
+
+
+
+
+订阅发布模式(Subscribe/Publish)
+
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
 
 
 

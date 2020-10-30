@@ -267,6 +267,7 @@ Spring注解@Component、@Repository、@Service、@Controller区别
 @Controller用于Controller的注解
 
 ------------------
+
 @Qualifier
 这个注解和    @Autowired连用，当定义了多个相同类型的bean时，可以通过这个注解去查找
 例如：
@@ -288,6 +289,10 @@ public class EmployeeInfoControl {
     EmployeeService employeeService;
     ......
 }
+
+
+
+
 ------------------
 
 
@@ -1295,10 +1300,48 @@ public class PTConfig {
 
 
 
-
-
-
 --------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

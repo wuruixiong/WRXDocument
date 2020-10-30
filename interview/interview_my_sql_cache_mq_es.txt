@@ -1,0 +1,2290 @@
+
+设计模式
+
+java代码
+	JDK JRE
+	基础语法，数据类型
+	算法
+	jdk8
+
+java高级
+	高级特性
+	注解
+	jvm虚拟机
+		内存分区
+		新生代回收器，老生代回收器
+		强、弱、软，虚引用
+		gc机制
+	java11和java14高级特性
+	
+高并发，多线程，线程同步，反射，异常，泛型
+内存泄漏
+死锁，活锁，乐观锁，悲观锁
+数据脏读，幻读
+缓存击穿，雪崩
+熔断，降级，监控
+负载均衡
+秒杀
+
+spring开发
+	springmvc
+	结构分层：表现层，业务层，持久层
+	ioc控制反转(或者叫di依赖注入)，aop面对切面编程，ioc容器
+	spring 动态代理
+	spring boot，底层代码解析，注解实现
+	spring cloud 重要组件
+		Netflix Eureka注册中心
+		Ribbon负载均衡
+		Fegin
+		Hystrix
+		Zuul网关
+	spring security
+		oauth2
+	spring data
+		jpa
+	中间件
+		rabbitMQ消息队列
+		kafka
+	事务控制
+	restful风格
+	阿里框架
+		dubbo，zookeeper
+	两种注册中心的对比，也是http和rpc协议的对比
+		eureka，zookeeper
+	springCloud netflix 
+	springCloud alibaba
+		spring cloud中的几乎所有的组件都使用Netflix公司的产品，在其基础上做了一层starter的封装
+		然而Netflix的服务发现组件Eureka已经停止更新
+		将来的框架选型可能会更多的偏向springCloud alibaba
+
+rcp框架
+	zookeeper
+	kafka 消息中间件
+
+rabbitMQ消息队列
+	集群模式
+	集群，镜像模式，方向代理，负载均衡
+	haproxy
+	五种工作模式
+
+
+数据库相关
+	基础sql语言的使用
+	nosql，MongoDB
+	sql，mysql，sqllite
+	持久层框架，mybatis，jpa，ORM框架 对象关系映射
+
+缓存
+	Redis
+		集群，哨兵模式
+		基础数据结构
+	MongoDB
+		
+
+
+搜索
+	ElasticSearch
+
+
+数据安全，加密，网络协议
+数据安全
+	数据库的数据加密存储方案
+	加密RSA的衍生协议
+	对称加密，非对称加密，不可逆加密
+	实际应用
+	数字签名，摘要算法
+网络协议
+	网络协议基础，tcp/ip五层结构
+		tcp握手
+	http
+		通讯过程ß
+	https：结合数据安全，保证通讯安全
+		通讯过程
+
+部署工具
+	docker
+	k8s
+
+版本控制工具
+	git
+	svn
+
+项目构建工具
+	maven
+	gradle
+
+---------------------------------------------------------------------------------
+
+事务：
+
+所谓的事务，就是数据库事务，而spring中事务指的是对数据库事务的封装，具体也能体现在代码上。
+
+在一个典型的应用程序中，多个事务同时运行，经常会为了完成他们的工作而操作同一个数据。并发虽然是必需的，但是会导致以下问题：
+脏读（Dirty read）、脏写（Dirty write）
+不可重复读（Nonrepeatable read）
+幻读（Phantom reads）
+
+我们在实际业务场景中，经常会遇到数据频繁修改读取的问题。在同一时刻，不同的业务逻辑对同一个表数据进行修改，
+这种冲突很可能造成数据不可挽回的错乱，所以我们需要用事务来对数据进行管理。
+
+事务的概念
+事务其实就是一系列指令的集合。
+一个或者一组sql语句来完成一个功能
+
+事务必须服从ACID原则。ACID指的是原子性（atomicity）、一致性（consistency）、隔离性（isolation）和持久性（durability）。
+原子性：操作这些指令时，要么全部执行成功，要么全部不执行。只要其中一个指令执行失败，
+              所有的指令都执行失败，数据进行回滚，回到执行指令前的数据状态。
+一致性：事务的执行使数据从一个状态转换为另一个状态，但是对于整个数据的完整性保持稳定。
+隔离性：在该事务执行的过程中，无论发生的任何数据的改变都应该只存在于该事务之中，
+             对外界不存在任何影响。只有在事务确定正确提交之后，才会显示该事务对数据的改变。
+             其他事务才能获取到这些改变后的数据。
+持久性：当事务正确完成后，它对于数据的改变是永久性的。
+
+例如：
+一个mysql的事务
+mysql> begin;  # 开始事务
+mysql> insert into mytable value(5);
+mysql> insert into mytable value(6);
+mysql> commit; # 提交事务
+
+
+ACID的理解，
+一致性：个人理解，一致性的最基础的，其他三个都是为了实现最终的一致性而区分出来的。
+在数据库中：
+保证原子性，通过日志，将所有对数据的更新操作写入日志，如果事务失败，就对还未成功的指令进行undo撤销还原操作（回滚数据），
+保证持久性，对已经成功但是还未写入磁盘的操作进行redo重做流程
+保证隔离性 当并发事务执行时，每个事务（多组SQL命令）之间互不影响
+以上这些操作都是为了保证全部数据的一致性
+
+
+​当数据库对数据做修改的时候，需要把数据页从磁盘读到buffer pool中，然后在buffer pool中进行修改，那么这个时候buffer pool中的数据页就与磁盘上的数据页内容不一致，
+称buffer pool的数据页为dirty page 脏数据，如果这个时候发生非正常的DB服务重启，那么这些数据还没在内存，并没有同步到磁盘文件中（注意，同步到磁盘文件是个随机IO），
+也就是会发生数据丢失，如果这个时候，能够在有一个文件，当buffer pool 中的data page变更结束后，把相应修改记录记录到这个文件（注意，记录日志是顺序IO），
+那么当DB服务发生crash的情况，恢复DB的时候，也可以根据这个文件的记录内容，重新应用到磁盘文件，数据保持一致。
+
+------------------
+
+为了实现一致性，引入了两种锁，悲观锁、乐观锁
+
+乐观所和悲观锁策略： 
+悲观锁：在读取数据时锁住那几行，其他对这几行的更新需要等到悲观锁结束时才能继续 .
+乐观所：读取数据时不锁，更新时检查是否数据已经被更新过，如果是则取消当前更新
+一般在悲观锁的等待时间过长而不能接受时我们才会选择乐观锁.
+
+悲观锁：比较适合写入操作比较频繁的场景，如果出现大量的读取操作，每次读取的时候都会进行加锁，这样会增加大量的锁的开销，降低了系统的吞吐量。
+乐观锁：比较适合读取操作比较频繁的场景，如果出现大量的写入操作，数据发生冲突的可能性就会增大，为了保证数据的一致性，应用层需要不断的重新获取数据，这样会增加大量的查询操作，降低了系统的吞吐量。
+总结：两种所各有优缺点，读取频繁使用乐观锁，写入频繁使用悲观锁。
+
+悲观锁和乐观锁与数据库隔离级别的关系
+事务隔离级别是并发控制的整体解决方案，其实际上是综合利用各种类型的锁和行版本控制，来解决并发问题。
+锁是数据库并发控制的内部机制，是基础。对用户来说，只有当事务隔离级别无法解决一些并发问题和需求时，才有必要在语句中手动设置锁。
+
+乐观锁通常使用一个version，事务开始时获取version，结束时再获取version，
+如果两version相同，就提交事务并且更新version；如果不同，就不提交事务也不更新version。
+
+因为高并发情况下，对性能要求比较高，所以实现乐观锁，而悲观锁因为排他性所以效率不高。
+乐观锁不是数据库自带的，需要我们自己去实现。
+悲观锁跟java中的synchronized很相似，所以需要耗费较多的时间。另外与乐观锁相对应的，悲观锁是由数据库自己实现了的，要用的时候，我们直接调用数据库的相关语句就可以了。
+
+
+共享锁
+对某一资源加共享锁，自身可以读该资源，其他人也可以读该资源
+通过在执行语句后面加上lock in share mode就代表对某些资源加上共享锁了。
+
+排它锁
+对某一资源加排他锁，自身可以进行增删改查，其他人无法进行任何操作
+在需要执行的语句后面加上for update就可以了
+数据库的增删改操作默认都会加排他锁，而查询不会加任何锁。
+
+表级锁（锁定整个表）
+页级锁（锁定一页）
+行级锁（锁定一行）
+共享锁（S锁，MyISAM 叫做读锁）
+排他锁（X锁，MyISAM 叫做写锁）
+间隙锁（NEXT-KEY锁）
+悲观锁（抽象性，不真实存在这个锁）
+乐观锁（抽象性，不真实存在这个锁）
+
+------------------
+
+秒杀和乐观锁
+
+在限量秒杀抢购的场景，一定会遇到抢购成功数超过限量的问题和高并发的情况影响系统性能
+高并发和可靠性。无论你处在软件开发的哪个阶段，都希望能够设计一套属于自己的秒杀系统。
+
+秒杀场景的特点
+系统隔离的设计思路
+客户端设计
+代理层设计
+应用层设计
+数据库设计
+压力测试
+总结
+秒杀场景的特点
+
+秒杀场景是电商网站定期举办的活动，这个活动有明确的开始和结束时间，而且参与互动的商品是事先定义好了，参与秒杀商品的个数也是有限制的。同时会提供一个秒杀的入口，让用户通过这个入口进行抢购。
+
+总结一下秒杀场景的特点：
+定时开始，秒杀时大量用户会在同一时间，抢购同一商品，网站瞬时流量激增。
+库存有限，秒杀下单数量远远大于库存数量，只有少部分用户能够秒杀成功。
+操作可靠，秒杀业务流程比较简单，一般就是下订单减库存。库存就是用户争夺的“资源”，实际被消费的“资源”不能超过计划要售出的“资源”，也就是不能被“超卖”。
+
+------------------
+
+分布式锁 和 Redis
+两个一样功能的微服务组成分布式服务，运行在两个不同的 JVM 里面，他们加的锁只对属于自己 JVM 里面的线程有效，对于其他 JVM 的线程是无效的。
+这时候就要使用分布式锁，
+分布式锁的思路是：在整个系统提供一个全局、唯一的获取锁的“东西”，然后每个系统在需要加锁时，都去问这个“东西”拿到一把锁，这样不同的系统拿到的就可以认为是同一把锁。
+至于这个“东西”，可以是 Redis、Zookeeper，也可以是数据库
+
+基于 Redis 实现分布式锁
+常见的一种方案就是使用 Redis 做分布式锁
+使用 Redis 做分布式锁的思路大概是这样的：在 Redis 中设置一个值表示加了锁，然后释放锁的时候就把这个 Key 删除。
+
+
+基于 Zookeeper 实现分布式锁
+常见的分布式锁实现方案里面，除了使用 Redis 来实现之外，使用 Zookeeper 也可以实现分布式锁。
+
+
+
+
+------------------
+
+ 数据库事务的隔离级别
+数据库事务的隔离级别有4个，这四个级别可以逐个解决脏读 、不可重复读 、幻读这几类问题。
+1. Read UnCommitted(读未提交) 不能防止 脏读 、不可重复读 、幻读
+最低的隔离级别。一个事务可以读取另一个事务并未提交的更新结果。
+2. Read Committed(读提交) 可以防止脏读
+大部分数据库采用的默认隔离级别。一个事务的更新操作结果只有在该事务提交之后，另一个事务才可以的读取到同一笔数据更新后的结果。
+3. Repeatable Read(重复读) 可以防止 脏读 、不可重复读 
+mysql的默认级别。整个事务过程中，对同一笔数据的读取结果是相同的，不管其他事务是否在对共享数据进行更新，也不管更新提交与否。
+4. Serializable(序列化) 防止  脏读 、不可重复读 、幻读
+最高隔离级别。所有事务操作依次顺序执行。注意这会导致并发度下降，性能最差。通常会用其他并发级别加上相应的并发锁机制来取代它。
+
+
+事务传播特性
+所谓事务的传播行为是指，如果在开始当前事务之前，一个事务上下文已经存在，此时有若干选项可以指定一个事务性方法的执行行为。在TransactionDefinition定义中包括了如下几个表示传播行为的常量：
+TransactionDefinition.PROPAGATION_REQUIRED：如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务。这是默认值。 required
+TransactionDefinition.PROPAGATION_REQUIRES_NEW：创建一个新的事务，如果当前存在事务，则把当前事务挂起。
+TransactionDefinition.PROPAGATION_SUPPORTS：如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行。
+TransactionDefinition.PROPAGATION_NOT_SUPPORTED：以非事务方式运行，如果当前存在事务，则把当前事务挂起。
+TransactionDefinition.PROPAGATION_NEVER：以非事务方式运行，如果当前存在事务，则抛出异常。
+TransactionDefinition.PROPAGATION_MANDATORY：如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常。
+TransactionDefinition.PROPAGATION_NESTED：如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于TransactionDefinition.PROPAGATION_REQUIRED。
+
+
+脏数据
+是指事务对缓冲池中行记录的修改，并且还没有提交。
+
+脏读
+指的是在不同事务下，当前事务可以读取到另外事务未提交的数据，简单来说就是可以读到脏数据。
+和脏页不同，如果读到了脏数据，即一个事务读取到了另外一个事务未提交的事务，显然违反了了事务的隔离性
+
+不可重复读
+指在一个事务内多次读取同一数据，在这个事务还没结束时，另一个事务也访问该数据，并修改了改数据，因此在第一个事务中的两次读取数据之间，
+由于第二个事务的修改，第一个事务两次读取到的数据可能是不一样的。这样就发生了在一个事务内两次读取的数据是不一样的，这种情况称为不可重复读。
+注意和脏读的区别：脏读读取到的是未提交的数据，不可重复读读到的是已提交的数据，但违反了数据库事务的一致性
+
+幻读
+事务A在执行读取操作，需要两次统计数据的总量，前一次查询数据总量后，此时事务B执行了新增数据的操作并提交后，这个时候事务A读取的数据总量和之前统计的不一样，就像产生了幻觉一样，平白无故的多了几条数据，成为幻读。
+
+不可重复读的重点是修改:
+同样的条件, 你读取过的数据, 再次读取出来发现值不一样了
+
+幻读的重点在于新增或者删除 (数据条数变化)
+同样的条件, 第1次和第2次读出来的记录数不一样
+幻读发生在当两个完全相同的查询执行时，第二次查询所返回的结果集跟第一个查询不相同。
+
+
+防止方法：
+脏读：修改时加排他锁，直到事务提交后才释放，读取时加共享锁，读取完释放事务1读取数据时加上共享锁后（这 样在事务1读取数据的过程中，其他事务就不会修改该数据），不允许任何事物操作该数据，只能读取，之后1如果有更新操作，
+那么会转换为排他锁，其他事务更 无权参与进来读写，这样就防止了脏读问题。
+但是当事务1读取数据过程中，有可能其他事务也读取了该数据，读取完毕后共享锁释放，此时事务1修改数据，修改 完毕提交事务，其他事务再次读取数据时候发现数据不一致，就会出现不可重复读问题，所以这样不能够避免不可重复读问题。
+
+不可重复读：读取数据时加共享锁，写数据时加排他锁，都是事务提交才释放锁。读取时候不允许其他事物修改该数据，不管数据在事务过程中读取多少次，数据都是一致的，避免了不可重复读问题
+和脏读相比，不可重复度的操作建立在事务上，只有事务提交之后才释放锁。
+
+幻读问题：采用的是范围锁RangeS RangeS_S模式，锁定检索范围为只读，这样就避免了幻影读问题
+
+
+---------------------------------------------------------------------------------
+
+Spring事务
+Spring也有事务的概念，也要遵循ACID原则。原子性、一致性、隔离性、持久性
+
+
+声明式事务、编程式事务
+
+1. 编程式事务管理
+编程式事务管理是侵入性事务管理，使用TransactionTemplate或者直接使用PlatformTransactionManager，对于编程式事务管理，Spring推荐使用TransactionTemplate。
+
+2. 声明式事务管理
+声明式事务管理建立在AOP之上，其本质是对方法前后进行拦截，然后在目标方法开始之前创建或者加入一个事务，执行完目标方法之后根据执行的情况提交或者回滚。
+编程式事务每次实现都要单独实现，但业务量大功能复杂时，使用编程式事务无疑是痛苦的，而声明式事务不同，声明式事务属于无侵入式，不会影响业务逻辑的实现，只需要在配置文件中做相关的事务规则声明或者通过注解的方式，便可以将事务规则应用到业务逻辑中。
+显然声明式事务管理要优于编程式事务管理，这正是Spring倡导的非侵入式的编程方式。唯一不足的地方就是声明式事务管理的粒度是方法级别，而编程式事务管理是可以到代码块的，但是可以通过提取方法的方式完成声明式事务管理的配置。
+
+声明式事务有两种方式实现，一种是使用xml注入，一种是注解方式实现。
+
+这里只列出声明式事务注解的实现方法，只需要两步
+1.写好配置文件 PTConfig.class 使用声明式事务控制器 @EnableTransactionManagement @Bean的方式创建好TransactionTemplate、DataSourceTransactionManager
+2.在serviceimpl里面的 访问数据库指令的方法 使用@Transactional注解，并为@Transactional添加 传播特性Isolation、 隔离级别Propagation 等参数即可。
+
+
+---------------------------------------------------------------------------------
+
+mysql事务
+
+事务提交命令实例
+mysql> begin;  # 开始事务
+
+mysql> insert into mytable value(5);
+
+mysql> insert into mytable value(6);
+
+mysql> commit; # 提交事务
+
+
+
+查看当前会话隔离级别：
+select @@transaction_isolation;
+查看系统当前隔离级别
+select @@global.transaction_isolation;
+
+
+设置会话的隔离级别，隔离级别由低到高设置依次为:
+set session transacton isolation level read uncommitted;
+set session transacton isolation level read committed;
+set session transacton isolation level repeatable read;
+set session transacton isolation level serializable;
+
+
+设置当前系统的隔离级别，隔离级别由低到高设置依次为:
+set global transacton isolation level read uncommitted;
+set global transacton isolation level read committed;
+set global transacton isolation level repeatable read;
+set global transacton isolation level serializable;
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+mybatis 中 #{}和 ${}
+
+select * from student where uid=#{uid} AND student_name='${studentName}'
+在动态 SQL 解析阶段， #{ } 和 ${ } 会有不同的表现：
+#{ } 解析为一个 JDBC 预编译语句（prepared statement）的参数标记符占位符 ？。
+${ } 仅仅为一个纯碎的 string 替换，在mybatis的动态 SQL 解析阶段将会进行变量替换。比如：传入的studentName参数是“张三”
+最后解析完成的完整语句就是
+select * from student where uid= ? AND student_name='张三'
+
+所以使用 #{} 可以防止sql注入问题
+
+------------------------
+
+Mybatis的xml配置使用步骤
+
+1.导入pom依赖
+2.编写mapper接口并用@mapper注解，bean实体
+3.resources下编写mapper.xml和config.xml配置文件
+4.properties配置好mybatis的配置，resources下的xml文件和package扫描需要配置
+5.在serviceimpl中，@autowrite使用mapper接口
+
+------------------------
+
+4种分页方式
+
+数组分页：查询出全部数据，然后再list中截取需要的部分。
+
+
+sql分页：使用sql的limit关键字，每次只查询固定长度的数据，得到分页效果，例如：
+每次返回4条数据，返回3次共12条
+select * from paging_test where id > 2 && id < 18 limit 0,4;
+select * from paging_test where id > 2 && id < 18 limit 4,4;
+select * from paging_test where id > 2 && id < 18 limit 8,4;
+
+模糊搜索
+select * from paging_test where name like "a2%";
+
+
+拦截器分页：
+创建拦截器，拦截 StatementHandler的prepare方法，在intercept()方法中对 原来mapper的sql指令进行加工，
+同样也是使用sql的 limit进行分页的，拦截器方法更加灵活
+例如：MyPageInterceptor类实例化接口Intercepts，并添加注解@Intercepts，并且设置拦截类型为StatementHandler，
+接着在intercept接口方法中 拦截mapper的方法，这个mapper方法需要传入分页参数，
+对原本的sql指令修改，增加limit关键字，将分页的参数作为limit的参数，起到分页的效果
+
+
+RowBounds分页
+是在 sql 查询出所有结果的基础上截取数据的，所以在数据量大的sql中并不适用
+在mapper的方法中增加参数RowBounds，调用mapper方法时，创建RowBounds并传入分页偏移量
+
+
+逻辑分页和物理分页
+1.物理分页
+物理分页依赖的是某一物理实体，这个物理实体就是数据库，比如MySQL数据库提供了limit关键字，程序员只需要编写带有limit关键字的SQL语句，数据库返回的就是分页结果。
+2.逻辑分页
+逻辑分页依赖的是程序员编写的代码。数据库返回的不是分页结果，而是全部数据，然后再由程序员通过代码获取分页数据，常用的操作是一次性从数据库中查询出全部数据并存储到List集合中，因为List集合有序，再根据索引获取指定范围的数据。
+
+
+MyBatis分页插件PageHelper
+PageHelper是github上的开源项目，使用时需要导入开源的pom依赖
+在applicationContext.xml写好PageHelper的注入bean
+使用方式和自定义拦截器差不多，也是在config.xml的插件配置，将PageHelper配置上
+
+
+------------------------
+
+mybatis 一级缓存和二级缓存
+Mybatis的缓存其实就是为了提高效率，减少重复查询带来的消耗
+
+一级缓存: 基于 PerpetualCache 的 HashMap 本地缓存，其存储作用域为 Session，当 Session flush 或 close 之后，该 Session 中的所有 Cache 就将清空。
+作用域是SqlSession，session关闭，缓存即失效，sqlSession对象的缓存，当我们执行查询以后，
+查询的结果会同时存入到SqlSession为我们提供的一块区域中，该区域的结构是一个Map，当我们再次查询同样的数据，mybatis会先去sqlsession中查询是否有，的话直接拿出来用
+默认打开一级缓存。
+一级缓存是缓存sqlsession的，会话关闭时缓存失效。
+
+二级缓存与一级缓存其机制相同，默认也是采用 PerpetualCache，HashMap 存储，不同在于其存储作用域为 Mapper(Namespace)，并且可自定义存储源，如 Ehcache。
+二级缓存的作用域是同一个namespace下的mapper映射文件内容，多个SqlSession共享。SqlSessionFactory对象的缓存，由同一个SqlSessionFactory对象创建的SqlSession共享其缓存
+默认不打开二级缓存，要开启二级缓存，使用二级缓存属性类需要实现Serializable序列化接口(可用来保存对象的状态),可在它的映射文件中配置 ；
+namespace就是mapper.xml的namespace。
+二级缓存是全局缓存。而且缓存介质不只是内存。
+
+
+对于缓存数据更新机制，当某一个作用域(一级缓存 Session/二级缓存Namespaces)的进行了C/U/D 操作后，默认该作用域下所有 select 中的缓存将被 clear。
+
+
+mybatis的缓存可以在config.xml文件中配置，同时如果想让config.xml文件生效，需要mybatis的properties配置好
+<configuration>
+    <settings>
+        <!--开启二级缓存-->
+        <setting name="cacheEnabled" value="true"/>
+    </settings>
+</configuration>
+
+------------------------
+
+Mybatis代码实例帮助理解：
+
+SqlSession和Mapper接口，方便理解一级缓存和二级缓存，一级缓存作用于SqlSession，二级缓存作用于Mapper
+
+MyBatis执行SQL的两种方式：SqlSession和Mapper接口
+      String path = "xxx.xml";
+        InputStream e = null;
+        SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+        SqlSessionFactory factory = null;
+        e = Resources.getResourceAsStream(path);
+        factory = builder.build(e);
+        SqlSession sqlSession = factory.openSession();
+
+        OldUserMapper oldUserMapper = sqlSession.getMapper(OldUserMapper.class);
+        List<OldUserBean> userBeans = oldUserMapper.get("green", 2);
+        System.out.println(userBeans.get(0));
+
+SqlSession和Mapper都可以增删改查，
+一个Mapper可以有多个sql会话，即多个SqlSession创建
+
+
+注意
+1.mybatis所有的resource下的.xml文件，无论是 config还是mapper，都需要在properties中写好
+如下：
+mybatis.type-aliases-package=wrx.mr.demo
+mybatis.config-location=classpath:mybatis/mybatis-config.xml
+mybatis.mapper-locations=classpath:mybatis/mapper/*.xml
+
+
+------------------------
+
+从MyBatis代码实现的角度来看，MyBatis的主要的核心部件有以下几个：
+SqlSession            作为MyBatis工作的主要顶层API，表示和数据库交互的会话，完成必要数据库增删改查功能
+Executor              MyBatis执行器，是MyBatis 调度的核心，负责SQL语句的生成和查询缓存的维护
+StatementHandler   封装了JDBC Statement操作，负责对JDBC statement 的操作，如设置参数、将Statement结果集转换成List集合。
+ParameterHandler   负责对用户传递的参数转换成JDBC Statement 所需要的参数，
+ResultSetHandler    负责将JDBC返回的ResultSet结果集对象转换成List类型的集合；
+TypeHandler          负责java数据类型和jdbc数据类型之间的映射和转换
+MappedStatement   MappedStatement维护了一条<select|update|delete|insert>节点的封装， 
+SqlSource            负责根据用户传递的parameterObject，动态地生成SQL语句，将信息封装到BoundSql对象中，并返回
+BoundSql             表示动态生成的SQL语句以及相应的参数信息
+Configuration        MyBatis所有的配置信息都维持在Configuration对象之中
+
+------------------------
+
+Statement对象
+Mybatis有四种statement insert select update delete，可以在mapper.xml中配置，
+Statement的id要和方法名对应上
+
+SqlSession是
+数据库会话，SqlSessionFactoryBuilder创建SqlSessionFactory  openSession,sqlSession 执行增删改查，
+SqlSession提供select/insert/update/delete方法，在旧版本中使用使用SqlSession接口的这些方法，
+但是新版的Mybatis中就会建议使用Mapper接口的方法。
+
+------------------------
+
+mybatis 拦截器
+拦截器的作用和普通的拦截器差不多，可以在被拦截的方法执行前后加上某些逻辑（而不会破坏原有的逻辑），选择让被拦截的方法是否执行
+
+mybatis自定义拦截器实现步骤：
+1.实现org.apache.ibatis.plugin.Interceptor接口。
+2.添加拦截器注解org.apache.ibatis.plugin.Intercepts。
+3.配置文件中添加拦截器。
+
+Mybatis自定义插件针对Mybatis四大对象（Executor、StatementHandler 、ParameterHandler 、ResultSetHandler ）进行拦截，具体拦截方式为：
+Executor：拦截执行器的方法(log记录)
+StatementHandler ：拦截Sql语法构建的处理
+ParameterHandler ：拦截参数的处理
+ResultSetHandler ：拦截结果集的处理
+
+各个拦截器的作用：
+Executor  Mybatis中所有的Mapper语句的执行都是通过Executor进行的。Executor是Mybatis的核心接口。
+ParameterHandler  用来设置参数规则，当StatementHandler使用prepare()方法后，接下来就是使用它来设置参数。所以如果有对参数做自定义逻辑处理的时候，可以通过拦截ParameterHandler来实现。
+StatementHandler  负责处理Mybatis与JDBC之间Statement的交互。
+ResultSetHandler  用于对查询到的结果做处理。所以如果你有需求需要对返回结果做特殊处理的情况下可以去拦截ResultSetHandler的处理。
+
+Executor：Executor对象在创建Configuration对象的时候创建，并且缓存在Configuration对象里。Executor对象的主要功能是调用StatementHandler访问数据库，并将查询结果存入缓存中（如果配置了缓存的话）。
+StatementHandler：是真正访问数据库的地方，并调用ResultSetHandler处理查询结果。
+ResultSetHandler：处理查询结果。
+所以要做拦截器分页就是要用StatementHandler、ResultSetHandler
+
+注解参数
+@Intercepts({@Signature(  type= Executor.class,  method = "update",  args = {MappedStatement.class,Object.class})})
+type，可以是这四种 Executo， ParameterHandler， ResultHandler， StatementHandler
+
+method，根据type的不同，可以选择以下方法进行拦截：
+例如Executor的update代表增删改，query代表查，
+注意，具体method代表什么意思，可以通过源代码的注释去查看
+Executor (update, query, flushStatements, commit, rollback, getTransaction, close, isClosed)
+ParameterHandler (getParameterObject, setParameters)
+ResultSetHandler (handleResultSets, handleOutputParameters)
+StatementHandler (prepare, parameterize, batch, update, query)
+
+args
+指的是 method的参数类型，因为重载的原因，可能会有多个方法名相同但是参数不同的方法，所以需要这个args来区分一下
+例如 Executor.class的update方法有两个参数，类型分别是MappedStatement.class, Object.class
+
+
+------------------------
+
+Mybatis 执行器Executor
+
+Mybatis中所有的Mapper语句的执行都是通过Executor进行的，Executor是Mybatis的一个核心接口。
+现在开发中基本不需要接触到执行器，只需要了解即可。
+
+三种基本的执行器，这几个执行器都继承BaseExecutor
+SimpleExecutor：每执行一次update或select，就开启一个Statement对象，用完立刻关闭Statement对象。
+ReuseExecutor：执行update或select，以sql作为key查找Statement对象，存在就使用，不存在就创建，用完后，不关闭Statement对象，而是放置于Map内，供下一次使用。
+简言之，就是重复使用Statement对象。
+BatchExecutor：执行update（没有select，JDBC批处理不支持select），将所有sql都添加到批处理中（addBatch()），等待统一执行（executeBatch()），
+它缓存了多个Statement对象，每个Statement对象都是addBatch()完毕后，等待逐一执行executeBatch()批处理。与JDBC批处理相同。
+
+可以在配置文件中配置好执行器，默认是SIMPLE，有SIMPLE，REUSE，BATCH三个可选
+<setting name="defaultExecutorType" value="BATCH" />
+
+
+
+------------------------
+
+Mybatis延迟加载
+
+什么是延迟加载：
+代码中有查询语句，当执行到查询语句时，并不是马上去DB中查询，而是根据设置的延迟策略将查询向后推迟。
+
+Mybatis仅支持association关联对象和collection关联集合对象的延迟加载，association指的就是一对一，collection指的就是一对多查询。
+在Mybatis配置文件中，可以配置是否启用延迟加载lazyLoadingEnabled=true|false。
+
+它的原理是，使用CGLIB创建目标对象的代理对象，当调用目标方法时，进入拦截器方法，比如调用a.getB().getName()，拦截器invoke()方法发现a.getB()是null值，
+那么就会单独发送事先保存好的查询关联B对象的sql，把B查询上来，然后调用a.setB(b)，于是a的对象b属性就有值了，接着完成a.getB().getName()方法的调用。这就是延迟加载的基本原理
+
+lazyLoadingEnabled	延迟加载的全局开关。当开启时，所有关联对象都会延迟加载。 特定关联关系中可通过设置 fetchType 属性来覆盖该项的开关状态。
+aggressiveLazyLoading	开启时，任一方法的调用都会加载该对象的所有延迟加载属性。 否则，每个延迟加载属性会按需加载（参考 lazyLoadTriggerMethods)。
+<settings> 
+		<setting name="lazyLoadingEnabled" value="true" />
+		<setting name="aggressiveLazyLoading" value="false" />
+</settings> 
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+mysql
+
+数据库的三范式是什么？
+
+第一范式（1NF）、第二范式（2NF）、第三范式（3NF）、巴斯-科德范式（BCNF）、第四范式(4NF）和第五范式（5NF，又称完美范式）。
+满足最低要求的范式是第一范式（1NF）。在第一范式的基础上进一步满足更多规范要求的称为第二范式（2NF），其余范式以次类推。
+一般说来，数据库只需满足第三范式(3NF）就行了。所以这里就只记录三范式相关的知识。
+
+三范式
+1NF:字段不可分; 
+2NF:有主键，非主键字段依赖主键; 
+3NF:非主键字段不能相互依赖; 
+
+解释: 
+1NF:原子性 字段不可再分,否则就不是关系数据库; 
+2NF:唯一性 一个表只说明一个事物; 
+3NF:每列都与主键有直接关系，不存在传递依赖; 
+
+例子：
+1.如果可继续分解，就是不满足第一范式，我们应该再分表，把笔试成绩再分成一张表（列出字段 申论、行测的成绩）
+		考试成绩
+	面试成绩，笔试成绩
+			  申论、行测
+
+2.如果一个表有主键（主键必须是 唯一值，不为空），那么它满足第二范式，因为主键取唯一值，就代表了一行数据它是独一无二的
+满足第二范式（2NF）必须先满足第一范式（1NF），如果表可再分，那么同样不能满足第二范式
+
+3.为了满足第三范式往往会把一张表分成多张表。
+建立在第二范式基础上的，非主键字段不能传递依赖于主键字段，就是不能传递依赖，必须直接依赖主键。
+例如 学生表有个 两个字段 班级编号、班级资产，班级资产就算是依赖了班级编号，班级编号又依赖了主键学生id，这就算是传递依赖。
+解决办法就是再分出一个班级表。
+
+
+---------------
+
+mysql 常用的引擎
+
+InnoDB 引擎：InnoDB 引擎提供了对数据库 acid 事务的支持，并且还提供了行级锁和外键的约束，它的设计的目标就是处理大数据容量的数据库系统。MySQL 运行的时候，
+InnoDB 会在内存中建立缓冲池，用于缓冲数据和索引。但是该引擎是不支持全文搜索，同时启动也比较的慢，它是不会保存表的行数的，所以当进行 select count(*) from table 指令的时候，
+需要进行扫描全表。由于锁的粒度小，写操作是不会锁定全表的,所以在并发度较高的场景下使用会提升效率的。
+
+MyIASM 引擎：MySQL 的默认引擎，但不提供事务的支持，也不支持行级锁和外键。因此当执行插入和更新语句时，即执行写操作的时候需要锁定这个表，所以会导致效率会降低。
+不过和 InnoDB 不同的是，MyIASM 引擎是保存了表的行数，于是当进行 select count(*) from table 语句时，可以直接的读取已经保存的值而不需要进行扫描全表。
+所以，如果表的读操作远远多于写操作时，并且不需要事务的支持的，可以将 MyIASM 作为数据库引擎的首选。
+
+count()是统计，这bai个sql语句是对table_name表中的所有行记录做个统计，就是查出表中有多少行数据。
+
+MyISAM 只支持表锁，InnoDB 支持表锁和行锁，默认为行锁。
+
+表级锁：开销小，加锁快，不会出现死锁。锁定粒度大，发生锁冲突的概率最高，并发量最低。
+行级锁：开销大，加锁慢，会出现死锁。锁力度小，发生锁冲突的概率小，并发度最高。
+
+--------------
+
+char 和 varchar 的区别是什么？
+char(n) ：固定长度类型，比如订阅 char(10)，当你输入"abc"三个字符的时候，它们占的空间还是 10 个字节，其他 7 个是空字节。
+chat 优点：效率高；缺点：占用空间；适用场景：存储密码的 md5 值，固定长度的，使用 char 非常合适。
+varchar(n) ：可变长度，存储的值是每个值占用的字节再加上一个用来记录其长度的字节的长度。
+所以，从空间上考虑 varcahr 比较合适；从效率上考虑 char 比较合适，二者使用需要权衡。
+
+
+float 和 double 的区别是什么？
+float 在内存中占 4 字节。java 的也是4字节
+double 在内存中占 8 字节。java的double也是8字节
+
+---------------
+
+mysql 的内连接、左连接、右连接有什么区别？
+
+内连接关键字：inner join ；
+左连接：left join；右连接：right join；
+全外连接(mysql不支持全外链接)
+
+内连接是把匹配的关联数据显示出来；
+左连接是左边的表全部显示出来，右边的表显示出符合条件的数据；
+右连接正好相反。
+
+例子
+内连接：xxx inner join xxx on xxx
+返回两个表的交集部分
+例如，查询A中与B重复的部分，也即是A和B交集
+Select * from A inner JOIN B ON A.Aid=B.Bnameid
+相当于select * from A,B where A.Aid=B.Bnameid
+
+
+左外连接：
+关键字：left join on / left outer join on
+语句：SELECT  * FROM a left join b ON a.a_id = b.b_id;
+ left join 是left outer join的简写（可以省略outer不写），它的全称是左外连接，是外连接中的一种。
+这个会列出a表所有的数据，以及 a表与b表的共同的交集。
+如果左表的数据 右表没有能对应上的，会显示为null。
+例如：
+表a
+id color
+1  蓝色
+2  黑色
+3  绿色
+
+表b
+id color
+1  白色
+2  红色
+6  紫色
+
+SELECT  * FROM a left join b ON a.a_id = b.b_id;
+执行命令之后的结果：
+id color id	color
+1  蓝色  1		白色
+2  黑色  2		红色
+3  绿色  null	null
+
+
+右外连接
+关键字：right join on / right outer join on
+语句：SELECT  * FROM a right outer join b on a.a_id = b.b_id;
+说明：right join是right outer join的简写，它的全称是右外连接，是外连接中的一种。
+与左(外)连接相反，右(外)连接，左表(a)只会显示符合搜索条件的记录，而右表(b)的记录将会全部表示出来。
+左表记录不足的地方均为NULL。
+
+
+---------------
+
+函数
+
+ MySql常用函数大全
+MySQL数据库中提供了很丰富的函数。MySQL函数包括数学函数、字符串函数、日期和时间函数、条件判断函数、系统信息函数、加密函数、格式化函数等。通过这些函数，可以简化用户的操作。
+例如，字符串连接函数可以很方便的将多个字符串连接在一起。
+所有的函数均以select开头
+
+函数有很多种，每一种有很多个，以下每种举例两个
+数学函数
+ABS(X):返回X的绝对值
+select ABS(-32); 
+MOD(N,M)或%:返回N被M除的余数。
+select MOD(15,7);
+select 15 % 7; 
+
+字符串函数
+ASCII(str):返回字符串str的最左面字符的ASCII代码值。如果str是空字符串，返回0。如果str是NULL，返回NULL。
+select ASCII('a');
+CONCAT(str1,str2,...):返回来自于参数连结的字符串。如果任何参数是NULL，返回NULL。可以有超过2个的参数。一个数字参数被变换为等价的字符串形式。
+select CONCAT('My', 'S', 'QL');
+
+日期和时间函数
+DAYOFWEEK(date):返回日期date的星期索引(1=星期天，2=星期一, …7=星期六)。
+select DAYOFWEEK('1998-02-03');
+select DAYOFWEEK(now()); 
+DAYNAME(date):返回date的星期名字。
+select DAYNAME("1998-02-05"); 
+
+条件判断函数
+IF(expr1,expr2,expr3)
+如果 expr1 是TRUE (expr1 <> 0 and expr1 <> NULL)，则 IF()的返回值为expr2; 否则返回值则为 expr3。IF() 的返回值为数字值或字符串值，具体情况视其所在语境而定。
+SELECT IF(1>2,2,3);
+如果字符串相同，STRCMP()返回0，如果第一参数根据当前的排序次序小于第二个，返回-1，否则返回1。
+select STRCMP('text', 'text2');
+
+系统信息函数
+获取MySQL版本号、连接数、数据库名的函数
+select VERSION()函数返回数据库的版本号；
+获取用户名的函数
+select USER();
+
+加密函数
+MD5(str)函数可以对字符串str进行加密。MD5(str)函数主要对普通的数据进行加密。
+Select MD5('abcd');
+
+
+格式化函数
+格式化函数FORMAT(x,n)
+
+
+---------------
+
+索引
+MySQL索引的建立对于MySQL的高效运行是很重要的，索引可以大大提高MySQL的检索速度。
+
+索引是怎么实现的？
+索引是满足某种特定查找算法的数据结构，而这些数据结构会以某种方式指向数据，从而实现高效查找数据。
+具体来说 MySQL 中的索引，不同的数据引擎实现有所不同，但目前主流的数据库引擎的索引都是 B+ 树实现的，B+ 树的搜索效率，可以到达二分法的性能，找到数据区域之后就找到了完整的数据结构了，所有索引的性能也是更好的。
+
+怎么验证 mysql 的索引是否满足需求？
+使用 explain 查看 SQL 是如何执行查询语句的，从而分析你的索引是否满足需求。
+explain 语法：explain select * from table where type=1。
+
+
+一般情况下，百万量级需要用索引
+
+现在创建一个表CREATE TABLE test_tab (id INT, name VARCHAR(10), age INT, val VARCHAR(10));
+
+查询 SELECT * FROM test_tab WHERE name = 一个外部输入的数据
+
+如果增加一个索引，在 name 上面 建立了索引CREATE INDEX idx_test4_name ON test_tab (name );
+之后查询速度会变快
+
+但是如果用age去查，SELECT * FROM test_tab WHERE age = 25，速度不会变快，因为创建的是name的索引，而age上面没有索引
+
+ WHERE 里面的条件， 会自动判断，有没有 可用的索引，如果有， 该不该用。
+
+多列索引，就是一个索引，包含了2个字段。
+例如：CREATE INDEX idx_test_name_age ON test_tab (name, age);
+
+那么SELECT * FROM test_tab WHERE name LIKE '张%'
+AND age = 25
+这样的查询，将能够使用上面的索引。
+
+------------------------------
+
+
+
+（1）以下情况时，索引会生效：
+对于某个条件进行范围查找时，如果这个列上有索引，且使用 where ... between 
+and ... > ,< 等范围操作，那么可能用到索引范围查找，如果索引范围查找的成本太高，数据库可能会选择全表扫描的方式
+注意 in  不属于范围查找的范畴
+
+1.有or必全有索引;
+2.复合索引未用左列字段;
+3.like以%开头;
+4.需要类型转换;
+5.where中索引列有运算;
+6.where中索引列使用了函数;
+7.如果mysql觉得全表扫描更快时（数据少）;
+
+
+
+（2）就目前来说，mysql 暂时只支持最左前缀原则进行筛选。
+例子：创建复合索引
+create index idx_a_b_c on tb1(a,b,c)
+只有使用如下条件才可能应用到这个复合索引
+1.where a=?
+2.where a = ? and b = ?
+3.where a = ? and b = ? and c = ?
+但
+4.where a = ? and c ＝ ？
+只会使用到mysql 索引 a 列的信息
+
+复合索引的创建可以根据具体业务的需求去创建。
+
+
+（3）对于创建的多列索引（复合索引），不是使用的第一部分就不会使用索引
+alter table student add index my_index(name, age)   // name左边的列， age 右边的列                                                              
+select * from student where name = 'aaa'     // 会用到索引
+select * from student where age = 18          //  不会使用索引
+
+
+（4）对于使用 like 查询， 查询如果是 ‘%aaa’ 不会使用索引，而 ‘aaa%’ 会使用到索引。
+select * from student where name like 'aaa%' // 会用到索引
+select * from student where name like '%aaa'        或者   '_aaa'   //  不会使用索引
+
+（5）如果使用or关键字，那么要求 or的左右两边的条件全部都单独创建过索引，才会生效
+
+（6）如果列类型是字符串，那么一定要在条件中使用引号引用起来，否则不使用索引。
+
+（7）如果mysql认为全表扫面要比使用索引快，则不使用索引。
+如：表里只有一条数据。
+
+------------------------------
+
+explain关键字
+
+例如 表index_test，desc index_test查询结构：
+有三个字段id 整型， name 字符串，phone 字符串
+
+对id 创建普通索引
+create index id_index on index_test(id);
+
+执行explain命令，可以看到索引是否生效
+explain select * from index_test where phone like '%23%' and id > 10;
++----+-------------+------------+------------+-------+---------------+----------+---------+------+------+----------+------------------------------------+
+| id | select_type | table      | partitions | type  | possible_keys | key      | key_len | ref  | rows | filtered | Extra                              |
++----+-------------+------------+------------+-------+---------------+----------+---------+------+------+----------+------------------------------------+
+|  1 | SIMPLE      | index_test | NULL       | range | id_index      | id_index | 4       | NULL |   10 |    11.11 | Using index condition; Using where |
++----+-------------+------------+------------+-------+---------------+----------+---------+------+------+----------+------------------------------------+
+如果key不为空就是使用了索引
+
+explain select * from index_test where id > 10;
+同理
+
+查看创建的索引
+SHOW INDEX FROM index_test;
+
+------------------------------
+
+创建索引有几种方式
+
+1.Create关键字创建索引
+CREATE INDEX indexName ON table_name (column_name)
+如果是CHAR，VARCHAR类型，length可以小于字段实际长度；如果是BLOB和TEXT类型，必须指定 length。
+
+2.修改表结构(添加索引)
+ALTER table tableName ADD INDEX indexName(columnName)
+ALTER其实就是修改的意思
+
+3.创建表的时候直接指定
+CREATE TABLE mytable(  
+ID INT NOT NULL,   
+username VARCHAR(16) NOT NULL,  
+INDEX [indexName] (username(length))  
+);  
+
+4.删除索引的语法
+DROP INDEX [indexName] ON mytable; 
+Drop就是修改表结构的关键字
+
+-----------------------------
+
+mysql有这几种索引
+
+1.添加PRIMARY KEY（主键索引） 
+mysql>ALTER TABLE `table_name` ADD PRIMARY KEY ( `column` ) 
+
+2.添加UNIQUE(唯一索引) 
+mysql>ALTER TABLE `table_name` ADD UNIQUE ( `column` ) 
+
+3.添加INDEX(普通索引) 
+mysql>ALTER TABLE `table_name` ADD INDEX index_name ( `column` ) 
+
+4.添加FULLTEXT(全文索引) 
+mysql>ALTER TABLE `table_name` ADD FULLTEXT ( `column`) 
+
+5.添加多列索引 
+mysql>ALTER TABLE `table_name` ADD INDEX index_name ( `column1`, `column2`, `column3` )
+
+-----------------------------
+
+聚簇索引和非聚簇索引
+Innodb使用的是聚簇索引，MyISam使用的是非聚簇索引
+
+MySQL数据库中innodb存储引擎，B+树索引可以分为聚簇索引（也称聚集索引，clustered index）和辅助索引（有时也称非聚簇索引或二级索引，secondary index，non-clustered index）。
+这两种索引内部都是B+树，聚集索引的叶子节点存放着一整行的数据。
+
+Innobd中的主键索引是一种聚簇索引，非聚簇索引都是辅助索引，像复合索引、前缀索引、唯一索引。
+
+主键一般默认为聚簇索引
+
+聚簇索引就是按照每张表的主键构造一颗B+树，同时叶子节点中存放的就是整张表的行记录数据，也将聚集索引的叶子节点称为数据页。这个特性决定了索引组织表中数据也是索引的一部分；
+一般建表会用一个自增主键做聚簇索引，没有的话MySQL会默认创建，但是这个主键如果更改代价较高，故建表时要考虑自增ID不能频繁update这点。
+
+innodb的主索引文件上 直接存放该行数据,称为聚簇索引,次索引指向对主键的引用
+myisam中, 主索引和次索引,都指向物理行(磁盘位置).
+
+1、聚簇索引
+a) 一个索引项直接对应实际数据记录的存储页，可谓“直达”
+b) 主键缺省使用它
+c) 索引项的排序和数据行的存储排序完全一致，利用这一点，想修改数据的存储顺序，可以通过改变主键的方法（撤销原有主键，另找也能满足主键要求的一个字段或一组字段，重建主键）
+d) 一个表只能有一个聚簇索引（理由：数据一旦存储，顺序只能有一种）
+
+2、非聚簇索引
+a) 不能“直达”，可能链式地访问多级页表后，才能定位到数据页
+b) 一个表可以有多个非聚簇索引
+
+
+-----------------------------
+
+查询重复数据，重复数量
+
+group by
+having
+with rollup
+聚合函数
+AVG([distinct] expr)  求平均值
+COUNT({*|[distinct] } expr)  统计行的数量
+MAX([distinct] expr)  求最大值
+MIN([distinct] expr)  求最小值
+SUM([distinct] expr)  求累加和
+
+group by 和 having 经常需要和 聚合函数连用
+
+group by 分组 查询重复数据
+having 查询有多少个条件内的数据
+
+where 关键字无法与聚合函数一起使用。
+having 子句可以让我们筛选分组后的各组数据。
+
+总结：
+
+在mysql里面用group by获取分组的相关信息，还需要显示出分组信息以外的其他字段内容，但默认是不行的，因为group by 里面显示的要么是分组字段，要么是统计信息，其他都为非法！
+
+分组通常情况下是要选择一个字段，以这个字段为基础去分组的，所以基本不可能显示分组字段外的数据
+分组是很难查分组之外的字段的，因为分组通常要使用聚合函数来统计数据，
+例如 例子1，boat表，以method字段分组，分了两组出来，其中 有5行数据的method字段都是 get这个值，也就是一对多的关系，除非get显示5行，再把其他字段的数据也显示出来
+表的主键要取唯一值，就是为了保证每一行数据都是不一致的
+
+
+举例
+select * from people
+where people_no in (select   people_no from   people group by   people_no having count(people_no) > 1);
+
+select * from people
+where people_no in (select   people_no from people group by   people_no   having count(people_no) > 1) and  
+id not in (select min(id) from   people group by people_no having count(people_no)>1);
+
+1. Boat表的method字段，分组，即打印 method的值相同时有几条数据
+SELECT method, COUNT(*) FROM boat GROUP BY method;
+结果，当method字段的值为get时，有5行数据；当method字段的值为get时post有1行数据
+| method | COUNT(*) |
+| get    	 |        5 |
+| post   	 |        1 |
+
+
+2. having关键字，通常情况下，having后面的查询条件就是之前select中的字段名，并且可以接 > < = 等符号
+查询boat表的method字段的重复数据在2条以上
+SELECT method, COUNT(*) FROM boat GROUP BY method having count(method) > 2;
+结果，得到get
+| method | COUNT(*) |
+| get    	 |        5 |
+
+查询uid平均在125以上的数据
+SELECT method, avg(bid), COUNT(*) FROM boat GROUP BY method having avg(bid) > 125;
+
+
+3. 以uid为分组，查询当uid相同时，有多少行数据，这些数据中bid相加的总和是多少，并且按照 行数的多少进行降序排列
+SELECT  count(*), sum(bid) FROM boat GROUP BY uid order by count(*) DESC;
+结果：
++----------+----------+
+| count(*) | sum(bid) |
++----------+----------+
+|        4 |      476 |
+|        2 |      255 |
+
+4. 以uid为分组，查看每个分组中，最大值是多少（第三个例子中，uid相同的数据有4行和2行）
+SELECT  uid, max(bid) FROM boat GROUP BY uid;
++-----+----------+
+| uid | max(bid) |
++-----+----------+
+|   1  |      126 |
+|  33 |      128 |
+
+
+5. In关键字，打印出所有字段，以uid为分组，选取分组中bid最大的那一行，打印出那一行中的所有字段，
+注意：如果uid分组为2组，那么就会打印出2行数据，这两行数据中的bid刚好就是分组中bid最大的
+select * from boat where bid in ( SELECT max(bid)  FROM boat GROUP BY uid);
+结果
++-----+-----+-------------+--------+------+-----------------+
+| bid | uid | name        | method | head | body            |
++-----+-----+-------------+--------+------+-----------------+
+| 126 |   1 | mytest_get3 | get    |      | {"v1", "v2"}    |
+| 128 |  33 | mypost      | post   |      | {"key":"value"} |
+
+
+
+
+-----------------------------
+
+聚合函数 count，这个函数是用来统计数据量的，就是统计数据有多少行的
+count()语法：
+（1）count(*)---包括所有列，返回表中的记录数，相当于统计表的行数，在统计结果的时候，不会忽略列值为NULL的记录。
+（2）count(1)---忽略所有列，1表示一个固定值，也可以用count(2)、count(3)代替，在统计结果的时候，不会忽略列值为NULL的记录。
+（3）count(列名)---只包括列名指定列，返回指定列的记录数，在统计结果的时候，会忽略列值为NULL的记录（不包括空字符串和0），即列值为NULL的记录不统计在内。
+（4）count(distinct 列名)---只包括列名指定列，返回指定列的不同值的记录数，在统计结果的时候，在统计结果的时候，会忽略列值为NULL的记录（不包括空字符串和0），即列值为NULL的记录不统计在内。
+
+ count(*)&count(1)&count(列名)执行效率比较：
+（1）如果列为主键，count(列名)效率优于count(1)
+（2）如果列不为主键，count(1)效率优于count(列名)
+（3）如果表中存在主键，count(主键列名)效率最优
+（4）如果表中只有一列，则count(*)效率最优
+（5）如果表有多列，且不存在主键，则count(1)效率优于count(*)
+
+
+因为count(*)和count(1)统计过程中不会忽略列值为NULL的记录，所以可以通过以下两种方式来统计列值为NULL的记录数:
+（1）select count(*) from table where is_active is null;
+（2）select count(1) from table where is_active is null;
+
+
+特例：
+（1）select count('') from table;-返回表的记录数
+（2）select count(0) from table;-返回表的记录数
+（3）select count(null) from table;-返回0
+
+
+总结
+1.如果在开发中确实需要用到count()聚合，那么优先考虑count(*)，因为mysql数据库本身对于count(*)做了特别的优化处理。
+有主键或联合主键的情况下，count(*)略比count(1)快一些。 
+没有主键的情况下count(1)比count(*)快一些。 
+如果表只有一个字段，则count(*)是最快的。
+
+2.使用count()聚合函数后，最好不要跟where age = 1；这样的条件，会导致不走索引，降低查询效率。除非该字段已经建立了索引。使用count()聚合函数后，
+若有where条件，且where条件的字段未建立索引，则查询不会走索引，直接扫描了全表。 
+
+3.count(字段),非主键字段，这样的使用方式最好不要出现。因为它不会走索引.
+
+-----------------------------
+
+对mysql优化是一个综合性的技术，主要包括
+
+表的设计合理化(符合3NF)
+添加适当索引(index) [四种: 普通索引、主键索引、唯一索引unique、全文索引]
+分表技术(水平分割、垂直分割)
+读写[写: update/delete/add]分离
+存储过程 [模块化编程，可以提高速度]
+对mysql配置优化 [配置最大并发数my.ini, 调整缓存大小 ]
+mysql服务器硬件升级
+定时的去清除不需要的数据,定时进行碎片整理(MyISAM)
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+缓存穿透、缓存击穿、缓存雪崩
+
+缓存处理流程
+前台请求，后台先从缓存中取数据，取到直接返回结果，取不到时从数据库中取，数据库取到更新缓存，并返回结果，数据库也没取到，那直接返回空结果。
+
+
+缓存穿透
+缓存穿透是指缓存和数据库中都没有的数据，而用户不断发起请求，如发起为id为“-1”的数据或id为特别大不存在的数据。这时的用户很可能是攻击者，攻击会导致数据库压力过大。
+解决方案：
+1.接口层增加校验，如用户鉴权校验，id做基础校验，id<=0的直接拦截；
+2.从缓存取不到的数据，在数据库中也没有取到，这时也可以将key-value对写为key-null，缓存有效时间可以设置短点，如30秒（设置太长会导致正常情况也没法使用）。这样可以防止攻击用户反复用同一个id暴力攻击
+
+
+缓存击穿
+缓存击穿是指缓存中没有但数据库中有的数据（一般是缓存时间到期），这时由于并发用户特别多，同时读缓存没读到数据，又同时去数据库去取数据，引起数据库压力瞬间增大，造成过大压力
+解决方案：
+1.设置热点数据永远不过期。
+2.加互斥锁
+
+
+缓存雪崩
+缓存雪崩是指缓存中数据大批量到过期时间，而查询数据量巨大，引起数据库压力过大甚至down机。和缓存击穿不同的是，        缓存击穿指并发查同一条数据，缓存雪崩是不同数据都过期了，很多数据都查不到从而查数据库。
+解决方案：
+1.缓存数据的过期时间设置随机，防止同一时间大量数据过期现象发生。
+2.如果缓存数据库是分布式部署，将热点数据均匀分布在不同搞得缓存数据库中。
+3.设置热点数据永远不过期。
+
+
+常见解决方案
+直接缓存NULL值 （解决缓存穿透问题）
+如果一个查询返回的数据为空（不管是数 据不存在，还是系统故障），我们仍然把这个空结果进行缓存，但它的过期时间会很短，最长不超过五分钟。
+
+（解决缓存雪崩）
+简单方案就时讲缓存失效时间分散开，比如我们可以在原有的失效时间基础上增加一个随机值，比如1-5分钟随机，这样每一个缓存的过期时间的重复率就会降低，就很难引发集体失效的事件。
+
+限流
+
+缓存预热
+
+分级缓存
+
+缓存永远不过期 （解决缓存击穿）
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Redis
+Redis的使用需要安装客户端，就像mysql一样
+高性能的key-value数据库。
+Reids可以用来做 数据库、缓存、消息中间件
+
+redis的应用场景
+缓存(数据查询、短连接、新闻内容、商品内容等等)。(最多使用) 分布式集群架构中的session分离。 聊天室的在线好友列表。 任务队列。(秒杀、抢购、12306等等) 应用排行榜。 网站访问统计。 数据过期处理(可以精确到毫秒)
+
+Redis持久化，因为内存是断电后失效的，所以需要做持久化，意思就是持久化到磁盘
+RDB（Redis DataBase）持久化（原理是将Reids在内存中的数据库记录定时dump到磁盘上的RDB持久化）
+AOF（Append Only  File）持久化（原理是将Reids的操作日志以追加的方式写入文件）
+
+Redis单线程，基于内存操作，受内存性能的限制，CPU不是redis的性能瓶颈
+所以无所谓使用单线程或者多线程，所以使用单线程操作，十万+量级的QPS。
+由于redis是基于内存操作的，使用多线程会导致CPU上下文切换，线程之间切换就会耗时，所以单线程速度更快。
+
+Redis单条指令保证原子性
+事务不保证原子性，也没有隔离级别，
+所有在事务中的命令，只有在发起执行时才会执行
+
+---------
+
+配置文件
+redis.conf文件在redis解压之后的根目录中。
+
+一些关键配置：
+
+1. bind 绑定id，可以配置为远程ip地址
+
+2.持久化 Save 300 10   表示300秒内，有至少10个key进行修改，就进入持久化操作
+
+3.配置主从复制
+replicaof 
+
+4. maxmemory 最大内存容量
+maxmemory-policy 内存上线之后如果操作
+如果redis配置了maxmemory和maxmemory-policy策略，则当redis内存数据达到maxmemory时，会根据maxmemory-policy配置来淘汰内存数据，以避免OOM。
+redis提供了以下6种淘汰策略：
+1，noeviction：不执行任何淘汰策略，当达到内存限制的时候客户端执行命令会报错。
+2，allkeys-lru：从所有数据范围内查找到最近最少使用的数据进行淘汰，直到有足够的内存来存放新数据。
+3，volatile-lru：从所有的最近最少访问数据范围内查找设置到过期时间的数据进行淘汰，如果查找不到数据，则回退到noeviction。
+4，allkeys-random：从所有数据范围内随机选择key进行删除。
+5，volatile-random：从设置了过期时间的数据范围内随机选择key进行删除。
+6，volatile-ttl：从设置了过期时间的数据范围内优先选择设置了TTL的key进行删除。
+
+
+---------
+
+基本操作
+get set del
+
+Watch 命令用于监视一个(或多个) key ，如果在事务执行之前这个(或这些) key 被其他命令所改动，那么事务将被打断
+
+set 设置成功返回ok
+
+mset 批量设置
+mget 批量获取
+
+setex 为指定的 key 设置值及其过期时间。如果 key 已经存在， SETEX 命令将会替换旧的值
+setex KEY_NAME timeout VALUE
+
+setnx 在指定的 key 不存在时，为 key 设置指定的值，设置失败返回0
+setnx KEY_NAME  VALUE
+
+msetnx 批量设置，原子性的操作，如果有一个设置失败，全部设置失败
+在分布式锁中经常使用
+
+Redis有16个数据库，不同的数据库存放不同的值
+16个数据库是写在配置文件里的，可以查看config文件来获取配置信息。
+
+选择第二个数据库（可以切换数据库）
+select 2 
+
+清空当前数据库
+flushdb
+
+清空所以数据库
+flushall
+
+设置过期时间，时间单位以秒计。
+expire keyName time
+
+查看key的过期时间
+ttl keyName
+
+移除一个元素
+remove keyName
+
+查看所有的key
+key *
+
+
+Set命令可以是复杂的，带符号的组合：
+127.0.0.1:6379> set id:211:wrx "{'k1':'v1'}"
+OK
+127.0.0.1:6379> get id:211:wrx
+"{'k1':'v1'}"
+
+------------------------
+
+Redis 数据类型
+
+Redis支持五种数据类型：string（字符串），hash（哈希），list（列表），set（集合）及zset(sorted set：有序集合)。
+注意: 如果是list set等集合，那么key就是表名的意思，也就是说 键key就是表的名字
+
+特殊数据类型：
+bitmaps， hyperloglogs 和 地理空间（geospatial） 
+
+
+List
+实际上是一个双向链表，头部尾部，一个元素的前后都可以加入元素
+从头和尾进行操作，效率高，中间元素效率低，
+有很多类似于栈操作的命令，例如 lpush lpop（插入一般称为进栈（PUSH），删除则称为退栈（POP））
+
+Lpush插入列表元素，lrange 获取列表元素（0 -1表示全部元素）
+例如以下命令是创建一个 名为l1的列表
+127.0.0.1:6379> LPUSH l1 one two three
+(integer) 3
+127.0.0.1:6379> LRANGE l1 0 -1
+1) "three"
+2) "two"
+3) "one"
+注意这里其实是倒序的
+
+还有rpush命令，表示从尾部输入
+
+Lpop/Rpop 表示移除列表元素，从头部/尾部移除
+
+Lrem 移除下标元素，要指定下标和下标所在的元素
+127.0.0.1:6379> lrem l1 3 four
+(integer) 1
+
+Llen查看长度
+
+Lindex 查看列表的下标的元素
+Lindex l1 3
+输出"four"
+
+
+lset命令，替换元素
+LSET KEY_NAME INDEX VALUE
+当索引参数超出范围，或对一个空列表进行 LSET 时，返回一个错误。
+例如把第一个元素的值替换成six
+lset l1 0 six
+
+Linsert插入
+LINSERT key BEFORE|AFTER pivot value
+将值 value 插入到列表 key 当中，位于值 pivot 之前或之后。
+例如，在值为four的元素的后面，插入元素seven
+ linsert l1 after four seven
+
+-------
+
+set
+和java类似，set中的值不能重复，无序不重复
+
+sadd 表名 元素
+添加元素，这里表名其实就是key，元素就是value
+
+Sismember 命令判断成员元素是否是集合的成员。
+SISMEMBER KEY VALUE
+
+scard命令返回集合中元素的数量。
+SCARD KEY_NAME 
+
+Srem 命令用于移除集合中的一个或多个成员元素，不存在的成员元素会被忽略。
+当 key 不是集合类型，返回一个错误。
+srem KEY MEMBER1..MEMBERN
+
+返回set表全部数据
+smembers setName
+
+移除元素
+srem setName valueName
+
+Spop 移除集合中的指定 key 的一个或多个随机元素，移除后会返回移除的元素
+SPOP key [count]
+
+---------
+
+zset 有序集合
+
+在set的基础上，多了排序
+
+增加元素，因为是有序的，所以插入元素还需写一个序号作为参数
+ZADD myzset 1 "one"
+ZADD myzset 2 "two" 3 "three"
+
+
+查看所有元素
+zrange myzset 0 -1
+
+移除元素
+zrem myzset 1 "one0"
+
+zcount 获取数量
+
+
+Zrangebyscore 排序,返回有序集合中指定分数区间的成员列表。有序集成员按分数值递增(从小到大)次序排列
+例如：
+插入3条数据
+ZADD salary 2500 jack      
+ZADD salary 5000 tom
+ZADD salary 12000 peter
+从小到大，排序输出
+ZRANGEBYSCORE salary 1000 6000
+1) "jack"
+2) "tom"
+显示整个有序集，-inf +inf 表示从负无穷到正无穷，意思就是全部排序
+ZRANGEBYSCORE salary -inf +inf
+1) "jack"
+2) "tom"
+3) "peter"
+显示整个有序集及成员的 score 值
+ZRANGEBYSCORE salary -inf +inf WITHSCORES
+1) "jack"
+2) "2500"
+3) "tom"
+4) "5000"
+5) "peter"
+6) "12000"
+显示工资大于 5000 小于等于 400000 的成员
+ZRANGEBYSCORE salary (5000 400000        
+1) "peter"
+
+
+---------
+
+Hash
+
+key-map 也即是 值value是 key-value集合
+
+hset 设置元素，hashmap1是表名，后面添加了一组 键对值
+hset hashmap1 k1 v1
+
+hget获取元素
+hget hashmap1 k1
+
+hmset/hmget 同时获取多个
+127.0.0.1:6379> hmset hashmap2 k1 v1 k2 v2 k3 v3
+OK
+127.0.0.1:6379> hmget k1 k2
+1) (nil)
+127.0.0.1:6379> hmget hashmap2 k1 k2
+1) "v1"
+2) "v2"
+
+
+hdel  删除元素
+
+hlen 获取长度
+
+判断是否存在
+Hexists  hashmap1 k1
+
+Hkeys 获取所有的键
+
+Hvals 获取所有的值
+
+Hincrby 命令
+为哈希表中的字段值加上指定增量值。
+Hincrby  KEY_NAME  FIELD_NAME  number 
+
+Hsetnx 用法和setnx类似，如果不存在对应的key就设置
+
+------------------------
+
+geospatial 地理空间
+
+可以插入 国家，城市，经纬度
+底层是由zset实现的
+
+geoadd：添加地理位置的坐标。
+geopos：获取地理位置的坐标。
+geodist：计算两个位置之间的距离。
+georadius：根据用户给定的经纬度坐标来获取指定范围内的地理位置集合。
+georadiusbymember：根据储存在位置集合里面的某个地点获取指定范围内的地理位置集合。
+geohash：返回一个或多个位置对象的 geohash 值。
+
+GEOADD Sicily 13.361389 38.115556 "Palermo" 15.087269 37.502669 "Catania"
+------------------------
+
+HyperLogLog
+基数统计
+什么是基数?
+比如数据集 {1, 3, 5, 7, 5, 7, 8}， 那么这个数据集的基数集为 {1, 3, 5 ,7, 8}, 基数(不重复元素)为5。 
+基数估计就是在误差可接受的范围内，快速计算基数。
+
+1PFADD key element [element ...]
+添加指定元素到 HyperLogLog 中。
+
+2PFCOUNT key [key ...]
+返回给定 HyperLogLog 的基数估算值。
+
+3PFMERGE destkey sourcekey [sourcekey ...]
+将多个 HyperLogLog 合并为一个 HyperLogLog
+
+------------------------
+
+bitmaps
+这个是位图的意思，一种数据结构，操作二进制位来进行记录，只有0，1两个状态（不是android里面的图片）
+
+SETBIT 命令将 andy中的 'a' 变成 'b'
+'A' 的ASCII码是 97。转换为二进制是01100001
+'B' 的ASCII码是 98。 转换为二进制是01100010
+将'a'中的offset 6从0变成1，将offset 7 从1变成0 。
+例如
+set andy a
+setbit bit 7 0
+setbit bit 6 1 
+
+------------------------
+
+redis事务
+
+Redis 事务可以一次执行多个命令， 并且带有以下三个重要的保证：
+批量操作在发送 EXEC 命令前被放入队列缓存。
+收到 EXEC 命令后进入事务执行，事务中任意命令执行失败，其余的命令依然被执行。
+在事务执行过程，其他客户端提交的命令请求不会插入到事务执行命令序列中。
+
+一个事务从开始到执行会经历以下三个阶段：
+开始事务 multi
+命令入队 写入各种命令
+执行事务 exec
+取消事务 discard
+
+例如：
+redis 127.0.0.1:6379> MULTI
+OK
+
+redis 127.0.0.1:6379> SET book-name "Mastering C++ in 21 days"
+QUEUED
+
+redis 127.0.0.1:6379> GET book-name
+QUEUED
+
+redis 127.0.0.1:6379> SADD tag "C++" "Programming" "Mastering Series"
+QUEUED
+
+redis 127.0.0.1:6379> SMEMBERS tag
+QUEUED
+
+redis 127.0.0.1:6379> EXEC
+1) OK
+2) "Mastering C++ in 21 days"
+3) (integer) 3
+4) 1) "Mastering Series"
+   2) "C++"
+   3) "Programming"
+
+
+注意：redis事务是由多条命令组成的。如果语法错误，在编译阶段检查出来，事务的所有命令都不会被执行，例如输入 set a 故意少传入一个参数
+如果是运行时异常，事务的某一命令报错，其他命令是可以正常执行的，例如 set a b; incr a 这个语句会运行时会报错，因此不保证原子性。 
+
+Watch 命令用于监视一个(或多个) key ，如果在事务执行之前这个(或这些) key 被其他命令所改动，那么事务将被打断
+例如：使用watch命令实现乐观锁，设置一个初始值 money 为 100
+（1）在第一个终端执行watch和multi
+127.0.0.1:6379> watch money
+OK
+127.0.0.1:6379> multi
+OK
+127.0.0.1:6379> set money 10
+QUEUED
+127.0.0.1:6379> get money
+QUEUED
+
+（2）在第二个终端输入
+127.0.0.1:6379> set money 120
+OK
+
+（3）回到第一个终端执行exec，会发现执行失败，因为事务在执行过程中被第二个终端改过了值，此时watch会使得事务失败。
+127.0.0.1:6379> exec
+(nil)
+
+（4）如果事务失败，使用 unwatch解锁，然后重新执行 watch，再次重新开启之前事务，重复一次指令即可。 
+
+
+------------------------
+
+持久化有两种 RDB，AOF
+
+RDB
+在指定时间 间隔内 将内存中的数据集写入磁盘的 快照(snapshot)文件中，回复时将文件读到内存。
+默认 保存文件可以在 reids.config里面设置 ,默认是 dump.rdb
+
+
+AOF
+日志的形式把所有的写操作指令全部记录下来，redis就会读取该文件构建主句，只允许追加文件内容，所以这个文件会越来越大
+保存的文件是 appendonly.aof，可以在config文件中修改持久化模式和AOF的持久化文件
+
+------------------------
+
+Redis 发布订阅
+
+pub/sub 一种消息通信模式，发送者pub发送消息，订阅者sub接收。
+
+
+publish 命令用于将信息发送到指定的频道。
+publish channel message
+
+subscribe 命令用于订阅给定的一个或多个频道的信息。
+subscribe channel [channel ...]
+
+redis维护了一个字典，key就是频道，value是一张链表，链表中保存了订阅客户端的链表
+subscribe就是将客户端记录到链表中
+通过publish命令向订阅者发送消息，遍历链表，对所有的订阅者发送消息。
+
+用的并不多，消息中间件比较好
+
+------------------------
+
+Redis 搭建集群
+
+三种集群模式
+1.主从模式  
+2.哨兵(Sentinel)，主从模式进阶版，哨兵+主从模式，主机宕机时可以选举主机
+3.集群(cluster-enable)，哨兵模式进阶版(包含了哨兵选举和主从模式)，最复杂，集群至少需要3主3从
+
+------------------------
+
+主从模式：
+主机称为Master，从机称为Slave，主机负责写入数据，从机负责读取数据
+如果配置了主从模式，那么写入数据时，自动往主机中添加数据，读取时自动往从机中获取数据
+这一点，可以配置一个主从模式，然后写入一条数据，再读取一条数据，会发现，终端的前缀ip发生了改变，确实是写入和读取的主机是不一样的。
+
+reids主从复制
+其实就是集群配置，避免单个服务器宕机，多太服务器增加性能。
+主从复制就是从主机redis服务器上复制数据到其他redis服务器上
+主节点（master/leader），从节点（slave/follower）
+
+
+数据冗余 实现了数据备份，是持久化之外的一种数据冗余方式
+故障恢复 一个节点出现问题，可以从其他节点复制数据，实现快速恢复
+负责均衡，主节点负责写入，从节点负读取数据，减少服务器压力
+高可用 哨兵模式和集群实现的基础
+
+集群是实际项目中必须用的，避免一台机器宕机导致微服务集群雪崩。
+
+
+查看主从信息 info replication
+role:master
+。。。。。。
+
+------------------------
+
+
+哨兵模式（sentinel）
+       反客为主的自动版，能够后台监控Master库是否故障，如果故障了根据投票数自动将slave库转换为主库。一组sentinel能
+       同时监控多个Master。
+
+注意：哨兵至少都需要3个，加上被监控的1主2从，加起来就是6个进程
+
+哨兵原理
+一般都是多哨兵模式，多个哨兵互相监控以防 哨兵进程死亡，
+为了重新选举主机也多个哨兵来进行投票
+如果发送给主机的消息没有相应，哨兵们会进行投票，选择新的主机
+
+如果主机宕机，哨兵1检测到这个结果，并不会马上进行fail over，仅仅是哨兵1主观认为主服务器不可用，称为主观下线。
+当后面的其他哨兵也检测到主机宕机，并且达到哨兵数达到一定值，哨兵之间就会进行一次投票，投票结果由一个哨兵发起
+进行failover(故障转移)操作，切换成功后，发布订阅模式，让各个哨兵把自己监控的从服务器实现切换主机，称为客观下线
+
+如果主机再次上线，那么会归并到新的主机下，成为从机。
+
+复制的缺点
+延时，由于所有的写操作都是在Master上操作，然后同步更新到Slave上，所以从Master同步到Slave机器有一定
+的延迟，当系统很繁忙的时候，延迟问题会更加严重，Slave机器数量的增加也会使得这个问题更加严重。
+
+
+
+------------------------
+
+集群模式
+Redis-cluster集群概念
+（1）由多个Redis服务器组成的分布式网络服务集群；
+（2）集群之中有多个Master主节点，每一个主节点都可读可写；
+（3）节点之间会互相通信，两两相连；
+（4）Redis集群无中心节点。
+
+这个模式自动实现了哨兵选举，不需要再创建哨兵
+部署一个测试集群至少要6个节点，3主节点，3从节点
+
+
+------------------------------------------------
+
+Redis 分布式锁
+
+两个功能相同的微服务，运行在两个不同的 JVM 里面，他们加的锁只对属于自己 JVM 里面的线程有效，对于其他 JVM 的线程是无效的。
+分布式锁的思路是：在整个系统提供一个全局、唯一的获取锁的“东西”，然后每个系统在需要加锁时，都去问这个“东西”拿到一把锁，这样不同的系统拿到的就可以认为是同一把锁。
+
+为了确保分布式锁可用，我们至少要确保锁的实现同时满足以下四个条件：
+1.互斥性。在任意时刻，只有一个客户端能持有锁。
+2.不会发生死锁。即使有一个客户端在持有锁的期间崩溃而没有主动解锁，也能保证后续其他客户端能加锁。
+3.具有容错性。只要大部分的Redis节点正常运行，客户端就可以加锁和解锁。
+4.解铃还须系铃人。加锁和解锁必须是同一个客户端，客户端自己不能把别人加的锁给解了。
+
+
+基于 Redis 实现分布式锁，reids分布式锁最大的问题就是如果主节点崩溃，那么锁就被破坏了，这个也是解决问题的重点难点
+
+（1）常见的一种方案就是使用 Redis 做分布式锁
+使用 Redis 做分布式锁的思路大概是这样的：在 Redis 中设置一个值表示加了锁，然后释放锁的时候就把这个 Key 删除。
+
+// 获取锁 
+// NX是指如果key不存在就成功，key存在返回false，PX可以指定过期时间 
+SET anyLock unique_value NX PX 30000 
+ 
+ 
+// 释放锁：通过执行一段lua脚本 
+// 释放锁涉及到两条指令，这两条指令不是原子性的 
+// 需要用到redis的lua脚本支持特性，redis执行lua脚本是原子性的 
+if redis.call("get",KEYS[1]) == ARGV[1] then 
+return redis.call("del",KEYS[1]) 
+else 
+return 0 
+end 
+
+一定要用 SET key value NX PX milliseconds 命令。如果不用，先设置了值，再设置过期时间，这个不是原子性操作，有可能在设置过期时间之前宕机，会造成死锁(Key 永久存在)
+Value 要具有唯一性。这个是为了在解锁的时候，需要验证 Value 是和加锁的一致才删除 Key。
+这时避免了一种情况：假设 A 获取了锁，过期时间 30s，此时 35s 之后，锁已经自动释放了，A 去释放锁，但是此时可能 B 获取了锁。A 客户端就不能删除 B 的锁了。
+
+这里需要使用RedLock 的算法、部署模式是 Redis Cluster 去完成分布式锁
+
+
+（2）也可以使用 redis的开源框架Redission 去实现分布式锁
+Redisson 还提供了对 Redlock 算法的支持
+
+SET anyLock unique_value NX PX 30000 
+这里设置的超时时间是 30s，假如我超过 30s 都还没有完成业务逻辑的情况下，Key 会过期，其他线程有可能会获取到锁。
+如果此时，第一个线程还没执行完业务逻辑，第二个线程进来了也会出现线程安全问题，锁又给了第二个进程。
+
+Config config = new Config(); 
+config.useClusterServers() 
+.addNodeAddress("redis://192.168.31.101:7001") 
+.addNodeAddress("redis://192.168.31.101:7002") 
+.addNodeAddress("redis://192.168.31.101:7003") 
+.addNodeAddress("redis://192.168.31.102:7001") 
+.addNodeAddress("redis://192.168.31.102:7002") 
+.addNodeAddress("redis://192.168.31.102:7003"); 
+RedissonClient redisson = Redisson.create(config); 
+RLock lock = redisson.getLock("anyLock"); 
+lock.lock(); 
+lock.unlock(); 
+
+只需要通过它的 API 中的 Lock 和 Unlock 即可完成分布式锁，他帮我们考虑了很多细节：
+
+Redisson 所有指令都通过 Lua 脚本执行，Redis 支持 Lua 脚本原子性执行。
+Redisson 设置一个 Key 的默认过期时间为 30s，如果某个客户端持有一个锁超过了 30s 怎么办？
+Redisson 中有一个 Watchdog 的概念，翻译过来就是看门狗，它会在你获取锁之后，每隔 10s 帮你把 Key 的超时时间设为 30s。
+这样的话，就算一直持有锁也不会出现 Key 过期了，其他线程获取到锁的问题了。
+
+Redisson 的“看门狗”逻辑保证了没有死锁发生。(如果机器宕机了，看门狗也就没了。此时就不会延长 Key 的过期时间，到了 30s 之后就会自动过期了，其他线程可以获取到锁)
+
+
+
+------------------------
+
+Redlock 算法，分布式锁算法
+在分布式版本的算法里我们假设我们有N个Redis master节点，这些节点都是完全独立的，我们不用任何复制或者其他隐含的分布式协调算法。我们已经描述了如何在单节点环境下安全地获取和释放锁。因此我们理所当然地应当用这个方法在每个单节点里来获取和释放锁。在我们的例子里面我们把N设成5，这个数字是一个相对比较合理的数值，因此我们需要在不同的计算机或者虚拟机上运行5个master节点来保证他们大多数情况下都不会同时宕机。一个客户端需要做如下操作来获取锁：
+
+1、获取当前时间（单位是毫秒）。
+
+2、轮流用相同的key和随机值在N个节点上请求锁，在这一步里，客户端在每个master上请求锁时，会有一个和总的锁释放时间相比小的多的超时时间。比如如果锁自动释放时间是10秒钟，那每个节点锁请求的超时时间可能是5-50毫秒的范围，这个可以防止一个客户端在某个宕掉的master节点上阻塞过长时间，如果一个master节点不可用了，我们应该尽快尝试下一个master节点。
+
+3、客户端计算第二步中获取锁所花的时间，只有当客户端在大多数master节点上成功获取了锁（在这里是3个），而且总共消耗的时间不超过锁释放时间，这个锁就认为是获取成功了。
+
+4、如果锁获取成功了，那现在锁自动释放时间就是最初的锁释放时间减去之前获取锁所消耗的时间。
+
+5、如果锁获取失败了，不管是因为获取成功的锁不超过一半（N/2+1)还是因为总消耗时间超过了锁释放时间，客户端都会到每个master节点上释放锁，即便是那些他认为没有获取成功的锁。
+
+------------------------
+
+分布式锁面试问题
+
+锁过期问题
+
+加锁时，主机还没同步到从机时，突然宕机，导致加锁失败
+Zookeeper也可以解决主机宕机后数据未同步问题
+redlock 也可以解决锁失效问题
+
+Redis并发量增加
+
+
+
+高并发分布式锁
+思路就是，库存分段，例如库存量 100，设置进入缓存的 redis_1 到 redis_10，把库存分为10段
+这种技术叫做分段锁，ConcurrentHashMap里面也用应用到
+
+总结：
+1. 在try-catch的 finally中 加入 lock.unlock()或者是redisTemplate.delete(lockkey)，因为我们在执行过程中可能会抛出异常，一旦抛出异常，将导致锁无法释放
+2. 设置锁时，需要使用 nx（key 不存在时，设值，key存在就不设） 和 ex（超时时间） 并且这 必须在同一行 redis命令中，保证原子性
+    具体到代码中，就是RedissonClient.getLock("lock1").lock()，或者 redisTemplate.opsForValue().setIfAbsent(key, 1, 60, TimeUnit.SECONDS);
+3. 设置分布式锁时，需要加入超时时间，因为如果出现意外，可能会一直不释放
+4. 生成UUID进行加锁，解锁时判断 UUID是否是加锁时的那一个，以防其他线程解锁
+	String id = UUID.randomUUID().toString();
+	// 使用id加锁
+        if (id.equals(redisTemplate.opsForValue().get("xxxx"))) {
+            // 释放锁
+        }
+
+
+实例2
+ThreadPoolExecutor threadPoolExecutor =
+        new ThreadPoolExecutor(inventory, inventory, 10L, SECONDS, linkedBlockingQueue);
+long start = System.currentTimeMillis();
+Config config = new Config();
+config.useSingleServer().setAddress("redis://127.0.0.1:6379");
+final RedissonClient client = Redisson.create(config);
+final RLock lock = client.getLock("lock1");
+
+for (int i = 0; i <= NUM; i++) {
+    threadPoolExecutor.execute(new Runnable() {
+        public void run() {
+            lock.lock();
+            inventory--;
+            System.out.println(inventory);
+            lock.unlock();
+        }
+    });
+}
+long end = System.currentTimeMillis();
+System.out.println("执行线程数:" + NUM + "   总耗时:" + (end - start) + "  库存数为:" + inventory);
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------------------------
+
+redis 淘汰策略
+长期将Redis作为缓存使用，难免会遇到内存空间存储瓶颈，当Redis内存超出物理内存限制时，内存数据就会与磁盘产生频繁交换，使Redis性能急剧下降。此时如何淘汰无用数据释放空间，存储新数据就变得尤为重要了。
+Redis在生产环境中，采用配置参数maxmemory 的方式来限制内存大小。当实际存储内存超出maxmemory 参数值时，开发者们可以通过这几种方法——Redis内存淘汰策略，来决定如何腾出新空间继续支持读写工作。
+
+以下是redis.conf中的原话
+
+# volatile-lru -> Evict using approximated LRU, only keys with an expire set.
+# allkeys-lru -> Evict any key using approximated LRU.
+# volatile-lfu -> Evict using approximated LFU, only keys with an expire set.
+# allkeys-lfu -> Evict any key using approximated LFU.
+# volatile-random -> Remove a random key having an expire set.
+# allkeys-random -> Remove a random key, any key.
+# volatile-ttl -> Remove the key with the nearest expire time (minor TTL)
+# noeviction -> Don't evict anything, just return an error on write operations.
+#
+# LRU means Least Recently Used 最近最少使用
+# LFU means Least Frequently Used 最不经常使用的
+
+volatile 指的是设置了过期时间的数据集
+allkeys 指的是所有的数据集
+
+volatile-lru：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰
+allkeys-lru：从数据集（server.db[i].dict）中挑选最近最少使用的数据淘汰
+
+volatile-ttl：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰
+
+volatile-random：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰
+allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰
+
+noenviction（驱逐）：禁止驱逐数据
+
+volatile-lfu：从所有配置了过期时间的键中驱逐使用频率最少的键
+allkeys-lfu：从所有键中驱逐使用频率最少的键
+
+
+redis.conf中配置
+内存大小
+maxmemory <bytes>
+配置淘汰策略，默认是不淘汰任何数据
+maxmemory-policy noeviction
+
+
+淘汰策略 lru 和 lfu 算法很有意思，可以研究研究
+
+
+
+------------------------
+
+redis lua脚本
+
+Lua 脚本功能是 Reids 2.6 版本的最大亮点， 通过内嵌对 Lua 环境的支持， Redis 解决了长久以来不能高效地处理 CAS （check-and-set）命令的缺点，
+ 并且可以通过组合使用多个命令， 轻松实现以前很难实现或者不能高效实现的模式。
+
+1. 基本用法
+1.1 
+Redis Eval 命令使用 Lua 解释器执行脚本。
+语法
+redis Eval 命令基本语法如下：
+redis 127.0.0.1:6379> EVAL script numkeys key [key ...] arg [arg ...] 
+参数说明：
+script： 参数是一段 Lua 5.1 脚本程序。脚本不必(也不应该)定义为一个 Lua 函数。
+numkeys： 用于指定键名参数的个数。就是确定key有几个（与arg参数无关）
+key [key ...]： 从 EVAL 的第三个参数开始算起，表示在脚本中所用到的那些 Redis 键(key)，这些键名参数可以在 Lua 中通过全局变量 KEYS 数组，用 1 为基址的形式访问( KEYS[1] ， KEYS[2] ，以此类推)。
+arg [arg ...]： 附加参数，在 Lua 中通过全局变量 ARGV 数组访问，访问的形式和 KEYS 变量类似( ARGV[1] 、 ARGV[2] ，诸如此类)。
+实例: 
+redis 127.0.0.1:6379> eval "return {KEYS[1],KEYS[2],ARGV[1],ARGV[2]}" 2 key1 key2 first second
+1) "key1"
+2) "key2"
+3) "first"
+4) "second"
+ 
+
+Lua关键字  22个
+1. 逻辑 关键字   and ， or,  not
+2. 基本类型   function, table,  nil, 
+3. for , while , do , break,   in ,return  , until , goto ,repeat
+4. true ,false
+5. if , then , else   , elseif
+6. local
+
+
+例如执行以下命令
+127.0.0.1:6379> eval "redis.call('set', KEYS[1], ARGV[1])" 1 k111 v111
+(nil)
+127.0.0.1:6379> get k111
+"v111"
+127.0.0.1:6379> eval "return redis.call('get', KEYS[1])" 1 k111
+"v111"
+
+创建文件mytest.lua
+插入内容：
+local str = redis.call('get', KEYS[1])
+return str
+执行：
+redis-cli --eval mytest.lua  k111
+输出：
+"v111"
+
+------------------------
+
+防止穿透、击穿、雪崩的方案：
+
+缓存穿透（穿透个人理解就是 直接穿透过 缓存和数据库 ）
+当缓存与数据库中都不存在该数据时，由于当数据库查询不到数据就不会写入缓存，这个时候如果用户不断的恶意发起请求，
+就会导致这个不存在的数据每次请求都会查询DB，请求量大的情况下，就会导致DB压力过大，直接挂掉。
+
+解决方案：
+布隆过滤器，对可能的查询进行缓存，控制层先校验，不符合的再直接丢弃，减少对底层数据库的压力
+缓存空数据，如果穿透到数据库也查不到，就返回一个空数据，空数据缓存在redis上
+
+--------------
+
+缓存击穿（穿透个人理解就是 穿过缓存，达到数据库 ）
+某一个数据缓存中没有但数据库中有的数据（一般是缓存时间到期），这时由于并发用户特别多，同时读缓存没读到数据，
+又同时去数据库去取数据，引起数据库压力瞬间增大，严重情况下会直接挂掉。
+
+解决方案：
+设置永远不过期
+加分布式锁，保证只有一个线程进入mysql
+
+--------------
+
+缓存雪崩
+缓存中大批量的数据都到了过期时间，从而导致查询数据量巨大，引起数据库压力过大甚至down机。和缓存击穿不同，
+缓存击穿是指某一条数据到了过期时间，大量的并发请求都来查询这一条数据，缓存雪崩是不同数据都过期了，很多数据都查不到从而查数据库
+解决方案：
+高可用集群
+微服务降级
+数据预热，先把部分重要数据加载到缓存中
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+消息中间件RabbitMQ
+
+RabbitMQ是实现了高级消息队列协议（AMQP）的开源消息代理软件（亦称面向消息的中间件），
+与JMS消息服务不同
+
+消息总线(Message Queue)，是一种跨进程、异步的通信机制，用于上下游传递消息。由消息系统来确保消息的可靠传递。
+
+以熟悉的电商场景为例，如果商品服务和订单服务是两个不同的微服务，在下单的过程中订单服务需要调用商品服务进行扣库存操作。按照传统的方式，下单过程要等到调用完毕之后才能返回下单成功。
+消息队列提供一个异步通信机制，消息的发送者不必一直等待到消息被成功处理才返回，而是立即返回。消息中间件负责处理网络通信，如果网络连接不可用，消息被暂存于队列当中，
+当网络畅通的时候在将消息转发给相应的应用程序或者服务，当然前提是这些服务订阅了该队列。如果在商品服务和订单服务之间使用消息中间件，既可以提高并发量，又降低服务之间的耦合度。
+
+RabbitMQ消息队列。RabbitMQ是一个开源的消息代理的队列服务器，用来通过普通协议在完全不同的应用之间共享数据。
+RabbitMQ是使用Erlang语言来编写的，并且RabbitMQ是基于AMQP协议的。
+与Spring AMQP完美整合，API丰富
+
+应用场景：
+1.异步处理
+传统业务是 假设数据写入数据库之后，再使用 微服务发邮件 、微服务发短信 等待用户确认（这个过程耗时）
+使用广播模型，增加了异步处理之后，只需要数据写入再把消息写入队列即可，减少耗时。
+
+2.应用解耦
+传统业务，订单服务调用库存服务是通过 库存的接口去调用的，那么当库存系统故障时，订单就会失败
+如果使用消息队列来解耦，订单系统将消息持久化到队列，直接返回下单成功，库存系统收到下单消息，就算库存出现故障。消息队列也可以保证消息的可靠投递，而不会导致消息丢失。
+
+3.流量削峰
+秒杀活动时，流量过大
+传统做法是用户请求直接进入秒杀业务逻辑，大量请求会导致效率下降，甚至宕机
+现在，在前端增加一个消息队列，所有的请求在消息队列上经过，再进入秒杀业务，
+可以限制队列的长度，超过阈值直接丢弃订单（跳转到错误页面），业务可以根据自己的最大处理能力去接收消息。
+
+
+------------------------
+
+
+MQ典型应用场景：
+1.异步处理。把消息放入消息中间件中，等到需要的时候再去处理。
+
+2.流量削峰。例如秒杀活动，在短时间内访问量急剧增加，使用消息队列，当消息队列满了就拒绝响应，跳转到错误页面，这样就可以使得系统不会因为超负载而崩溃。
+
+3.日志处理
+
+4.应用解耦。假设某个服务A需要给许多个服务（B、C、D）发送消息，当某个服务（例如B）不需要发送消息了，服务A需要改代码再次部署；当新加入一个服务（服务E）需要服务A的消息的时候，也需要改代码重新部署；另外服务A也要考虑其他服务挂掉，没有收到消息怎么办？要不要重新发送呢？是不是很麻烦，使用MQ发布订阅模式，服务A只生产消息发送到MQ，B、C、D从MQ中读取消息，需要A的消息就订阅，不需要了就取消订阅，服务A不再操心其他的事情，使用这种方式可以降低服务或者系统之间的耦合。
+
+
+这里简单介绍下六种工作模式的主要特点：
+
+1.简单模式：一个生产者，一个消费者
+connectionFactory建立rabbitmq连接，设置地址和用户名密码
+创建一个生产者：创建Channel对象，发送一个消息channel.basicPublish()
+
+2.work模式：一个生产者，多个消费者，每个消费者获取到的消息唯一，也就是一条消息只能给一次并且给一个消费者
+例如说有5个消费者，10条消息，那么work会使用轮询的方式，使得每一个消费者都拿到2条消息，每个消费者都会得到不同的消息
+
+3.发布/订阅模式，fanout模式也称为广播模式，
+生产者先发送消息给交换机，交换机在广播到与他绑定的队列上，消费者再从队列拿消息。
+
+一个生产者发送的消息会被多个消费者获取。最大的区别就是使用了交换器exchange
+　　在发布订阅模式中，消息需要发送到MQ的交换机exchange上，exchange根据配置的路由方式发到相应的Queue上，Queue又将消息发送给consumer，消息从queue到consumer， 消息队列的使用过程大概如下：
+　　1.客户端连接到消息队列服务器，打开一个channel。
+　　2.客户端声明一个exchange，并设置相关属性。
+　　3.客户端声明一个queue，并设置相关属性。
+　　4.客户端在exchange和queue之间建立好绑定关系。
+　　5.客户端投递消息到exchange。
+发布订阅模式，一般都是生产者创建交换机并发送消息，消费者创建队列并把队列绑定到交换机上
+
+
+4.路由模式，direct模式
+发送消息到交换机并且要指定路由key ，消费者将队列绑定到交换机时需要指定路由key，其实路由模式也是订阅的一种
+代码：
+生产者：channel.exchangeDeclare 声明为direct模式，在channel.basicPublish发送消息时，设置一个routingKey
+消费者：channel.queueBind 选择一个routingKey
+路由模式就是 生产者和消费者指定一个 路由名称，双方各自发送和接收这个带有这个名称的数据，非该名称就丢弃
+
+
+5.topic模式：通配符模式，类似于路由模式, topic也算是订阅的一种
+基于通配符的方式，将一个消息推送给不同消费者。
+通配符有*和#，*表示匹配一个单词，#表示匹配一个或多个单词，单词之间通过‘.’进行区分。如消息发送者的routing-key为log.error，那么消费者绑定routing-key为log.#或log.*时，都可以接收到发送的信息。但消息发送者的routing-key为log.error.out_of_memory时，只有routing-key为log.#的消费者能接受到消息。
+需要设置为topic模式 ： channel.exchangeDeclare(EXCHANGE_NAME, "topic");
+
+
+6.RPC模式（远程调用）
+如果我们需要在远程计算机上运行一个函数并等待结果，这种模式通常称为远程过程调用或RPC；
+声明一个客户端，然后去通过call方法去调用我们的服务端，然后实时去接收我们服务端处理后返回的结果值，显示在控制台。
+客户端和服务端都可以发送消息给对方，双方需要指定一个reply
+客户端用channel.basicPublish方法发送数据，
+服务端同样用channel.basicPublish方法发送数据，channel.basicAck 给一个确认收到消息的回执信息(回执不是发给客户端，是发给rabbitMq本身)
+
+
+6种模式的区别：
+fanout模式（发布订阅、扇出） direct模式（路由） topic模式（通配符）这三种模式在声明 交换机 channel.exchangeDeclare() 时，都需要声明对应的 exchange type
+fanout比direct少指定了routingKey，因此交换机上全部的队列都能收到消息
+direct比topic少了通配符，因此可能会有两个以上的队列满足通配符的匹配然后接收到消息
+
+Worker模式，简单模式没有 exchange type，所以不需要声明
+这两者的区别就是 调用了 basicQos()方法，表明消息唯一，即消息不会 被不同的消费者消费，只有一个消费者可以得到这条消息。
+
+
+步骤
+1. 客户端给服务端发消息，附带信息：correlation_id 一个唯一的id；reply_to 指定回调的消息队列，服务端将消息返回到这个队列中
+    客户端开始监听回调队列的消息
+2. 服务端返回数据给客户端，附带信息：correlation_id 一个唯一的id，
+
+------------------------
+
+exchange交换机，channel通道，queue队列的概念和联系
+
+交换机可以设置名字和类型，可以创建很多个交换机，用于发布订阅模式
+生产者先把消息发到交换机上，再由交换机分发到队列上，这些队列需要和交换机绑定，一个队列有多个消费者。
+
+channel 信道：
+概念：信道是生产消费者与rabbit通信的渠道，生产者publish或是消费者subscribe一个队列都是通过信道来通信的。
+信道是建立在TCP连接上的虚拟连接，就是说rabbitmq在一条TCP上建立成百上千个信道来达到多个线程处理，这个TCP被多个线程共享，每个线程对应一个信道，信道在rabbit都有唯一的ID ,保证了信道私有性，对应上唯一的线程使用。
+
+exchange的作用就是类似路由器，routing key 就是路由键，服务器会根据路由键将消息从交换器路由到队列上去。
+
+
+1、信道才是rabbit通信本质，生产者和消费者都是通过信道完成消息生产消费的。
+2、交换器本质是一张路由查询表（名称和队列id，类似于hash表），这是一个虚拟出来的东西，并不存在真实的交换器。
+3、消息的生命周期：生产者生产消息A 交由信道，信道通过消息（消息由载体和标签）的标签（路由键）放到交换器发送到队列上（其实就是查询匹配，一旦匹配到了规则，信道就直接和队列产生连接，然后将消息发送过去）
+4、Channel是我们与RabbitMQ打交道的最重要的一个接口，我们大部分的业务操作是在Channel这个接口中完成的，包括定义Queue、定义Exchange、绑定Queue与Exchange、发布消息等。
+5、queue队列用于存储消息，等待消费者的消费。
+6、队列和交换机都有名字，交换机还可以指定类型，通道不需要名字。我们声明一个通道然后把 交换机和队列bind上去就可以了。
+
+
+------------------------
+
+rabbitMQ + springboot
+
+总结，springboot中使用rabbitMQ，因为starter-amqp简化了很多代码
+可以直接使用RabbitTemplate来完成6种工作模式
+
+AmqpTemplate和 RabbitTemplate类似于 RedisTemplate 、MongoTemplate
+核心功能就是用来操作rabbitMQ，
+可以直接通过RabbitTemplate向rabbitMQ操作
+
+pom
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+
+配置
+spring.rabbitmq.host: 服务Host
+spring.rabbitmq.port: 服务端口
+spring.rabbitmq.username: 登陆用户名
+spring.rabbitmq.password: 登陆密码
+spring.rabbitmq.virtual-host: 连接到rabbitMQ的vhost
+spring.rabbitmq.addresses: 指定client连接到的server的地址，多个以逗号分隔(优先取addresses，然后再取host)
+spring.rabbitmq.requested-heartbeat: 指定心跳超时，单位秒，0为不指定；默认60s
+spring.rabbitmq.publisher-confirms: 是否启用【发布确认】
+spring.rabbitmq.publisher-returns: 是否启用【发布返回】
+spring.rabbitmq.connection-timeout: 连接超时，单位毫秒，0表示无穷大，不超时
+spring.rabbitmq.parsed-addresses:
+
+
+基础代码用法：
+@Configuration
+public class RMQueueConfig {
+    /**
+     * 定义demoQueue队列
+     * @return
+     */
+    @Bean
+    public Queue demoString() {
+        return new Queue("TestQueue");
+    }
+}
+@Component
+public class Sender {
+    Logger logger = Logger.getLogger(Sender.class.getName());
+
+    @Autowired
+    private AmqpTemplate amqpTemplate;
+
+    public String send(){
+        String context = "简单消息发送";
+        logger.info("简单消息发送时间："+new Date());
+        amqpTemplate.convertAndSend("TestQueue", context);
+        return "发送成功";
+    }
+}
+@Component
+@RabbitListener(queues = "TestQueue")
+public class Receiver {
+    Logger logger = Logger.getLogger(Receiver.class.getName());
+
+    @RabbitHandler
+    public void process(String Str) {
+        logger.info("接收消息："+Str);
+        logger.info("接收消息时间："+new Date());
+    }
+}
+@RestController
+public class RMQController {
+
+    @Autowired
+    private Sender sender;
+
+    @GetMapping("hello")
+    public String helloTest(){
+        sender.send();
+        return "success";
+    }
+
+}
+
+
+------------------------
+
+RabbitMQ持久化
+
+消息持久化，为了保证RabbitMQ在退出或者crash等异常情况下数据没有丢失，需要将queue，exchange和Message都持久化。
+
+队列的持久化
+通过durable=true来实现的,第二个参数就是使得队列持久化
+channel.queueDeclare("queue.persistent.name", true, false, false, null);
+
+
+消息的持久化
+发送消息时，设置MessageProperties.PERSISTENT_TEXT_PLAIN
+channel.basicPublish("exchange.persistent", "persistent", MessageProperties.PERSISTENT_TEXT_PLAIN, "persistent_test_message".getBytes());
+BasicProperties的构造方法中，deliveryMode=1代表不持久化，deliveryMode=2代表持久化
+
+交换机持久化
+如果exchange不设置持久化，那么当broker服务重启之后，exchange将不复存在，那么既而发送方rabbitmq producer就无法正常发送消息。
+channel.exchangeDeclare(exchangeName, “direct/topic/header/fanout”, true);即在声明的时候讲durable字段设置为true即可。
+
+
+
+------------------------
+
+rabbitMQ集群搭建
+
+RabbitMQ模式大概分为以下三种:
+(1)单一模式。
+(2)普通模式(默认的集群模式)。
+(3)镜像模式(把需要的队列做成镜像队列，存在于多个节点，属于RabbiMQ的HA方案，在对业务可靠性要求较高的场合中比较适用)。
+要实现镜像模式，需要先搭建一个普通集群模式，在这个模式的基础上再配置镜像模式以实现高可用。
+
+------------------------
+
+普通集群
+
+类似于redis的主从复制集群（master/slave），普通集群分为 主节点和从节点
+主节点存储 队列信息和交换机信息，从节点只有交换机信息，所以如果主节点宕机，从节点没有办法成为主节点。
+从节点算是备份。
+
+
+------------------------
+
+rabbitMQ 集群 镜像模式 + 方向代理
+
+镜像集群基于普通集群，保证消息不丢失，
+如果主节点宕机，从节点可以转为主节点，故障转移，从节点可以同步主节点的所有信息
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+zookeeper
+
+
+
+
+
+
+
+kafka 消息中间件
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------
+
+MongoDB
+		
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------
+
+
+ElasticSearch
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	

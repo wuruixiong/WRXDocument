@@ -249,7 +249,7 @@ permitAll() 和 ignoring() 的区别就是 ignoring()是完全屏蔽，而permit
             System.out.println("match result:" + passwordEncoder.matches(userBean.getPassword(),encodePassword));
 
 BCrypt加密，拿原字符串再进行匹配，如果配对成功表示两段字符串是一致的
-
+passwordEncoder.matches(pw1, pw2)
 
 1.修改代码
 @Configuration

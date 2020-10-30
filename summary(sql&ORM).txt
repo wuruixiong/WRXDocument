@@ -645,6 +645,110 @@ delete from user where uid=1;
 delete from boat where bid=123;
 user表中的数据，不会受boat中的数据被删除的影响
 
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+索引
+
+一般情况下，百万量级需要用索引
+
+现在创建一个表CREATE TABLE test_tab (id INT, name VARCHAR(10), age INT, val VARCHAR(10));
+
+查询 SELECT * FROM test_tab WHERE name = 一个外部输入的数据
+
+如果增加一个索引，在 name 上面 建立了索引CREATE INDEX idx_test4_name ON test_tab (name );
+之后查询速度会变快
+
+但是如果用age去查，SELECT * FROM test_tab WHERE age = 25，速度不会变快，因为创建的是name的索引，而age上面没有索引
+
+ WHERE 里面的条件， 会自动判断，有没有 可用的索引，如果有， 该不该用。
+多列索引，就是一个索引，包含了2个字段。
+例如：CREATE INDEX idx_test_name_age ON test_tab (name, age);那么SELECT * FROM test_tabWHEREname LIKE '张%'
+AND age = 25
+这样的查询，将能够使用上面的索引。
+
+------------------------------
+
+以下情况时，索引会生效：
+对于某个条件进行范围查找时，如果这个列上有索引，且使用 where ... between 
+and ... > ,< 等范围操作，那么可能用到索引范围查找，如果索引范围查找的成本太高，数据库可能会选择全表扫描的方式
+注意 in  不属于范围查找的范畴
+
+就目前来说，mysql 暂时只支持最左前缀原则进行筛选。
+例子：创建复合索引
+create index idx_a_b_c on tb1(a,b,c)
+只有使用如下条件才可能应用到这个复合索引
+1.where a=?
+2.where a = ? and b = ?
+3.where a = ? and b = ? and c = ?
+但
+4.where a = ? and c ＝ ？
+只会使用到mysql 索引 a 列的信息
+
+复合索引的创建可以根据具体业务的需求去创建。
+
+
+------------------------------
+
+创建索引有几种方式
+
+1.Create关键字创建索引
+CREATE INDEX indexName ON table_name (column_name)
+如果是CHAR，VARCHAR类型，length可以小于字段实际长度；如果是BLOB和TEXT类型，必须指定 length。
+
+2.修改表结构(添加索引)
+ALTER table tableName ADD INDEX indexName(columnName)
+ALTER其实就是修改的意思
+
+3.创建表的时候直接指定
+CREATE TABLE mytable(  
+ID INT NOT NULL,   
+username VARCHAR(16) NOT NULL,  
+INDEX [indexName] (username(length))  
+);  
+
+4.删除索引的语法
+DROP INDEX [indexName] ON mytable; 
+Drop就是修改表结构的关键字
+
+-----------------------------
+
+mysql有这几种索引
+
+1.添加PRIMARY KEY（主键索引） 
+mysql>ALTER TABLE `table_name` ADD PRIMARY KEY ( `column` ) 
+
+2.添加UNIQUE(唯一索引) 
+mysql>ALTER TABLE `table_name` ADD UNIQUE ( `column` ) 
+
+3.添加INDEX(普通索引) 
+mysql>ALTER TABLE `table_name` ADD INDEX index_name ( `column` ) 
+
+4.添加FULLTEXT(全文索引) 
+mysql>ALTER TABLE `table_name` ADD FULLTEXT ( `column`) 
+
+5.添加多列索引 
+mysql>ALTER TABLE `table_name` ADD INDEX index_name ( `column1`, `column2`, `column3` )
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

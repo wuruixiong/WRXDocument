@@ -20,14 +20,9 @@ spring cloud
 
 
 -----------------------------------------
+
 心跳的概念
 注册中心每隔一段时间例如五秒，就会发生一条消息给 服务提供者或服务消费者，如果没有回应就表示服务提供者或服务消费者没有注册上。
-
-
-
-
-
-
 
 
 
@@ -301,7 +296,6 @@ spring cloud中discovery service有许多种实现（eureka、consul、zookeeper
 
 
 
-
 -----------------------------------------
 
 springcloud ribbon负载均衡
@@ -367,8 +361,6 @@ eureka:
 
 5.为了实现正真的负载均衡，可以直接创建多个相同功能的provider，
 使用同一个application name，连接不同的数据库，
-
-
 
 
 在处理Eureka时踩过一个缩进的坑，当时这么报错：
@@ -462,6 +454,7 @@ public Dept hystrixGet(@PathVariable("id") Long id){
 
 服务降级
 某个微服务高并发的情况下，如果资源不足，停止掉其他微服务，供给高并发微服务。
+例如双11时，很多淘宝服务会暂停使用，请用户明天再试
 
 这个服务降级策略是在客户端做的。这里的客户端表示的是 注册中心的微服务消费者，一样是springboot里面的代码。
 降级的代码主要是写在消费者上，以我的理解 熔断和降级二者的功能其实差不多。
@@ -895,6 +888,1484 @@ springboot springcloud
 	<groupId>org.springframework.boot</groupId>
 	<artifactId>spring-boot-starter-web</artifactId>
 </dependency>
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Redis
+Redis的使用需要安装客户端，就像mysql一样
+高性能的key-value数据库。
+Reids可以用来做 数据库、缓存、消息中间件
+
+在官网上下载后解压，解压目录下执行：
+编译测试 sudo make test
+编译安装 sudo make install
+再执行 redis-server，启动redis服务
+执行redis-cli，启动客户端，可以看到终端用户 127.0.0.1:6379> ，本地ip，redis默认端口是6379
+执行输入命令：set wrx 123456，输入命令 get wrx，会得到打印 "123456"
+至此安装完成
+
+redis的应用场景
+缓存(数据查询、短连接、新闻内容、商品内容等等)。(最多使用) 分布式集群架构中的session分离。 聊天室的在线好友列表。 任务队列。(秒杀、抢购、12306等等) 应用排行榜。 网站访问统计。 数据过期处理(可以精确到毫秒)
+
+Redis持久化，因为内存是断电后失效的，所以需要做持久化，意思就是持久化到磁盘
+RDB（Redis DataBase）持久化（原理是将Reids在内存中的数据库记录定时dump到磁盘上的RDB持久化）
+AOF（Append Only  File）持久化（原理是将Reids的操作日志以追加的方式写入文件）
+
+Redis单线程，基于内存操作，受内存性能的限制，CPU不是redis的性能瓶颈
+所以无所谓使用单线程或者多线程，所以使用单线程操作，十万+量级的QPS。
+由于redis是基于内存操作的，使用多线程会导致CPU上下文切换，线程之间切换就会耗时，所以单线程速度更快。
+
+Redis单条指令保证原子性，但是事务不保证原子性，也没有隔离级别，
+所有在事务中的命令，只有在发起执行时才会执行
+
+
+---------
+
+配置文件
+redis.conf文件在redis解压之后的根目录中。
+
+一些关键配置：
+1. include /path/to/other.conf  
+包含其他配置
+
+2. bind 绑定id，可以配置为远程ip地址
+protected-mode 保护模式
+port 端口
+
+3.
+Daemonize 以守护进程方式运行
+loglevel 日志
+logfile
+databases 默认数据库数量
+always-show-logo 是否显示logo
+
+4.
+持久化
+Save 300 10   表示300秒内，有至少10个key进行修改，就进入持久化操作
+rdbcompression 是否压缩
+Stop-writes-on-bgsave-error  持久化出错是否继续工作
+
+5. dir ./   rdb持久化文件保存目录
+
+6. 配置主从复制
+replicaof 
+
+7 config set requirepass 设置redis密码，默认没有密码
+
+8 maxclients redis最大客户端连接数
+
+9 maxmemory 最大内存容量
+maxmemory-policy 内存上线之后如果操作
+如果redis配置了maxmemory和maxmemory-policy策略，则当redis内存数据达到maxmemory时，会根据maxmemory-policy配置来淘汰内存数据，以避免OOM。
+redis提供了以下6种淘汰策略：
+1，noeviction：不执行任何淘汰策略，当达到内存限制的时候客户端执行命令会报错。
+2，allkeys-lru：从所有数据范围内查找到最近最少使用的数据进行淘汰，直到有足够的内存来存放新数据。
+3，volatile-lru：从所有的最近最少访问数据范围内查找设置到过期时间的数据进行淘汰，如果查找不到数据，则回退到noeviction。
+4，allkeys-random：从所有数据范围内随机选择key进行删除。
+5，volatile-random：从设置了过期时间的数据范围内随机选择key进行删除。
+6，volatile-ttl：从设置了过期时间的数据范围内优先选择设置了TTL的key进行删除。
+
+10 appendonly no 默认使用rdb模式
+appenfilename 持久化文件名字
+appendfsync everysec 每秒执行一次sync，可能会丢失1s数据
+
+
+
+---------
+
+基本操作
+get set del
+
+Watch 命令用于监视一个(或多个) key ，如果在事务执行之前这个(或这些) key 被其他命令所改动，那么事务将被打断
+
+set 设置成功返回ok
+
+mset 批量设置
+mget 批量获取
+
+setex 为指定的 key 设置值及其过期时间。如果 key 已经存在， SETEX 命令将会替换旧的值
+setex KEY_NAME timeout VALUE
+
+setnx 在指定的 key 不存在时，为 key 设置指定的值，设置失败返回0
+setnx KEY_NAME  VALUE
+
+msetnx 批量设置，原子性的操作，如果有一个设置失败，全部设置失败
+在分布式锁中经常使用
+
+getset 命令：如果存在值，获取原来的值，并设置新的值
+getset KEY_NAME VALUE
+
+del 删除，删除成功返回1，失败返回0
+del KEY_NAME
+
+Redis有16个数据库，不同的数据库存放不同的值
+16个数据库是写在配置文件里的，可以查看config文件来获取配置信息。
+
+选择第二个数据库（可以切换数据库）
+select 2 
+
+清空当前数据库
+flushdb
+
+清空所以数据库
+flushall
+
+设置过期时间，时间单位以秒计。
+expire keyName time
+
+查看key的过期时间
+ttl keyName
+
+移除一个元素
+remove keyName
+
+查看所有的key
+key *
+
+查看元素的值
+type keyName
+
+查看key是否存在
+exists keyName
+
+在原来value的基础上增加内容
+append keyName “value”
+
+查看长度
+strlen keyName
+
+数字减去1
+decr
+例如
+set test2 100
+decr test2
+get test2 (获取到99)
+
+将 key 中储存的数字加上/减去指定的增量值
+incrby/decrby
+例如
+127.0.0.1:6379> incrby test2 5
+(integer) 104
+127.0.0.1:6379> get test2
+"104"
+127.0.0.1:6379> decrby test2 4
+(integer) 100
+127.0.0.1:6379> get test2
+"100"
+
+用于获取存储在指定 key 中字符串的子字符串。字符串的截取范围由 start 和 end 两个偏移量决定(包括 start 和 end 在内)
+start从0开始
+getrange KEY_NAME start end
+
+命令用指定的字符串覆盖给定 key 所储存的字符串值，覆盖的位置从偏移量 offset 开始。
+setrange KEY_NAME OFFSET VALUE
+
+Set命令可以是复杂的，带符号的组合：
+127.0.0.1:6379> set id:211:wrx "{'k1':'v1'}"
+OK
+127.0.0.1:6379> get id:211:wrx
+"{'k1':'v1'}"
+
+
+------------------------
+
+Redis 数据类型
+
+Redis支持五种数据类型：string（字符串），hash（哈希），list（列表），set（集合）及zset(sorted set：有序集合)。
+
+注意: 如果是list set等集合，那么key就是表名的意思，也就是说 键key就是表的名字
+
+特殊数据类型：
+bitmaps， hyperloglogs 和 地理空间（geospatial） 
+
+注意：只有value才会有数据类型，key没有数据类型。
+
+
+string类型的基本操作就是常见的get set那些
+
+
+List
+实际上是一个双向链表，头部尾部，一个元素的前后都可以加入元素
+从头和尾进行操作，效率高，中间元素效率低，
+有很多类似于栈操作的命令，例如 lpush lpop（插入一般称为进栈（PUSH），删除则称为退栈（POP））
+
+Lpush插入列表元素，lrange 获取列表元素（0 -1表示全部元素）
+例如以下命令是创建一个 名为l1的列表
+127.0.0.1:6379> LPUSH l1 one two three
+(integer) 3
+127.0.0.1:6379> LRANGE l1 0 -1
+1) "three"
+2) "two"
+3) "one"
+注意这里其实是倒序的
+
+还有rpush命令，表示从尾部输入
+
+Lpop/Rpop 表示移除列表元素，从头部/尾部移除
+
+Lrem 移除下标元素，要指定下标和下标所在的元素
+127.0.0.1:6379> lrem l1 3 four
+(integer) 1
+
+Llen查看长度
+
+Lindex 查看列表的下标的元素
+Lindex l1 3
+输出"four"
+
+Ltrim 批量移除元素，提供起始和结束下标
+例如，移除前两个元素
+127.0.0.1:6379> ltrim l1 0 2
+OK
+
+rpoplpush
+移除列表的最后一个元素，并将该元素添加到另一个列表并返回。
+RPOPLPUSH SOURCE_KEY_NAME DESTINATION_KEY_NAME
+
+lset命令，替换元素
+LSET KEY_NAME INDEX VALUE
+当索引参数超出范围，或对一个空列表进行 LSET 时，返回一个错误。
+例如把第一个元素的值替换成six
+lset l1 0 six
+
+Linsert插入
+LINSERT key BEFORE|AFTER pivot value
+将值 value 插入到列表 key 当中，位于值 pivot 之前或之后。
+例如，在值为four的元素的后面，插入元素seven
+ linsert l1 after four seven
+
+-------
+
+set
+和java类似，set中的值不能重复，无序不重复
+
+sadd 表名 元素
+添加元素，这里表名其实就是key，元素就是value
+
+Sismember 命令判断成员元素是否是集合的成员。
+SISMEMBER KEY VALUE
+
+scard命令返回集合中元素的数量。
+SCARD KEY_NAME 
+
+Srem 命令用于移除集合中的一个或多个成员元素，不存在的成员元素会被忽略。
+当 key 不是集合类型，返回一个错误。
+srem KEY MEMBER1..MEMBERN
+
+返回set表全部数据
+smembers setName
+
+移除元素
+srem setName valueName
+
+Srandmember 命令用于返回集合中的一个随机元素。
+SRANDMEMBER KEY [count]
+
+Spop 移除集合中的指定 key 的一个或多个随机元素，移除后会返回移除的元素
+SPOP key [count]
+
+Sdiff 命令返回第一个集合与其他集合之间的差异，也可以认为说第一个集合中独有的元素。不存在的集合 key 将视为空集。
+差集的结果来自前面的 FIRST_KEY ,而不是后面的 OTHER_KEY1，也不是整个 FIRST_KEY OTHER_KEY1..OTHER_KEYN 的差集。
+实例:
+key1 = {a,b,c,d}
+key2 = {c}
+key3 = {a,c,e}
+SDIFF key1 key2 key3 = {b,d}
+
+Sinter 命令
+返回给定所有给定集合的交集。 不存在的集合 key 被视为空集。 当给定集合当中有一个空集时，结果也为空集(根据集合运算定律)
+SINTER KEY KEY1..KEYN 
+
+
+补集：属于全集U不属于集合A的元素组成的集合称为集合A的补集，记作CuA，即CuA={x|x∈U,且x不属于A}。
+
+交集： 以属于A且属于B的元素为元素的集合称为A与B的交（集），记作A∩B（或B∩A），读作“A交B”（或“B交A”），即A∩B={x|x∈A,且x∈B}
+
+并集：以属于A或属bai于B的元素为元素的集合称du为A与B的并（集zhi），记作A∪B（或B∪A），读作“A并B”（dao或“B并A”），即A∪B={x|x∈A,或x∈B}   。
+
+
+
+---------
+
+zset 有序集合
+
+在set的基础上，多了排序
+
+增加元素，因为是有序的，所以插入元素还需写一个序号作为参数
+ZADD myzset 1 "one"
+ZADD myzset 2 "two" 3 "three"
+
+
+查看所有元素
+zrange myzset 0 -1
+
+移除元素
+zrem myzset 1 "one0"
+
+zcount 获取数量
+
+
+Zrangebyscore 排序,返回有序集合中指定分数区间的成员列表。有序集成员按分数值递增(从小到大)次序排列
+例如：
+插入3条数据
+ZADD salary 2500 jack      
+ZADD salary 5000 tom
+ZADD salary 12000 peter
+从小到大，排序输出
+ZRANGEBYSCORE salary 1000 6000
+1) "jack"
+2) "tom"
+显示整个有序集，-inf +inf 表示从负无穷到正无穷，意思就是全部排序
+ZRANGEBYSCORE salary -inf +inf
+1) "jack"
+2) "tom"
+3) "peter"
+显示整个有序集及成员的 score 值
+ZRANGEBYSCORE salary -inf +inf WITHSCORES
+1) "jack"
+2) "2500"
+3) "tom"
+4) "5000"
+5) "peter"
+6) "12000"
+显示工资大于 5000 小于等于 400000 的成员
+ZRANGEBYSCORE salary (5000 400000        
+1) "peter"
+
+
+
+通过字典区间返回有序集合的成员。
+Zrangebylex
+例如：
+ZADD myzset 0 a 0 b 0 c 0 d 0 e 0 f 0 g
+ZRANGEBYLEX myzset - [c
+输出a  b  c
+ZRANGEBYLEX myzset - (c
+输出a  b 
+ZRANGEBYLEX myzset [aaa (g
+输出 b  c  d  e  f
+
+
+---------
+
+Hash
+
+key-map 也即是 值value是 key-value集合
+
+hset 设置元素，hashmap1是表名，后面添加了一组 键对值
+hset hashmap1 k1 v1
+
+hget获取元素
+hget hashmap1 k1
+
+hmset/hmget 同时获取多个
+127.0.0.1:6379> hmset hashmap2 k1 v1 k2 v2 k3 v3
+OK
+127.0.0.1:6379> hmget k1 k2
+1) (nil)
+127.0.0.1:6379> hmget hashmap2 k1 k2
+1) "v1"
+2) "v2"
+
+
+hdel  删除元素
+
+hlen 获取长度
+
+判断是否存在
+Hexists  hashmap1 k1
+
+Hkeys 获取所有的键
+
+Hvals 获取所有的值
+
+Hincrby 命令
+为哈希表中的字段值加上指定增量值。
+Hincrby  KEY_NAME  FIELD_NAME  number 
+
+Hsetnx 用法和setnx类似，如果不存在对应的key就设置
+
+------------------------
+
+geospatial 地理空间
+
+可以插入 国家，城市，经纬度
+底层是由zset实现的
+
+geoadd：添加地理位置的坐标。
+geopos：获取地理位置的坐标。
+geodist：计算两个位置之间的距离。
+georadius：根据用户给定的经纬度坐标来获取指定范围内的地理位置集合。
+georadiusbymember：根据储存在位置集合里面的某个地点获取指定范围内的地理位置集合。
+geohash：返回一个或多个位置对象的 geohash 值。
+
+GEOADD Sicily 13.361389 38.115556 "Palermo" 15.087269 37.502669 "Catania"
+------------------------
+
+HyperLogLog
+基数统计
+什么是基数?
+比如数据集 {1, 3, 5, 7, 5, 7, 8}， 那么这个数据集的基数集为 {1, 3, 5 ,7, 8}, 基数(不重复元素)为5。 
+基数估计就是在误差可接受的范围内，快速计算基数。
+
+1PFADD key element [element ...]
+添加指定元素到 HyperLogLog 中。
+
+2PFCOUNT key [key ...]
+返回给定 HyperLogLog 的基数估算值。
+
+3PFMERGE destkey sourcekey [sourcekey ...]
+将多个 HyperLogLog 合并为一个 HyperLogLog
+
+------------------------
+
+bitmaps
+这个是位图的意思，一种数据结构，操作二进制位来进行记录，只有0，1两个状态（不是android里面的图片）
+
+SETBIT 命令将 andy中的 'a' 变成 'b'
+'A' 的ASCII码是 97。转换为二进制是01100001
+'B' 的ASCII码是 98。 转换为二进制是01100010
+将'a'中的offset 6从0变成1，将offset 7 从1变成0 。
+例如
+set andy a
+setbit bit 7 0
+setbit bit 6 1 
+
+------------------------
+
+redis事务
+
+Redis 事务可以一次执行多个命令， 并且带有以下三个重要的保证：
+批量操作在发送 EXEC 命令前被放入队列缓存。
+收到 EXEC 命令后进入事务执行，事务中任意命令执行失败，其余的命令依然被执行。
+在事务执行过程，其他客户端提交的命令请求不会插入到事务执行命令序列中。
+
+一个事务从开始到执行会经历以下三个阶段：
+开始事务 multi
+命令入队 写入各种命令
+执行事务 exec
+取消事务 discard
+
+例如：
+redis 127.0.0.1:6379> MULTI
+OK
+
+redis 127.0.0.1:6379> SET book-name "Mastering C++ in 21 days"
+QUEUED
+
+redis 127.0.0.1:6379> GET book-name
+QUEUED
+
+redis 127.0.0.1:6379> SADD tag "C++" "Programming" "Mastering Series"
+QUEUED
+
+redis 127.0.0.1:6379> SMEMBERS tag
+QUEUED
+
+redis 127.0.0.1:6379> EXEC
+1) OK
+2) "Mastering C++ in 21 days"
+3) (integer) 3
+4) 1) "Mastering Series"
+   2) "C++"
+   3) "Programming"
+
+
+注意：redis事务是由多条命令组成的。如果语法错误，在编译阶段检查出来，事务的所有命令都不会被执行，例如输入 set a 故意少传入一个参数
+如果是运行时异常，事务的某一命令报错，其他命令是可以正常执行的，例如 set a b; incr a 这个语句会运行时会报错，因此不保证原子性。 
+
+Watch 命令用于监视一个(或多个) key ，如果在事务执行之前这个(或这些) key 被其他命令所改动，那么事务将被打断
+例如：使用watch命令实现乐观锁，设置一个初始值 money 为 100
+（1）在第一个终端执行watch和multi
+127.0.0.1:6379> watch money
+OK
+127.0.0.1:6379> multi
+OK
+127.0.0.1:6379> set money 10
+QUEUED
+127.0.0.1:6379> get money
+QUEUED
+
+（2）在第二个终端输入
+127.0.0.1:6379> set money 120
+OK
+
+（3）回到第一个终端执行exec，会发现执行失败，因为事务在执行过程中被第二个终端改过了值，此时watch会使得事务失败。
+127.0.0.1:6379> exec
+(nil)
+
+（4）如果事务失败，使用 unwatch解锁，然后重新执行 watch，再次重新开启之前事务，重复一次指令即可。 
+
+------------------------
+
+Jedis
+Redis官方推荐的Java连接开发工具。要在Java开发中使用好Redis中间件，必须对Jedis熟悉才能写成漂亮的代码
+
+实例：
+导入pom依赖
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+
+简单创建jedis，创建时传入ip地址和端口号
+Jedis jedis = new Jedis("127.0.0.1", 6379);
+System.out.println(jedis.ping());
+jedis.flushAll();
+jedis.set("wrx1", "098765");
+jedis.lpush("wrxl1", "q", "w", "a", "z", "u");
+System.out.println(jedis.lrange("wrxl1", 0, -1));
+jedis.close();
+
+Jedis有redis的全部功能，方法名和参数对应了 redis的每一个指令（指令名和jedis的方法名一样）和指令参数
+
+
+jedis的事务
+        Jedis jedis = new Jedis("127.0.0.1", 6379);
+        Transaction transaction = jedis.multi();
+        try {
+            transaction.set("s1", "v1");
+            transaction.lpush("l1", "v4", "v2", "v3");
+            transaction.zadd("z1", 0, "v5");
+            transaction.exec();
+        } catch (Exception e) {
+            transaction.discard();
+        } finally {
+            jedis.close();
+        }
+
+
+
+------------------------
+
+Redis + springboot
+
+在springboot中集成redis比较简单，reids很多情况下都和mysql类似，更多的是对redis本身进行命令行操作。
+
+Spring boot 2.x之后，redis底层的实现改为 Lettuce，jedis废弃，
+Redis的java client有很多种，具体区别可以去官方网站查看: https://redis.io/clients#java
+
+Jedis 直连接，不保证线程安全，需要时候到jedis pool 连接池，类似于 BIO
+Lettuce 使用netty，实例可以在多个线程中共享，不存在线程不安全的情况，类似于NIO
+
+分析RedisTemplate的注入源码，RedisAutoConfiguration，里面就是默认设置LettuceConnectionConfiguration
+可以自己实现RedisTemplate（参照RedisAutoConfiguration那样去实现），那么RedisAutoConfiguration的配置会失效
+
+RedisTemplate 的 JdkSerializationRedisSerializer实现了序列化，是jdk序列号方式，可能使用json序列化
+注意：如果直接传入的对象没有序列化，会报错，javaBean要实现Serializable序列化接口
+
+------------------------
+
+持久化有两种 RDB，AOF
+
+RDB
+在指定时间 间隔内 将内存中的数据集写入磁盘的 快照(snapshot)文件中，回复时将文件读到内存。
+默认 保存文件可以在 reids.config里面设置 ,默认是 dump.rdb
+
+
+AOF
+日志的形式把所有的写操作指令全部记录下来，redis就会读取该文件构建主句，只允许追加文件内容，所以这个文件会越来越大
+保存的文件是 appendonly.aof，可以在config文件中修改持久化模式和AOF的持久化文件
+
+------------------------
+
+Redis 发布订阅
+
+pub/sub 一种消息通信模式，发送者pub发送消息，订阅者sub接收。
+
+
+publish 命令用于将信息发送到指定的频道。
+publish channel message
+
+subscribe 命令用于订阅给定的一个或多个频道的信息。
+subscribe channel [channel ...]
+
+redis维护了一个字典，key就是频道，value是一张链表，链表中保存了订阅客户端的链表
+subscribe就是将客户端记录到链表中
+通过publish命令向订阅者发送消息，遍历链表，对所有的订阅者发送消息。
+
+用的并不多，消息中间件比较好
+
+------------------------
+
+reids主从复制
+其实就是集群配置，避免单个服务器宕机，多太服务器增加性能。
+主从复制就是从主机redis服务器上复制数据到其他redis服务器上
+主节点（master/leader），从节点（slave/follower）
+
+
+数据冗余 实现了数据备份，是持久化之外的一种数据冗余方式
+故障恢复 一个节点出现问题，可以从其他节点复制数据，实现快速恢复
+负责均衡，主节点负责写入，从节点负读取数据，减少服务器压力
+高可用 哨兵模式和集群实现的基础
+
+集群是实际项目中必须用的，避免一台机器宕机导致微服务集群雪崩。
+
+
+查看主从信息 info replication
+role:master
+。。。。。。
+
+------
+
+Redis 搭建集群
+
+三种集群模式
+1.主从模式  
+2.哨兵(Sentinel)，主从模式进阶版，哨兵+主从模式，主机宕机时可以选举主机
+3.集群(cluster-enable)，哨兵模式进阶版(包含了哨兵选举和主从模式)，最复杂，集群至少需要3主3从
+
+------------------------
+
+主从模式：
+主机称为Master，从机称为Slave，
+
+原redis.conf复制三份配置文件，
+修改配置文件，这是因为一台主机上启动几个redis服务（主从模式），每一个redis服务都需要不同的输出文件和
+1. port修改端口
+2. pidfile名
+3. logfile文件名
+4. dbfilename 设置 dump 的文件位置，持久化数据存储在本地的文件名
+
+使用不同的配置文件启动redis服务器
+
+开始配置主从信息：
+Slaveof 命令可以将当前服务器转变为指定服务器的从属服务器
+slaveof host port  
+
+slaveof no one 可以让当前成为主机
+
+也可以在配置文件中配置 replicaof 
+例如：replicaof 127.0.0.1 8801
+
+登录客户端
+redis-cli -h 127.0.0.1 -p 8801 -a password
+
+查看主从信息命令，可以查看到该redis服务是主机(role:master, connected_slaves:2)还是从机(role:slave)，如果是主机旗下有多少从机
+info replication
+
+shutdown 关闭主机
+
+-------
+
+亲自试验：
+1.主机插入数据，从机自动同步
+127.0.0.1:8801> set k1 v1
+OK
+127.0.0.1:8802> get k1
+"v1"
+2.从机不允许插入数据，但是可以获取数据
+127.0.0.1:8802> set k2 v2
+(error) READONLY You can't write against a read only replica. 
+
+ 一主二仆
+ 一个Master，两个Slave，Slave只能读不能写；当Slave与Master断开后需要重新slave of连接才可建立之
+前的主从关系；Master挂掉后，Master关系依然存在，Master重启即可恢复。
+
+薪火相传
+上一个Slave可以是下一个Slave的Master，Slave同样可以接收其他slaves的连接和同步请求，那么该slave作为了
+链条中下一个slave的Master，如此可以有效减轻Master的写压力。如果slave中途变更转向，会清除之前的数据，重新建立最新的。
+
+反客为主
+Master挂掉后，Slave可键入命令 slaveof no one使当前redis停止与其他Master redis数据同步，转成 Master redis。
+
+
+复制原理
+       1、Slave启动成功连接到master后会发送一个sync命令；
+
+       2、Master接到命令启动后的存盘进程，同时收集所有接收到的用于修改数据集命令，在后台进程执行完毕之后，master
+            将传送整个数据文件到slave，以完成一次完全同步；
+
+       3、全量复制：而slave服务在数据库文件数据后，将其存盘并加载到内存中；
+
+       4、增量复制：Master继续将新的所有收集到的修改命令依次传给slave，完成同步；
+
+       5、但是只要是重新连接master，一次完全同步（全量复制）将被自动执行。
+
+------------------------
+
+
+哨兵模式（sentinel）
+       反客为主的自动版，能够后台监控Master库是否故障，如果故障了根据投票数自动将slave库转换为主库。一组sentinel能
+       同时监控多个Master。
+       使用步骤：（哨兵是独立进程，需要单独开启）
+       1、原sentinel.conf文件复制三份配置文件， 准备启动三个哨兵
+	     把配置哨兵文件的端口修改 port 26379 port 26380 port 26381（三个哨兵，三个不同端口）
+       2、修改配置
+             sentinel monitor 被监控数据库名字（自己起名字） ip port 1
+	     例如
+		# 定义Redis主的别名, IP, 端口，这里的2指的是需要至少2个Sentinel认为主Redis挂了才最终会采取下一步行为
+		sentinel monitor mymaster 127.0.0.1 6379 2
+	     还可以配置用户名密码
+		# sentinel author-pass定义服务的密码，mymaster是服务名称，123456是Redis服务器密码
+		# sentinel auth-pass <master-name> <password>
+		sentinel auth-pass mymaster 123456
+
+      3、启动哨兵模式，redis-sentinel命令启动三个哨兵配置文件
+            命令键入：redis-sentinel  /myredis/sentinel.conf
+            注：上述sentinel.conf路径按各自实际情况配置
+            注：启动哨兵之后可以看到哨兵们也会互相监控
+
+注意：哨兵至少都需要3个，加上被监控的1主2从，加起来就是6个进程
+
+哨兵原理
+一般都是多哨兵模式，多个哨兵互相监控以防 哨兵进程死亡，
+为了重新选举主机也多个哨兵来进行投票
+如果发送给主机的消息没有相应，哨兵们会进行投票，选择新的主机
+
+如果主机宕机，哨兵1检测到这个结果，并不会马上进行fail over，仅仅是哨兵1主观认为主服务器不可用，称为主观下线。
+当后面的其他哨兵也检测到主机宕机，并且达到哨兵数达到一定值，哨兵之间就会进行一次投票，投票结果由一个哨兵发起
+进行failover(故障转移)操作，切换成功后，发布订阅模式，让各个哨兵把自己监控的从服务器实现切换主机，称为客观下线
+
+如果主机再次上线，那么会归并到新的主机下，成为从机。
+
+复制的缺点
+延时，由于所有的写操作都是在Master上操作，然后同步更新到Slave上，所以从Master同步到Slave机器有一定
+的延迟，当系统很繁忙的时候，延迟问题会更加严重，Slave机器数量的增加也会使得这个问题更加严重。
+
+
+
+------------------------
+
+集群模式
+Redis-cluster集群概念
+（1）由多个Redis服务器组成的分布式网络服务集群；
+（2）集群之中有多个Master主节点，每一个主节点都可读可写；
+（3）节点之间会互相通信，两两相连；
+（4）Redis集群无中心节点。
+
+这个模式自动实现了哨兵选举，不需要再创建哨兵
+部署一个测试集群至少要6个节点，3主节点，3从节点
+步骤
+1.创建目录redis-cluster并在此目录下再创建7001 7002 7003 7004 7005 7006共6个目录，在7000中创建配置文件redis.conf，内容如下：
+        daemonize yes #后台启动
+        port 7001 #修改端口号，从7001到7006
+        cluster-enabled yes #开启cluster，去掉注释
+        cluster-config-file nodes.conf #自动生成
+        cluster-node-timeout 15000 #节点通信时间
+        appendonly yes #持久化方式，可以不用改
+同时把redis.conf复制到其它目录中
+
+2.创建集群
+redis-trib.rb在redis/src目录下
+./src/redis-trib.rb create --replicas 1 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 127.0.0.1:7006
+使用create命令 --replicas 1 参数表示为每个主节点创建一个从节点，其他参数是实例的地址集合。
+
+Reids6改为执行以下命令
+redis-cli --cluster create 127.0.0.1:7001 127.0.0.1:7002 127.0.0.1:7003 127.0.0.1:7004 127.0.0.1:7005 127.0.0.1:7006 --cluster-replicas 1
+
+3. 测试客户端连接
+集群客户端命令（redis-cli -c -p port）
+注意：这里连接redis集群一定要加上-c
+测试存取值，客户端连接集群redis-cli需要带上 -c ，redis-cli -c -p 端口号
+
+[root@localhost redis]# ./redis-cli -c -p 7001
+127.0.0.1:7001> set name andy
+-> Redirected to slot [5798] located at 127.0.0.1:7002
+OK
+127.0.0.1:7002> get name
+"andy"
+127.0.0.1:7002> 
+根据redis-cluster的key值分配，name应该分配到节点7002[5461-10922]上，上面显示redis cluster自动从7001跳转到了7002节点。
+
+测试一下7000从节点获取name值
+
+[root@localhost redis]# ./redis-cli -c -p 7000
+127.0.0.1:7000> get name
+-> Redirected to slot [5798] located at 127.0.0.1:7002
+"andy"
+127.0.0.1:7002> 
+
+
+4. 将7002关闭，使用查看集群状态的命令，会发现集群又重新投票了一个主节点。
+127.0.0.1:7001> cluster nodes
+
+
+
+cluster info ：打印集群的信息
+cluster nodes ：列出集群当前已知的所有节点（ node），以及这些节点的相关信息。
+节点
+cluster meet <ip> <port> ：将 ip 和 port 所指定的节点添加到集群当中，让它成为集群的一份子。
+cluster forget <node_id> ：从集群中移除 node_id 指定的节点。
+cluster replicate <node_id> ：将当前节点设置为 node_id 指定的节点的从节点。
+cluster saveconfig ：将节点的配置文件保存到硬盘里面。
+槽(slot)
+cluster addslots <slot> [slot ...] ：将一个或多个槽（ slot）指派（ assign）给当前节点。
+cluster delslots <slot> [slot ...] ：移除一个或多个槽对当前节点的指派。
+cluster flushslots ：移除指派给当前节点的所有槽，让当前节点变成一个没有指派任何槽的节点。
+cluster setslot <slot> node <node_id> ：将槽 slot 指派给 node_id 指定的节点，如果槽已经指派给
+另一个节点，那么先让另一个节点删除该槽>，然后再进行指派。
+cluster setslot <slot> migrating <node_id> ：将本节点的槽 slot 迁移到 node_id 指定的节点中。
+cluster setslot <slot> importing <node_id> ：从 node_id 指定的节点中导入槽 slot 到本节点。
+cluster setslot <slot> stable ：取消对槽 slot 的导入（ import）或者迁移（ migrate）。
+键
+cluster keyslot <key> ：计算键 key 应该被放置在哪个槽上。
+cluster countkeysinslot <slot> ：返回槽 slot 目前包含的键值对数量。
+cluster getkeysinslot <slot> <count> ：返回 count 个 slot 槽中的键  
+
+------------------------
+
+Redis 分布式锁
+
+两个功能相同的微服务，运行在两个不同的 JVM 里面，他们加的锁只对属于自己 JVM 里面的线程有效，对于其他 JVM 的线程是无效的。
+分布式锁的思路是：在整个系统提供一个全局、唯一的获取锁的“东西”，然后每个系统在需要加锁时，都去问这个“东西”拿到一把锁，这样不同的系统拿到的就可以认为是同一把锁。
+
+为了确保分布式锁可用，我们至少要确保锁的实现同时满足以下四个条件：
+1.互斥性。在任意时刻，只有一个客户端能持有锁。
+2.不会发生死锁。即使有一个客户端在持有锁的期间崩溃而没有主动解锁，也能保证后续其他客户端能加锁。
+3.具有容错性。只要大部分的Redis节点正常运行，客户端就可以加锁和解锁。
+4.解铃还须系铃人。加锁和解锁必须是同一个客户端，客户端自己不能把别人加的锁给解了。
+
+
+基于 Redis 实现分布式锁，reids分布式锁最大的问题就是如果主节点崩溃，那么锁就被破坏了，这个也是解决问题的重点难点
+
+（1）常见的一种方案就是使用 Redis 做分布式锁
+使用 Redis 做分布式锁的思路大概是这样的：在 Redis 中设置一个值表示加了锁，然后释放锁的时候就把这个 Key 删除。
+
+// 获取锁 
+// NX是指如果key不存在就成功，key存在返回false，PX可以指定过期时间 
+SET anyLock unique_value NX PX 30000 
+ 
+ 
+// 释放锁：通过执行一段lua脚本 
+// 释放锁涉及到两条指令，这两条指令不是原子性的 
+// 需要用到redis的lua脚本支持特性，redis执行lua脚本是原子性的 
+if redis.call("get",KEYS[1]) == ARGV[1] then 
+return redis.call("del",KEYS[1]) 
+else 
+return 0 
+end 
+
+一定要用 SET key value NX PX milliseconds 命令。如果不用，先设置了值，再设置过期时间，这个不是原子性操作，有可能在设置过期时间之前宕机，会造成死锁(Key 永久存在)
+Value 要具有唯一性。这个是为了在解锁的时候，需要验证 Value 是和加锁的一致才删除 Key。
+这时避免了一种情况：假设 A 获取了锁，过期时间 30s，此时 35s 之后，锁已经自动释放了，A 去释放锁，但是此时可能 B 获取了锁。A 客户端就不能删除 B 的锁了。
+
+这里需要使用RedLock 的算法、部署模式是 Redis Cluster 去完成分布式锁
+
+
+（2）也可以使用 redis的开源框架Redission 去实现分布式锁
+Redisson 还提供了对 Redlock 算法的支持
+
+SET anyLock unique_value NX PX 30000 
+这里设置的超时时间是 30s，假如我超过 30s 都还没有完成业务逻辑的情况下，Key 会过期，其他线程有可能会获取到锁。
+如果此时，第一个线程还没执行完业务逻辑，第二个线程进来了也会出现线程安全问题，锁又给了第二个进程。
+
+Config config = new Config(); 
+config.useClusterServers() 
+.addNodeAddress("redis://192.168.31.101:7001") 
+.addNodeAddress("redis://192.168.31.101:7002") 
+.addNodeAddress("redis://192.168.31.101:7003") 
+.addNodeAddress("redis://192.168.31.102:7001") 
+.addNodeAddress("redis://192.168.31.102:7002") 
+.addNodeAddress("redis://192.168.31.102:7003"); 
+RedissonClient redisson = Redisson.create(config); 
+RLock lock = redisson.getLock("anyLock"); 
+lock.lock(); 
+lock.unlock(); 
+
+只需要通过它的 API 中的 Lock 和 Unlock 即可完成分布式锁，他帮我们考虑了很多细节：
+
+Redisson 所有指令都通过 Lua 脚本执行，Redis 支持 Lua 脚本原子性执行。
+Redisson 设置一个 Key 的默认过期时间为 30s，如果某个客户端持有一个锁超过了 30s 怎么办？
+Redisson 中有一个 Watchdog 的概念，翻译过来就是看门狗，它会在你获取锁之后，每隔 10s 帮你把 Key 的超时时间设为 30s。
+这样的话，就算一直持有锁也不会出现 Key 过期了，其他线程获取到锁的问题了。
+
+Redisson 的“看门狗”逻辑保证了没有死锁发生。(如果机器宕机了，看门狗也就没了。此时就不会延长 Key 的过期时间，到了 30s 之后就会自动过期了，其他线程可以获取到锁)
+
+------------------------
+
+Redlock 算法，分布式锁算法
+在分布式版本的算法里我们假设我们有N个Redis master节点，这些节点都是完全独立的，我们不用任何复制或者其他隐含的分布式协调算法。我们已经描述了如何在单节点环境下安全地获取和释放锁。因此我们理所当然地应当用这个方法在每个单节点里来获取和释放锁。在我们的例子里面我们把N设成5，这个数字是一个相对比较合理的数值，因此我们需要在不同的计算机或者虚拟机上运行5个master节点来保证他们大多数情况下都不会同时宕机。一个客户端需要做如下操作来获取锁：
+
+1、获取当前时间（单位是毫秒）。
+
+2、轮流用相同的key和随机值在N个节点上请求锁，在这一步里，客户端在每个master上请求锁时，会有一个和总的锁释放时间相比小的多的超时时间。比如如果锁自动释放时间是10秒钟，那每个节点锁请求的超时时间可能是5-50毫秒的范围，这个可以防止一个客户端在某个宕掉的master节点上阻塞过长时间，如果一个master节点不可用了，我们应该尽快尝试下一个master节点。
+
+3、客户端计算第二步中获取锁所花的时间，只有当客户端在大多数master节点上成功获取了锁（在这里是3个），而且总共消耗的时间不超过锁释放时间，这个锁就认为是获取成功了。
+
+4、如果锁获取成功了，那现在锁自动释放时间就是最初的锁释放时间减去之前获取锁所消耗的时间。
+
+5、如果锁获取失败了，不管是因为获取成功的锁不超过一半（N/2+1)还是因为总消耗时间超过了锁释放时间，客户端都会到每个master节点上释放锁，即便是那些他认为没有获取成功的锁。
+
+
+
+------------------------
+
+redis 淘汰策略
+长期将Redis作为缓存使用，难免会遇到内存空间存储瓶颈，当Redis内存超出物理内存限制时，内存数据就会与磁盘产生频繁交换，使Redis性能急剧下降。此时如何淘汰无用数据释放空间，存储新数据就变得尤为重要了。
+Redis在生产环境中，采用配置参数maxmemory 的方式来限制内存大小。当实际存储内存超出maxmemory 参数值时，开发者们可以通过这几种方法——Redis内存淘汰策略，来决定如何腾出新空间继续支持读写工作。
+
+以下是redis.conf中的原话
+
+# volatile-lru -> Evict using approximated LRU, only keys with an expire set.
+# allkeys-lru -> Evict any key using approximated LRU.
+# volatile-lfu -> Evict using approximated LFU, only keys with an expire set.
+# allkeys-lfu -> Evict any key using approximated LFU.
+# volatile-random -> Remove a random key having an expire set.
+# allkeys-random -> Remove a random key, any key.
+# volatile-ttl -> Remove the key with the nearest expire time (minor TTL)
+# noeviction -> Don't evict anything, just return an error on write operations.
+#
+# LRU means Least Recently Used 最近最少使用
+# LFU means Least Frequently Used 最不经常使用的
+
+volatile 指的是已过期的数据集
+allkeys 指的是所有的数据集
+
+volatile-lru：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰
+allkeys-lru：从数据集（server.db[i].dict）中挑选最近最少使用的数据淘汰
+
+volatile-ttl：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰
+
+volatile-random：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰
+allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰
+
+noenviction（驱逐）：禁止驱逐数据
+
+volatile-lfu：从所有配置了过期时间的键中驱逐使用频率最少的键
+allkeys-lfu：从所有键中驱逐使用频率最少的键
+
+
+redis.conf中配置
+内存大小
+maxmemory <bytes>
+配置淘汰策略，默认是不淘汰任何数据
+maxmemory-policy noeviction
+
+
+淘汰策略 lru 和 lfu 算法很有意思，可以研究研究
+
+
+
+------------------------
+
+redis lua脚本
+
+Lua 脚本功能是 Reids 2.6 版本的最大亮点， 通过内嵌对 Lua 环境的支持， Redis 解决了长久以来不能高效地处理 CAS （check-and-set）命令的缺点，
+ 并且可以通过组合使用多个命令， 轻松实现以前很难实现或者不能高效实现的模式。
+
+1. 基本用法
+1.1 
+Redis Eval 命令使用 Lua 解释器执行脚本。
+语法
+redis Eval 命令基本语法如下：
+redis 127.0.0.1:6379> EVAL script numkeys key [key ...] arg [arg ...] 
+参数说明：
+script： 参数是一段 Lua 5.1 脚本程序。脚本不必(也不应该)定义为一个 Lua 函数。
+numkeys： 用于指定键名参数的个数。就是确定key有几个（与arg参数无关）
+key [key ...]： 从 EVAL 的第三个参数开始算起，表示在脚本中所用到的那些 Redis 键(key)，这些键名参数可以在 Lua 中通过全局变量 KEYS 数组，用 1 为基址的形式访问( KEYS[1] ， KEYS[2] ，以此类推)。
+arg [arg ...]： 附加参数，在 Lua 中通过全局变量 ARGV 数组访问，访问的形式和 KEYS 变量类似( ARGV[1] 、 ARGV[2] ，诸如此类)。
+实例: 
+redis 127.0.0.1:6379> eval "return {KEYS[1],KEYS[2],ARGV[1],ARGV[2]}" 2 key1 key2 first second
+1) "key1"
+2) "key2"
+3) "first"
+4) "second"
+ 
+
+1.2 SCRIPT LOAD script 
+把脚本加载到脚本缓存中，返回SHA1校验和。但不会立马执行，举例
+127.0.0.1:6379> SCRIPT LOAD "return 'hello world'"
+"5332031c6b470dc5a0dd9b4bf2030dea6d65de91"
+ 
+
+1.3 EVALSHA sha1 numkeys key [key ...] arg [arg ...] 
+根据缓存码执行脚本内容。举例
+127.0.0.1:6379> SCRIPT LOAD "return {KEYS[1],KEYS[2],ARGV[1],ARGV[2]}" 
+"a42059b356c875f0717db19a51f6aaca9ae659ea"
+127.0.0.1:6379> EVALSHA "a42059b356c875f0717db19a51f6aaca9ae659ea" 2 key1 key2 val1 val2
+1) "key1"
+2) "key2"
+3) "val1"
+4) "val2"
+ 
+
+1.4 SCRIPT EXISTS script [script ...] 
+通过sha1校验和判断脚本是否在缓存中
+
+ 
+1.5 SCRIPT FLUSH 
+清空缓存
+127.0.0.1:6379> SCRIPT LOAD "return 'hello jihite'"
+"3a43944275256411df941bdb76737e71412946fd"
+127.0.0.1:6379> SCRIPT EXISTS "3a43944275256411df941bdb76737e71412946fd"
+1) (integer) 1
+127.0.0.1:6379> SCRIPT FLUSH
+OK
+127.0.0.1:6379> SCRIPT EXISTS "3a43944275256411df941bdb76737e71412946fd"
+1) (integer) 0
+ 
+
+1.6 SCRIPT KILL 
+杀死目前正在执行的脚本
+
+
+Lua关键字  22个
+1. 逻辑 关键字   and ， or,  not
+2. 基本类型   function, table,  nil, 
+3. for , while , do , break,   in ,return  , until , goto ,repeat
+4. true ,false
+5. if , then , else   , elseif
+6. local
+
+
+例如执行以下命令
+127.0.0.1:6379> eval "redis.call('set', KEYS[1], ARGV[1])" 1 k111 v111
+(nil)
+127.0.0.1:6379> get k111
+"v111"
+127.0.0.1:6379> eval "return redis.call('get', KEYS[1])" 1 k111
+"v111"
+
+创建文件mytest.lua
+插入内容：
+local str = redis.call('get', KEYS[1])
+return str
+执行：
+redis-cli --eval mytest.lua  k111
+输出：
+"v111"
+------------------------
+
+redisson 实现分布式锁
+
+可以使用 jmeter 压力测试工具来测试 分布式锁的功能。
+
+配置，可以只配置一部分
+sentinelServersConfig: 
+  #如果当前连接池里的连接数量超过了最小空闲连接数，而同时有连接空闲时间超过了该数值，那么这些连接将会自动被关闭，并从连接池里去掉。时间单位是毫秒。
+  idleConnectionTimeout: 10000
+  pingTimeout: 1000
+  #同任何节点建立连接时的等待超时。时间单位是毫秒。
+  connectTimeout: 10000
+  #等待节点回复命令的时间。该时间从命令发送成功时开始计时。
+  timeout: 3000
+  #如果尝试达到 retryAttempts（命令失败重试次数） 仍然不能将命令发送至某个指定的节点时，将抛出错误。如果尝试在此限制之内发送成功，则开始启用 timeout（命令等待超时） 计时。
+  retryAttempts: 3
+  #在一条命令发送失败以后，等待重试发送的时间间隔。时间单位是毫秒。
+  retryInterval: 1500
+  #当与某个节点的连接断开时，等待与其重新建立连接的时间间隔。时间单位是毫秒。
+  reconnectionTimeout: 3000
+  #在某个节点执行相同或不同命令时，连续 失败 failedAttempts（执行失败最大次数） 时，该节点将被从可用节点列表里清除，直到 reconnectionTimeout（重新连接时间间隔） 超时以后再次尝试。
+  failedAttempts: 3
+  password: null
+  #每个连接的最大订阅数量。
+  subscriptionsPerConnection: 5
+  #在Redis节点里显示的客户端名称
+  clientName: null
+  #WeightedRoundRobinBalancer - 权重轮询调度算法；RoundRobinLoadBalancer - 轮询调度算法；RandomLoadBalancer - 随机调度算法
+  loadBalancer: !<org.redisson.connection.balancer.RoundRobinLoadBalancer> {}
+  #从节点发布和订阅连接的最小空闲连接数
+  slaveSubscriptionConnectionMinimumIdleSize: 1
+  #从节点发布和订阅连接池大小
+  slaveSubscriptionConnectionPoolSize: 50
+  #从节点，每个 从服务节点里用于普通操作（非发布和订阅）的最小保持连接数（长连接）。长期保持一定数量的连接有利于提高瞬时读取反映速度。
+  slaveConnectionMinimumIdleSize: 32
+  #从节点，每个 从服务节点里用于普通操作（非 发布和订阅）连接的连接池最大容量。连接池的连接数量自动弹性伸缩。
+  slaveConnectionPoolSize: 64
+  #多从节点的环境里，每个 主节点的最小保持连接数（长连接）。长期保持一定数量的连接有利于提高瞬时写入反应速度。
+  masterConnectionMinimumIdleSize: 32
+  #主节点的连接池最大容量。连接池的连接数量自动弹性伸缩。
+  masterConnectionPoolSize: 64
+  #设置读取操作选择节点的模式。 可用值为： SLAVE - 只在从服务节点里读取。 MASTER - 只在主服务节点里读取。 MASTER_SLAVE - 在主从服务节点里都可以读取。
+  readMode: "SLAVE"
+  #哨兵地址
+  sentinelAddresses:
+  - "redis://127.0.0.1:26379"
+  - "redis://127.0.0.1:26389"
+  #主服务器的名称是哨兵进程中用来监测主从服务切换情况的。
+  masterName: "mymaster"
+  database: 0
+#这个线程池数量被所有RTopic对象监听器，RRemoteService调用者和RExecutorService任务共同共享。
+threads: 0
+#这个线程池数量是在一个Redisson实例内，被其创建的所有分布式数据类型和服务，以及底层客户端所一同共享的线程池里保存的线程数量。
+nettyThreads: 0
+#Redisson的对象编码类是用于将对象进行序列化和反序列化，以实现对该对象在Redis里的读取和存储。
+codec: !<org.redisson.codec.JsonJacksonCodec> {}
+#TransportMode.NIO;TransportMode.EPOLL（Linux）;TransportMode.KQUEUE（macOS）
+"transportMode":"NIO"
+
+
+
+
+
+
+
+
+
+
+
+------------------------
+
+防止穿透、击穿、雪崩的方案：
+
+缓存穿透（穿透个人理解就是 直接穿透过 缓存和数据库 ）
+当缓存与数据库中都不存在该数据时，由于当数据库查询不到数据就不会写入缓存，这个时候如果用户不断的恶意发起请求，
+就会导致这个不存在的数据每次请求都会查询DB，请求量大的情况下，就会导致DB压力过大，直接挂掉。
+
+解决方案：
+布隆过滤器，对可能的查询进行缓存，控制层先校验，不符合的再直接丢弃，减少对底层数据库的压力
+缓存空数据，如果穿透到数据库也查不到，就返回一个空数据，空数据缓存在redis上
+
+--------------
+
+缓存击穿（穿透个人理解就是 穿过缓存，达到数据库 ）
+某一个数据缓存中没有但数据库中有的数据（一般是缓存时间到期），这时由于并发用户特别多，同时读缓存没读到数据，
+又同时去数据库去取数据，引起数据库压力瞬间增大，严重情况下会直接挂掉。
+
+解决方案：
+设置永远不过期
+加分布式锁，保证只有一个线程进入mysql
+
+--------------
+
+缓存雪崩
+缓存中大批量的数据都到了过期时间，从而导致查询数据量巨大，引起数据库压力过大甚至down机。和缓存击穿不同，
+缓存击穿是指某一条数据到了过期时间，大量的并发请求都来查询这一条数据，缓存雪崩是不同数据都过期了，很多数据都查不到从而查数据库
+解决方案：
+高可用集群
+微服务降级
+数据预热，先把部分重要数据加载到缓存中
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+消息中间件RabbitMQ
+
+RabbitMQ是实现了高级消息队列协议（AMQP）的开源消息代理软件（亦称面向消息的中间件），
+与JMS消息服务不同
+
+消息总线(Message Queue)，是一种跨进程、异步的通信机制，用于上下游传递消息。由消息系统来确保消息的可靠传递。
+
+以熟悉的电商场景为例，如果商品服务和订单服务是两个不同的微服务，在下单的过程中订单服务需要调用商品服务进行扣库存操作。按照传统的方式，下单过程要等到调用完毕之后才能返回下单成功。
+消息队列提供一个异步通信机制，消息的发送者不必一直等待到消息被成功处理才返回，而是立即返回。消息中间件负责处理网络通信，如果网络连接不可用，消息被暂存于队列当中，
+当网络畅通的时候在将消息转发给相应的应用程序或者服务，当然前提是这些服务订阅了该队列。如果在商品服务和订单服务之间使用消息中间件，既可以提高并发量，又降低服务之间的耦合度。
+
+RabbitMQ消息队列。RabbitMQ是一个开源的消息代理的队列服务器，用来通过普通协议在完全不同的应用之间共享数据。
+RabbitMQ是使用Erlang语言来编写的，并且RabbitMQ是基于AMQP协议的。
+与Spring AMQP完美整合，API丰富
+
+应用场景：
+1.异步处理
+传统业务是 假设数据写入数据库之后，再使用 微服务发邮件 、微服务发短信 等待用户确认（这个过程耗时）
+使用广播模型，增加了异步处理之后，只需要数据写入再把消息写入队列即可，减少耗时。
+
+2.应用解耦
+传统业务，订单服务调用库存服务是通过 库存的接口去调用的，那么当库存系统故障时，订单就会失败
+如果使用消息队列来解耦，订单系统将消息持久化到队列，直接返回下单成功，库存系统收到下单消息，就算库存出现故障。消息队列也可以保证消息的可靠投递，而不会导致消息丢失。
+
+3.流量削峰
+秒杀活动时，流量过大
+传统做法是用户请求直接进入秒杀业务逻辑，大量请求会导致效率下降，甚至宕机
+现在，在前端增加一个消息队列，所有的请求在消息队列上经过，再进入秒杀业务，
+可以限制队列的长度，超过阈值直接丢弃订单（跳转到错误页面），业务可以根据自己的最大处理能力去接收消息。
+
+
+------------------------
+
+安装
+Mac下使用brew安装，教程看官网：
+https://www.rabbitmq.com/install-homebrew.html
+
+安装完成之后启动，添加临时路径
+export PATH=$PATH:/usr/local/sbin
+前台运行：rabbitmq-server
+后台运行：brew service start rabbitmq
+运行成功后，访问15672端口，显示控制台
+http://localhost:15672/
+（密码和用户名都是 guest）
+
+控制台可以 创建用户 ，查看通道和修改通道，交换机各种功能
+
+rabbitmqctl list_queues：查看所有队列信息
+rabbitmqctl stop_app：关闭应用（关闭当前启动的节点）
+rabbitmqctl start_app：启动应用，和上述关闭命令配合使用，达到清空队列的目的
+
+
+rabbitmq-server -detached
+后台启动
+
+rabbitmqctl stop 
+停止
+
+查看是否启动成功
+rabbitmq-server status
+
+
+直接kill rabbitmq进程
+ps aux | grep rabbitmq
+kill 1010
+
+
+------------------------
+
+
+MQ典型应用场景：
+1.异步处理。把消息放入消息中间件中，等到需要的时候再去处理。
+
+2.流量削峰。例如秒杀活动，在短时间内访问量急剧增加，使用消息队列，当消息队列满了就拒绝响应，跳转到错误页面，这样就可以使得系统不会因为超负载而崩溃。
+
+3.日志处理
+
+4.应用解耦。假设某个服务A需要给许多个服务（B、C、D）发送消息，当某个服务（例如B）不需要发送消息了，服务A需要改代码再次部署；当新加入一个服务（服务E）需要服务A的消息的时候，也需要改代码重新部署；另外服务A也要考虑其他服务挂掉，没有收到消息怎么办？要不要重新发送呢？是不是很麻烦，使用MQ发布订阅模式，服务A只生产消息发送到MQ，B、C、D从MQ中读取消息，需要A的消息就订阅，不需要了就取消订阅，服务A不再操心其他的事情，使用这种方式可以降低服务或者系统之间的耦合。
+
+
+这里简单介绍下六种工作模式的主要特点：
+
+1.简单模式：一个生产者，一个消费者
+connectionFactory建立rabbitmq连接，设置地址和用户名密码
+创建一个生产者：创建Channel对象，发送一个消息channel.basicPublish()
+
+2.work模式：一个生产者，多个消费者，每个消费者获取到的消息唯一，也就是一条消息只能给一次并且给一个消费者
+例如说有5个消费者，10条消息，那么work会使用轮询的方式，使得每一个消费者都拿到2条消息，每个消费者都会得到不同的消息
+
+3.发布/订阅模式，fanout模式也称为广播模式，
+生产者先发送消息给交换机，交换机在广播到与他绑定的队列上，消费者再从队列拿消息。
+
+一个生产者发送的消息会被多个消费者获取。最大的区别就是使用了交换器exchange
+　　在发布订阅模式中，消息需要发送到MQ的交换机exchange上，exchange根据配置的路由方式发到相应的Queue上，Queue又将消息发送给consumer，消息从queue到consumer， 消息队列的使用过程大概如下：
+　　1.客户端连接到消息队列服务器，打开一个channel。
+　　2.客户端声明一个exchange，并设置相关属性。
+　　3.客户端声明一个queue，并设置相关属性。
+　　4.客户端在exchange和queue之间建立好绑定关系。
+　　5.客户端投递消息到exchange。
+发布订阅模式，一般都是生产者创建交换机并发送消息，消费者创建队列并把队列绑定到交换机上
+
+
+4.路由模式，direct模式
+发送消息到交换机并且要指定路由key ，消费者将队列绑定到交换机时需要指定路由key，其实路由模式也是订阅的一种
+代码：
+生产者：channel.exchangeDeclare 声明为direct模式，在channel.basicPublish发送消息时，设置一个routingKey
+消费者：channel.queueBind 选择一个routingKey
+路由模式就是 生产者和消费者指定一个 路由名称，双方各自发送和接收这个带有这个名称的数据，非该名称就丢弃
+
+
+5.topic模式：通配符模式，类似于路由模式, topic也算是订阅的一种
+基于通配符的方式，将一个消息推送给不同消费者。
+通配符有*和#，*表示匹配一个单词，#表示匹配一个或多个单词，单词之间通过‘.’进行区分。如消息发送者的routing-key为log.error，那么消费者绑定routing-key为log.#或log.*时，都可以接收到发送的信息。但消息发送者的routing-key为log.error.out_of_memory时，只有routing-key为log.#的消费者能接受到消息。
+需要设置为topic模式 ： channel.exchangeDeclare(EXCHANGE_NAME, "topic");
+
+
+6.RPC模式（远程调用）
+如果我们需要在远程计算机上运行一个函数并等待结果，这种模式通常称为远程过程调用或RPC；
+声明一个客户端，然后去通过call方法去调用我们的服务端，然后实时去接收我们服务端处理后返回的结果值，显示在控制台。
+客户端和服务端都可以发送消息给对方，双方需要指定一个reply
+客户端用channel.basicPublish方法发送数据，
+服务端同样用channel.basicPublish方法发送数据，channel.basicAck 给一个确认收到消息的回执信息(回执不是发给客户端，是发给rabbitMq本身)
+
+
+6种模式的区别：
+fanout模式（发布订阅、扇出） direct模式（路由） topic模式（通配符）这三种模式在声明 交换机 channel.exchangeDeclare() 时，都需要声明对应的 exchange type
+fanout比direct少指定了routingKey，因此交换机上全部的队列都能收到消息
+direct比topic少了通配符，因此可能会有两个以上的队列满足通配符的匹配然后接收到消息
+
+Worker模式，简单模式没有 exchange type，所以不需要声明
+这两者的区别就是 调用了 basicQos()方法，表明消息唯一，即消息不会 被不同的消费者消费，只有一个消费者可以得到这条消息。
+
+
+步骤
+1. 客户端给服务端发消息，附带信息：correlation_id 一个唯一的id；reply_to 指定回调的消息队列，服务端将消息返回到这个队列中
+    客户端开始监听回调队列的消息
+2. 服务端返回数据给客户端，附带信息：correlation_id 一个唯一的id，
+
+------------------------
+
+exchange交换机，channel通道，queue队列的概念和联系
+
+交换机可以设置名字和类型，可以创建很多个交换机，用于发布订阅模式
+生产者先把消息发到交换机上，再有交换机分发到队列上，这些队列需要和交换机绑定，一个队列有多个消费者。
+
+channel 信道：
+概念：信道是生产消费者与rabbit通信的渠道，生产者publish或是消费者subscribe一个队列都是通过信道来通信的。
+信道是建立在TCP连接上的虚拟连接，就是说rabbitmq在一条TCP上建立成百上千个信道来达到多个线程处理，这个TCP被多个线程共享，每个线程对应一个信道，信道在rabbit都有唯一的ID ,保证了信道私有性，对应上唯一的线程使用。
+
+
+exchange的作用就是类似路由器，routing key 就是路由键，服务器会根据路由键将消息从交换器路由到队列上去。
+
+
+1、信道才是rabbit通信本质，生产者和消费者都是通过信道完成消息生产消费的。
+2、交换器本质是一张路由查询表（名称和队列id，类似于hash表），这是一个虚拟出来的东西，并不存在真实的交换器。
+3、消息的生命周期：生产者生产消息A 交由信道，信道通过消息（消息由载体和标签）的标签（路由键）放到交换器发送到队列上（其实就是查询匹配，一旦匹配到了规则，信道就直接和队列产生连接，然后将消息发送过去）
+4、Channel是我们与RabbitMQ打交道的最重要的一个接口，我们大部分的业务操作是在Channel这个接口中完成的，包括定义Queue、定义Exchange、绑定Queue与Exchange、发布消息等。
+5、queue队列用于存储消息，等待消费者的消费。
+6、队列和交换机都有名字，交换机还可以指定类型，通道不需要名字。我们声明一个通道然后把 交换机和队列bind上去就可以了。
+
+总结：
+生产者生产消息，指定一个交换机，把消息发到 通道上的交换机里面
+消费者注册队列，绑定到 指定的交换机上，如果这个交换机使用发布订阅模式就会接受所有的消息，如果使用路由模式就会接收到routingKey相对应的消息。
+
+------------------------
+
+rabbitMQ + springboot
+
+总结，springboot中使用rabbitMQ，因为starter-amqp简化了很多代码
+可以直接使用RabbitTemplate来完成6种工作模式
+
+AmqpTemplate和 RabbitTemplate类似于 RedisTemplate 、MongoTemplate
+核心功能就是用来操作rabbitMQ，
+可以直接通过RabbitTemplate向rabbitMQ操作
+
+pom
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+
+配置
+spring.rabbitmq.host: 服务Host
+spring.rabbitmq.port: 服务端口
+spring.rabbitmq.username: 登陆用户名
+spring.rabbitmq.password: 登陆密码
+spring.rabbitmq.virtual-host: 连接到rabbitMQ的vhost
+spring.rabbitmq.addresses: 指定client连接到的server的地址，多个以逗号分隔(优先取addresses，然后再取host)
+spring.rabbitmq.requested-heartbeat: 指定心跳超时，单位秒，0为不指定；默认60s
+spring.rabbitmq.publisher-confirms: 是否启用【发布确认】
+spring.rabbitmq.publisher-returns: 是否启用【发布返回】
+spring.rabbitmq.connection-timeout: 连接超时，单位毫秒，0表示无穷大，不超时
+spring.rabbitmq.parsed-addresses:
+
+
+基础代码用法：
+@Configuration
+public class RMQueueConfig {
+    /**
+     * 定义demoQueue队列
+     * @return
+     */
+    @Bean
+    public Queue demoString() {
+        return new Queue("TestQueue");
+    }
+}
+@Component
+public class Sender {
+    Logger logger = Logger.getLogger(Sender.class.getName());
+
+    @Autowired
+    private AmqpTemplate amqpTemplate;
+
+    public String send(){
+        String context = "简单消息发送";
+        logger.info("简单消息发送时间："+new Date());
+        amqpTemplate.convertAndSend("TestQueue", context);
+        return "发送成功";
+    }
+}
+@Component
+@RabbitListener(queues = "TestQueue")
+public class Receiver {
+    Logger logger = Logger.getLogger(Receiver.class.getName());
+
+    @RabbitHandler
+    public void process(String Str) {
+        logger.info("接收消息："+Str);
+        logger.info("接收消息时间："+new Date());
+    }
+}
+@RestController
+public class RMQController {
+
+    @Autowired
+    private Sender sender;
+
+    @GetMapping("hello")
+    public String helloTest(){
+        sender.send();
+        return "success";
+    }
+
+}
+
+
+------------------------
+
+RabbitMQ持久化
+
+消息持久化，为了保证RabbitMQ在退出或者crash等异常情况下数据没有丢失，需要将queue，exchange和Message都持久化。
+
+队列的持久化
+通过durable=true来实现的,第二个参数就是使得队列持久化
+channel.queueDeclare("queue.persistent.name", true, false, false, null);
+
+
+消息的持久化
+发送消息时，设置MessageProperties.PERSISTENT_TEXT_PLAIN
+channel.basicPublish("exchange.persistent", "persistent", MessageProperties.PERSISTENT_TEXT_PLAIN, "persistent_test_message".getBytes());
+BasicProperties的构造方法中，deliveryMode=1代表不持久化，deliveryMode=2代表持久化
+
+交换机持久化
+如果exchange不设置持久化，那么当broker服务重启之后，exchange将不复存在，那么既而发送方rabbitmq producer就无法正常发送消息。
+channel.exchangeDeclare(exchangeName, “direct/topic/header/fanout”, true);即在声明的时候讲durable字段设置为true即可。
+
+
+
+------------------------
+
+rabbitMQ集群搭建
+
+RabbitMQ模式大概分为以下三种:
+(1)单一模式。
+(2)普通模式(默认的集群模式)。
+(3)镜像模式(把需要的队列做成镜像队列，存在于多个节点，属于RabbiMQ的HA方案，在对业务可靠性要求较高的场合中比较适用)。
+要实现镜像模式，需要先搭建一个普通集群模式，在这个模式的基础上再配置镜像模式以实现高可用。
+
+------------------------
+
+普通集群
+
+类似于redis的主从复制集群（master/slave），普通集群分为 主节点和从节点
+主节点存储 队列信息和交换机信息，从节点只有交换机信息，所以如果主节点宕机，从节点没有办法成为主节点。
+从节点算是备份。
+
+
+------------------------
+
+rabbitMQ 集群 镜像模式 + 方向代理
+
+镜像集群基于普通集群，保证消息不丢失，
+如果主节点宕机，从节点可以转为主节点，故障转移，从节点可以同步主节点的所有信息
+
+
+
+
+
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
