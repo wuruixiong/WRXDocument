@@ -1,0 +1,530 @@
+
+
+疑问点
+1. Lifecycle，LifecycleOwner，LiveData
+2. @Subscribe(threadMode = ThreadMode.MAIN)
+3. RxBus中的 Subscribe注解使用方式，RxBus.getDefault().register
+4. com.alibaba.android.arouter.launcher.ARouter
+5. @Interceptor 应该是拦截所有的 arouter跳转
+6. OkGo网络请求
+7. RXjava，AndroidSchedulers，Observable
+8. getLifecycle().addObserver(mPresenter);
+
+
+---------------------------------------
+
+界面
+币种界面 AssetCoinActivity
+转账记录 TransferRecordsActivity
+提币记录 WithDrawRecordFragment
+HomeFragment里面的货币市场列表 MarketListFragment
+HomeFragment里面三个货币卡片 CoinFragment
+URL链接 BaseHttpConfig.BASE_URL
+下拉刷新控件，外部库 SmartRefreshLayout
+
+
+
+
+
+---------------------------------------
+
+1. 登录注解
+@Route(path = RoutePath.LOGIN_LOGIN)
+public class LoginActivity extends BaseActivity<LoginPresenter> {}
+
+路由配置
+MainActivity
+@Subscribe(threadMode = ThreadMode.MAIN)
+public void changeTabByOutSide(Integer position) {
+	if (position == 3 && mUserBean == null) {
+		ARouter.getInstance().build(RoutePath.LOGIN_LOGIN).navigation();
+		return;
+	}
+	if (position >= 0 && position < 5) {
+		setCurrentTab(position);
+	}
+}
+
+
+
+2. 登录拦截
+@Interceptor(priority = 1, name = "登录拦截器")
+public class LoginInterceptor implements IInterceptor {
+    @Override
+    public void process(Postcard postcard, InterceptorCallback callback) {
+	......
+	}
+}
+
+这个拦截器应该是每一个Route都会进行拦截，可以用postcard进行判断，只处理特定的路由
+
+
+
+3. BuildConfig基本配置，包括了服务器地址，各种key
+
+
+
+4. 登录入口
+BaseActivity
+@Subscribe(threadMode = ThreadMode.MAIN, code = BusCode.LOGOUT)
+public void logout() {}
+
+JsonCallBack
+RxBus.getDefault().send(BusCode.LOGOUT);
+
+// 把加载完成的数据对象发给bus处理
+RxBus.getDefault().post();
+
+
+5. 获取用户身份。
+Response{protocol=http/1.1, code=200, message=OK, url= http://api.liveex.vip//api/activity/yesterday_all_income }
+yesterday_all_income
+
+HomePresenter.yesterday_all_income()
+HomeFragment.loadData()
+BaseActivity.loadData();
+
+
+6. 自定义的消息通知
+RxBus
+（1）先注册：RxBus.getDefault().register(this);
+     注册时，会加载当前类的全部的被@Subscribe注解的方法：method.isAnnotationPresent(Subscribe.class)
+	 一般情况下，会在activity或者fragment的create阶段进行register，在destroy阶段进行unregister，确保执行效率和内存回收。
+	 
+（2）注解，可以附带一个BusCode：@Subscribe(threadMode = ThreadMode.MAIN, code = BusCode.LOGOUT)
+	 消息发送，发到对应的buscode上：RxBus.getDefault().send(BusCode.LOGOUT) 
+
+（3）@Subscribe还可以定义 ThreadMode: CURRENT_THREAD, MAIN, NEW_THREAD
+	 指定消息通知由哪些线程来接收发
+	 switch (subscriberMethod.threadMode.ordinal()) {
+            case 1:
+                scheduler = AndroidSchedulers.mainThread();
+                break;
+            case 2:
+                scheduler = Schedulers.newThread();
+                break;
+            case 3:
+                scheduler = Schedulers.trampoline();
+                break;
+            default:
+                throw new IllegalStateException("Unknown thread mode: " + subscriberMethod.threadMode);
+        }
+
+总结：
+自定义消息通知RxBus的大致流程
+（1）创建了一个PublishSubject变量叫做bus，这些是被监听者，后面要转为flowable
+（2）RxBus注册register()，会调用addSubscriber()，添加监听者：.subscribe(o -> RxBus.this.callEvent(subscriberMethod, o))
+（3）RxBus.post()发送Object，调用到callEvent()，调用到subscriberMethod.invoke(object) 通过反射的方式去执行方法
+（4）这个表 以Class为键，List<SubscriberMethod>为值，List<SubscriberMethod>就是这个Class里面的被@Subscribe注解过的方法
+	 Map<Class, List<SubscriberMethod>> subscriberMethodByEventType
+	 回调结果把 结果对象传回 对应方法时，还会判断 结果对象的 类型，如果类型符合 @Subscribe注解方法的类型，才会调用Method.invoke() 方法
+
+
+
+
+7. 网络请求
+（1）以登录为例，LoginPresenter 调用OKGO框架post一个请求，返回值类型是框架负责转换的HttpResult<LoginBean>
+返回的回调是一个自定义的callback：execute(new JsonCallBack<HttpResult<LoginBean>>(this){}
+
+大部分请求都是走 JsonCallBack 进行回调的。
+
+错误提示的toast也是在JsonCallBack里面做的。
+
+例1，K线的获取流程
+ChartPresenter
+	getStockInfo()
+Request
+	execute()
+CacheCall
+	call.execute(callback)
+NoCachePolicy
+	mCallback.onStart(request);
+	try {
+		prepareRawCall();
+	} catch (Throwable throwable) {
+		Response<T> error = Response.error(false, rawCall, null, throwable);
+		mCallback.onError(error);
+		return;
+	}
+	requestNetworkAsync();
+BaseCachePolicy
+	requestNetworkAsync()
+		onResponse(okhttp3.Call call, okhttp3.Response response)
+		T body = request.getConverter().convertResponse(response);
+JsonCallBack/JsonConvert
+	convertResponse
+	
+例2：
+长连接更新
+ChartFragment 展示K线或者分时线的fragment
+	socketUpdate() 会一直调用这个方法，保持 分时的线图刷新
+
+JsonConvert
+CurrentEntrustFragmentPresenter
+DataSource
+LoadListener
+ObservableBody
+
+
+SmartRefreshHelper
+onSuccess()
+onFailure()
+
+
+例3：
+OkGo.<HttpResult<Page<BeanFaster>>>get(HttpConfig.BASE_URL + HttpConfig.FASTER_BUY_RECORD)
+	.params("type",type)
+	.params("page", page)
+	.converter(new JsonConvert<HttpResult<Page<BeanFaster>>>() {
+	})
+	.adapt(new FlowableBody<>())
+	.map(pageHttpResult -> {
+		return pageHttpResult.getData().getRes();
+	});
+
+这里存在两种转换
+.converter是OKGO框架写的一个把 Converter对象传入的接口，Converter对象的作用是把原始的 OKHTTP3的response，转为一个HttpResult<T>，具体可看例1；
+.map是RXJava的框架，把参数泛型T转为目标泛型R，并且return Flowable<R>，具体实现可看源码。
+
+
+（2）WebSocket，基于OkHttp3的WebSocket，保持持续连接，用于获取实时数据后进行实时刷新
+
+
+
+
+
+
+
+8. RxJava
+
+使用步骤：
+（1）定义被观察者Observable，或者 带有背压功能的被观察者Flowable<T>。
+     被观察者里面可以执行next(T value)方法
+（2）定义观察者Observer，或者 Flowable/Subscriber
+     观察者里面有很多个类似于 生命周期的方法，例如onNext()，onError()，onComplete()
+（3）被观察者订阅观察者，Observable可以订阅Observer，Flowable可以订阅Flowable或者Subscriber
+
+（4）rxjava结合网络请求框架，例如okhttp，那么被观察者如果获取到 javabean，并且把bean作为参数去调用next(T value)
+	 所以，javabean的获取的耗时的业务逻辑，就是在被观察者里面执行的
+
+（5）Flowable，Observer可以转为Flowable，需要调用方法toFlowable()，并且加上一种BackpressureStrategy
+BackpressureStrategy
+
+ERROR，如果缓存池溢出，就会立刻抛出MissingBackpressureException异常。即保证在异步操作中，事件累积不能超过128，
+超过即出现异常。消费者不能再接收事件了，但生产者并不会停止。
+
+BUFFER，把RxJava中默认的只能存128个事件的缓存池换成一个大的缓存池，支持存很多很多的数据。
+消费者通过request()即使传入一个很大的数字，生产者也会生产事件，并将处理不了的事件缓存。
+比较消耗内存, 除非是我们比较了解消费者的消费能力，能够把握具体情况，不会产生OOM。(OutOfMemoryError)
+
+DROP - 当消费者处理不了事件，就丢弃。
+
+LATEST - 消费者通过request()传入其需求n，然后生产者把n个事件传递给消费者供其消费。其他消费不掉的事件就丢掉。 唯一的区别就是LATEST总能使消费者能够接收到生产者产生的最后一个事件。
+
+MISSING - 写入过程中没有任何缓冲或丢弃, 即不操作.
+
+
+（6）观察者和被观察者分别可以在不同的线程上。
+     如果被观察者需要网络请求（耗时操作），观察者需要刷新UI，那么需要不同的线程来执行
+	subscribeOn() 指定了执行代码执行的线程
+	observeOn() 指定了其后代码执行的线程
+	
+	Flowable.just(1, 2, 3, 4, 5, 6, 7, 8, 9).map(new Function<Integer, Integer>() {
+		@Override
+		public Integer apply(Integer integer) throws Exception {
+			return integer * 10;
+		}
+	})
+	// 被观察者的耗时操作在IO线程里面执行
+	.subscribeOn(Schedulers.io())
+	// 观察者获取到结果之后，刷新主界面，在UI主线程里面执行
+	.observeOn(AndroidSchedulers.mainThread())
+	.subscribe(new Consumer<Integer>() {
+		@Override
+		public void accept(Integer integer) throws Exception {
+			Log.e(TAG, "result = " + integer);
+		}
+	});
+	
+（7）map函数，map()和flatmap()，被观察者获取数据之后，经过map()方法，可以做一个类型转换，在向下传递到观察者的回调里面。
+Flowable.create(new FlowableOnSubscribe<String>() {
+	@Override
+	public void subscribe(FlowableEmitter<String> emitter) throws Exception {
+		emitter.onNext("1");
+		emitter.onNext("2");
+		emitter.onNext("3");
+		emitter.onComplete();
+	}
+}, BackpressureStrategy.MISSING)
+.map(new Function<String, Integer>() {
+	@Override
+	public Integer apply(@NonNull String s) throws Exception {
+		return Integer.valueOf(s);
+	}
+})
+.subscribeOn(Schedulers.io())
+.observeOn(AndroidSchedulers.mainThread())
+.subscribe(new Consumer<Integer>() {
+	@Override
+	public void accept(Integer integer) throws Exception {
+		Log.e(TAG, "result = " + integer);
+	}
+});
+
+（8）RxJava的四种Subjects：PublishSubject、ReplaySubject、BehaviorSubject、AsyncSubject的理解
+Subject在同一时间内，既可以作为Observable，也可以作为Observer。
+
+PublishSubject Publish是Subject的一个基础子类。发送订阅后的数据流。
+ReplaySubject ReplaySubject会缓存它所订阅的所有数据,向任意一个订阅它的观察者重发:
+BehaviorSubject 会首先向他的订阅者发送截至订阅前最新的一个数据对象（或初始值）,然后正常发送订阅后的数据流。
+AsyncSubject 当Observable完成时AsyncSubject只会发布最后一个数据给已经订阅的每一个观察者。
+UnicastSubject:只允许一个 Observer 进行监听，在该 Observer 注册之前会将发射的所有的事件放进一个队列中，并在 Observer 注册的时候一起通知给它。
+
+Subject在ReactiveX是作为observer和observerable的一个bridge或者proxy。因为它是一个观察者，
+所以它可以订阅一个或多个可观察对象，同时因为他是一个可观测对象，所以它可以传递和释放它观测到的数据对象，并且能释放新的对象。
+
+Subject既可以是数据源observerable，也可以是数据的订阅者Observer。
+Subject实际上还是Observable，只不过它继承了Observer接口，可以通过onNext、onComplete、onError方法发射和终止发射数据。
+
+
+
+（9）Schedulers
+Rxjava中的Scheduler相当于线程控制器，Rxjava通过它来指定每一段代码应该运行在什么样的线程。Rxjava提供了5种调度器：
+Schedulers.io()
+这个调度器用于I/O操作，比如：读写文件，数据库，网络交互等等。行为模式和newThread()差不多，
+重点需要注意的是线程池是无限制的，大量的I/O调度操作将创建许多个线程并占用内存。
+
+Schedulers.computation()
+计算工作默认的调度器，这个计算指的是 CPU 密集型计算，即不会被 I/O 等操作限制性能的操作，例如图形的计算。这个 Scheduler 使用的固定的线程池，大小为 CPU 核数。
+
+Schedulers.immediate()
+这个调度器允许你立即在当前线程执行你指定的工作。这是默认的Scheduler。
+
+Schedulers.newThread()
+这个调度器正如它所看起来的那样：它为指定任务启动一个新的线程。
+
+Schedulers.trampoline()
+当我们想在当前线程执行一个任务时，并不是立即，我们可以用trampoline() 将它入队。这个调度器将会处理它的队列并且按序运行队列中每一个任务。
+
+
+
+
+
+
+9. Lambda 表达式
+如果一个方法的参数是接口，可以使用Lambda表达式，相当于new一个接口，把new出来的作为参数传入，简化代码。
+如果没有参数，直接写一个小括号，或者不用写；如果有参数，要写对应的参数，参考例1例2
+可以直接写一个Lambda表达式，然后赋值给一个接口，例2
+可以使用 :: 进一步简化代码，例3
+
+例1，以下二段代码效果等同
+new Thread((new Runnable() {
+	@Override
+	public void run() {
+		System.out.println("匿名内部类 实现线程");
+	}
+})).start();
+//lambda
+new Thread( () -> System.out.println("java8 lambda实现线程")).start();
+
+例2，以下三段代码效果等同
+zoomRecordAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+	@Override
+	public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+
+	}
+});
+zoomRecordAdapter.setOnItemClickListener(
+		(adapter, view, position) ->
+				Log.e("mytest", "" + position + view.toString() + adapter.toString())
+);
+BaseQuickAdapter.OnItemClickListener listener = (adapter, view, position) ->
+		Log.e("mytest", "" + position + view.toString() + adapter.toString());
+zoomRecordAdapter.setOnItemClickListener(listener);
+
+例3
+List<String> list = new ArrayList<String>();
+list.forEach(new Consumer<String>() {
+	@Override
+	public void accept(String s) {
+		
+	}
+});
+list.forEach(str -> System.out.println(str));
+list.forEach(System.out::println);
+
+
+
+
+
+
+10. 自定义Exception排查
+JsonCallBack.convertResponse()会根据状态码抛出这两个异常
+LoginException
+ApiException
+
+
+
+
+11. MainActivity，WebSocket
+继承自okhttp的框架，WebSocket实例化WebSocketListener
+用于持续连接，获取信息，例如说分时信息
+
+自定义类WebSocket，在构造方法的调用层级里，就会创建OkHttpClient，并且使用client.newWebSocket(request, (WebSocketListener)this)去持续监听
+
+
+
+
+12.
+NewMarketDetailActivity 界面优化问题
+
+NewMarketDetailActivity 数据交互
+
+（1）ChartFragment mPresenter.getStockInfo
+
+（2）更新数据 @Subscribe updatePrice(CoinBean newcoinBean) {......}
+
+（3）获取实时数据的WebSocket，在Main主页创建WebSocket协议连接，
+使用自定义的RxBus发送给所有的@Subscribe 注解方法，也包括了发送给
+MainActivity
+	marketWebSocket.setListener(message1 -> {
+		try {
+			CoinBean coinBean = JSON.parseObject(message1, CoinBean.class);
+			if (coinBean != null) {
+				RxBus.getDefault().post(coinBean);
+			}
+		} catch (Exception e) {
+
+		}
+	});
+
+结构：
+NewMarketDetailActivity
+	MarketDetailAdapter
+		ChartFragment
+		DepthFragment
+		TradeFragment
+		SummaryFragment
+
+
+
+
+
+13. 启动流程优化
+（1）主页加载时，只加载第一页数据，其他页面数据只有在点击 底部导航栏时点到对应的fragment才初始化
+（2）web加载流程代码优化，整合网络加载接口，统一使用一种方式去加载网络请求
+（3）在RxBus中注册过的fragment，都会受到websocket中RxBus的通知，收到通知后大量 不显示的fragment也会刷新界面，导致卡顿，这点可以改进。
+	 创建显示接口，在fragment不显示的时候，可以取消注册，显示的时候再注册。
+
+
+目前代码优化中，发现以下问题
+1. 优化加载第一项时，发现资讯页面无法展示内容
+   调试发现加载网络时能够获取到数据，调用BaseQuickAdapter的setNewData的 notifyDataSetChanged() 之后，页面还是没有办法刷新
+   解决思路，自定义一个代替资讯的fragment进行测试
+   
+2. 点击事件，recycleview刷新事件 断点无效，但是可以输出日志。
+   初步怀疑可能是外部框架或者fragment的问题。
+   (控件问题，使用textview来设置点击事件)
+
+
+
+14. 
+加载数据的页面记录：
+（1）HomeFragment 主页，比较复杂
+
+次级页面：
+CoinFragmentPager 币种Page页，目前只有一页
+	CoinFragment 中间的三个 虚拟币 卡片页面
+MarketListFragment 货币市场列表页
+	
+	
+
+（2）NewsHomeFragment
+次级页面：
+NewsFragment 咨询，initData()会加载数据
+PlatformNoticeFragment 公告，initData()会加载数据
+
+
+
+（3）TradeFragment 交易界面，比较复杂
+
+以下这些次级页面，大部分都会在初始化时加载数据
+次级页面：
+ContractHomeFragment 合约交易
+	ContractFragment 合约交易主页面
+		RealTimeOrderFragment 实时订单交易
+		OrderRecordsFragment 订单记录
+BibiHomeFragment 币币交易
+	BibiMainFragment
+		pankouFragment
+		buyAndSellFragment
+		entrustFragment
+	CurrentEntrustFragment
+	HistoryEntrustFragment
+
+
+（4）FiatMainFragment 法币交易
+次级页面：
+TradeListFragment 出售
+TradeListFragment 购买
+PublishRecordFragment 委托记录
+TradeRecordFragment 交易记录
+
+法币页面，暂时看到不会在初始化时，去加载其他数据。
+
+（5）MineFragment，"我的"页
+没有下级fragment，也不会在初始化时加载数据
+
+
+15. Lifecycle，LifecycleOwner，LiveData
+
+LifecycleObserver ：观察者，实现该接口的类，通过注解的方式，可以通过被LifecycleOwner类的addObserver方法注册，
+被注册后，LifecycleObserver便可以观察到LifecycleOwner的生命周期事件
+
+LifecycleOwner：被观察者，实现该接口的类持有生命周期(Lifecycle对象)，
+该接口的生命周期(Lifecycle对象)的改变会被其注册的观察者LifecycleObserver观察到并触发其对应的事件
+
+Event：从框架和Lifecycle类派发的生命周期事件
+State ：由Lifecycle对象跟踪的组件的当前状态
+LifecycleRegistry：负责控制state的转换、接受分发event事件
+
+通常可以从activity中获取getLifecycle().addObserver(new GenericLifecycleObserver());
+
+
+
+
+16 用来加载page
+return OkGo.<HttpResult<Page<WithdrawRecordsBean>>>post(BaseHttpConfig.BASE_URL + HttpConfig.WITHDRAW_RECORDS)
+                .params("type", type)
+				xxx
+                .converter(new JsonConvert<HttpResult<Page<WithdrawRecordsBean>>>() {
+                })
+                .adapt(new FlowableBody<>())
+                .map(pageHttpResult -> {
+                    return pageHttpResult.getData().getRes();
+                });
+
+
+17 自动登录问题，当获取服务器响应的 如下的json字段
+   {"status_code":401,"message":"Unauthorized"}
+	会按照以下流程走到登录页面
+	JsonCallBack，convertResponse， throw new LogoutException(msg)， RxBus.getDefault().send(BusCode.LOGOUT);
+	BaseActivity，logout() ，ARouter.getInstance().build(RoutePath.LOGIN_LOGIN).navigation();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
