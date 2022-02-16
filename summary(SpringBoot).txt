@@ -292,10 +292,57 @@ public class EmployeeInfoControl {
 
 
 
+1，默认是byType
+@Autowired
+private UserService userService;
+如果只有一个实现类，不会报错；
+如果有多个会报错；
 
-------------------
+@Autowired
+private UserService userServiceImpl1;
+如果有多个实现类时，这样可行。
+byType找到多个实现类时，会自动byName，如果byName也不行，才会报错
+
+2，主动byName
+@Autowired
+@Qualifier("demoServiceImpl1")
+private DemoService demoService;
 
 
+案例：
+@RestController
+public class MyControl {
+    @Autowired
+    @Qualifier("wrx")
+    MyBean myBean;
+}
+
+@Configuration
+public class ConfigBean {
+    @Bean("wrx")
+    public MyBean createBean(){
+        MyBean myBean = new MyBean();
+        myBean.setId("001");
+        myBean.setName("wrx");
+        return myBean;
+    }
+    @Bean("hello")
+    public MyBean createBean2(){
+        MyBean myBean = new MyBean();
+        myBean.setId("002");
+        myBean.setName("hello");
+        return myBean;
+    }
+}
+
+public class MyBean {
+    String id;
+    String name;
+    public String getId() {return id;}
+    public void setId(String id) {this.id = id;}
+    public String getName() {return name;}
+    public void setName(String name) {this.name = name;}
+}
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -669,12 +716,24 @@ SpringBoot这种设计在微服务架构下有明显的优点：
 @Repository持久层解析
 
 
-
 @Component
 @Controller @Service @Repository @Configuration都是@Component的子类
 在IOC容器初始化时，就会扫描这些注解所在的类，并加入IOC容器中
 
 
+
+-----------------
+
+@Bean 和 @Component的区别
+注解作用
+@Component注解表明一个类会作为组件类，并告知Spring要为这个类创建bean。
+@Bean注解告诉Spring这个方法将会返回一个对象，这个对象要注册为Spring应用上下文中的bean。通常方法体中包含了最终产生bean实例的逻辑。
+两者对比
+相同点：两者的结果都是为spring容器注册Bean.
+不同点：@Component 通常是通过类路径扫描来自动侦测以及自动装配到Spring容器中。
+　　　　@Bean 注解通常是我们在标有该注解的方法中定义产生这个bean的逻辑。
+
+-----------------
 
 @Configuration，@Bean
 源码中是如何实现@Configuration语意
@@ -711,6 +770,44 @@ public static void main(String[] args) {
 (1)、@Bean注解在返回实例的方法上，如果未通过@Bean指定bean的名称，则默认与标注的方法名相同； 
 (2)、@Bean注解默认作用域为单例singleton作用域，可通过@Scope(“prototype”)设置为原型作用域； 
 (3)、既然@Bean的作用是注册bean对象，那么完全可以使用@Component、@Controller、@Service、@Ripository等注解注册bean，当然需要配置@ComponentScan注解进行自动扫描
+
+
+
+-----------------
+
+@Scope注解是springIoc容器中的一个作用域，
+在 Spring IoC 容器中具有以下几种作用域：基本作用域singleton（单例）、prototype(多例)，Web 作用域（reqeust、session、globalsession），自定义作用域
+a.singleton单例模式 -- 全局有且仅有一个实例
+b.prototype原型模式 -- 每次获取Bean的时候会有一个新的实例
+c.request -- request表示该针对每一次HTTP请求都会产生一个新的bean，同时该bean仅在当前HTTP request内有效
+d.session -- session作用域表示该针对每一次HTTP请求都会产生一个新的bean，同时该bean仅在当前HTTP session内有效
+e.globalsession -- global session作用域类似于标准的HTTP Session作用域，不过它仅仅在基于portlet的web应用中才有意义
+
+
+@Scope注解的使用场景
+几乎90%以上的业务使用singleton单实例就可以，所以spring默认的类型也是singleton，singleton虽然保证了全局是一个实例，对性能有所提高，但是如果实例中有非静态变量时，会导致线程安全问题，共享资源的竞争
+当设置为prototype时：每次连接请求，都会生成一个bean实例，也会导致一个问题，当请求数越多，性能会降低，因为创建的实例，导致GC频繁，gc时长增加
+
+-----------------
+
+@Component创建bean案例
+
+@Component
+public class MyComponentBean {
+    @Value("003")
+    String id;
+    @Value("wrx")
+    String name;
+
+   //get和set方法 。。。。。。
+}
+
+
+@RestController
+public class MyControl {
+    @Autowired
+    MyComponentBean myComponentBean;
+}
 
 -----------------
 
@@ -762,15 +859,6 @@ web容器初始化
 
 
 
------------------
-@Bean 和 @Component的区别
-注解作用
-@Component注解表明一个类会作为组件类，并告知Spring要为这个类创建bean。
-@Bean注解告诉Spring这个方法将会返回一个对象，这个对象要注册为Spring应用上下文中的bean。通常方法体中包含了最终产生bean实例的逻辑。
-两者对比
-相同点：两者的结果都是为spring容器注册Bean.
-不同点：@Component 通常是通过类路径扫描来自动侦测以及自动装配到Spring容器中。
-　　　　@Bean 注解通常是我们在标有该注解的方法中定义产生这个bean的逻辑。
 
 
 

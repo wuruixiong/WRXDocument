@@ -55,6 +55,34 @@ Java把内存分成两种，一种叫做栈内存，一种叫做堆内存
 访问控制符(access specifier):public private protected
 
 
+------------------------------------------------------------
+
+
+JVM：JVM有自己完善的硬件架构，如处理器、堆栈（Stack）、寄存器等，还具有相应的指令系统（字节码就是一种指令格式）。JVM屏蔽了与具体操作系统平台相关的信息，使得Java程序只需要生成在Java虚拟机上运行的目标代码（字节码），就可以在多种平台上不加修改地运行。JVM是Java平台无关的基础。JVM负责运行字节码：JVM把每一条要执行的字节码交给解释器，翻译成对应的机器码，然后由解释器执行。JVM解释执行字节码文件就是JVM操作Java解释器进行解释执行字节码文件的过程。
+
+Java编译器：将Java源文件（.java文件）编译成字节码文件（.class文件，是特殊的二进制文件，二进制字节码文件），这种字节码就是JVM的“机器语言”。javac.exe可以简单看成是Java编译器。
+
+Java解释器：是JVM的一部分。Java解释器用来解释执行Java编译器编译后的程序。java.exe可以简单看成是Java解释器。
+
+注意：通常情况下，一个平台上的二进制可执行文件不能在其他平台上工作，因为此可执行文件包含了对目标处理器的机器语言。而Class文件这种特殊的二进制文件，是可以运行在任何支持Java虚拟机的硬件平台和操作系统上的！
+
+ 
+
+维基百科定义：
+
+JVM：一种能够运行Java字节码（Java bytecode）的虚拟机。
+
+字节码：字节码是已经经过编译，但与特定机器码无关，需要解释器转译后才能成为机器码的中间代码。
+
+Java字节码：是Java虚拟机执行的一种指令格式。
+
+解释器：是一种电脑程序，能够把高级编程语言一行一行直接翻译运行。解释器不会一次把整个程序翻译出来，只像一位“中间人”，每次运行程序时都要先转成另一种语言再作运行，因此解释器的程序运行速度比较缓慢。它每翻译一行程序叙述就立刻运行，然后再翻译下一行，再运行，如此不停地进行下去。它会先将源码翻译成另一种语言，以供多次运行而无需再经编译。其制成品无需依赖编译器而运行，程序运行速度比较快。
+
+即时编译(Just-in-time compilation: JIT)：又叫实时编译、及时编译。是指一种在运行时期把字节码编译成原生机器码的技术，一句一句翻译源代码，但是会将翻译过的代码缓存起来以降低性能耗损。这项技术是被用来改善虚拟机的性能的。
+
+JIT编译器是JRE的一部分。原本的Java程序都是要经过解释执行的，其执行速度肯定比可执行的二进制字节码程序慢。为了提高执行速度，引入了JIT。在运行时，JIT会把翻译过来的机器码保存起来，以备下次使用。而如果JIT对每条字节码都进行编译，则会负担过重，所以，JIT只会对经常执行的字节码进行编译，如循环，高频度使用的方法等。它会以整个方法为单位，一次性将整个方法的字节码编译为本地机器码，然后直接运行编译后的机器码。
+
+二进制文件：广义的二进制文件即为文件，由文件在外部存储设备的存放方式为二进制而得名。狭义的二进制文件即指除文本文件以外的文件。文本文件的格式包括：ASCII、MIME、txt。
 
 ------------------------------------------------------------
 
@@ -1181,7 +1209,365 @@ Matcher m = p.matcher("aad+-'/?>,2134asd1asd");
 Pattern p = Pattern.compile("^1$");
 Matcher m = p.matcher("1");
 
----------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+
+设计模式
+
+设计模式分为三种大类型：
+创建型模式：对象实例化的模式，创建型模式用于解耦对象的实例化过程。
+结构型模式：把类或对象结合在一起形成一个更大的结构。
+行为型模式：类和对象如何交互，及划分责任和算法。
+
+
+创建型模式：
+单例模式：某个类只能有一个实例，提供一个全局的访问点。
+简单工厂：一个工厂类根据传入的参量决定创建出那一种产品类的实例。
+工厂方法：定义一个创建对象的接口，让子类决定实例化那个类。
+抽象工厂：创建相关或依赖对象的家族，而无需明确指定具体类。
+建造者模式：封装一个复杂对象的构建过程，并可以按步骤构造。
+原型模式：通过复制现有的实例来创建新的实例。
+
+ 
+创建型模式：
+适配器模式：将一个类的方法接口转换成客户希望的另外一个接口。
+组合模式：将对象组合成树形结构以表示“”部分-整体“”的层次结构。
+装饰模式：动态的给对象添加新的功能。
+代理模式：为其他对象提供一个代理以便控制这个对象的访问。
+亨元（蝇量）模式：通过共享技术来有效的支持大量细粒度的对象。
+外观模式：对外提供一个统一的方法，来访问子系统中的一群接口。
+桥接模式：将抽象部分和它的实现部分分离，使它们都可以独立的变化。
+
+ 
+行为型模式：
+模板模式：定义一个算法结构，而将一些步骤延迟到子类实现。
+解释器模式：给定一个语言，定义它的文法的一种表示，并定义一个解释器。
+策略模式：定义一系列算法，把他们封装起来，并且使它们可以相互替换。
+状态模式：允许一个对象在其对象内部状态改变时改变它的行为。
+观察者模式：对象间的一对多的依赖关系。
+备忘录模式：在不破坏封装的前提下，保持对象的内部状态。
+中介者模式：用一个中介对象来封装一系列的对象交互。
+命令模式：将命令请求封装为一个对象，使得可以用不同的请求来进行参数化。
+访问者模式：在不改变数据结构的前提下，增加作用于一组对象元素的新功能。
+责任链模式：将请求的发送者和接收者解耦，使的多个对象都有处理这个请求的机会。
+迭代器模式：一种遍历访问聚合对象中各个元素的方法，不暴露该对象的内部结构。
+
+----------------------
+
+工厂模式
+定义接口，多种实体类实例化接口，创建一个工厂来生产实体类。
+实体类可以有多种，用switch来判断要生产哪一种。
+每次增加新的产品，就要定义多一种实体类；switch那里也要多加一条分支，判断生产哪一种实体类
+
+抽象工厂
+就是连普通工厂都由一个超级工厂来创建。
+工厂方法模式是针对一个产品系列的，而抽象工厂模式是针对多个产品系列的。
+用法：定义抽象工厂类，每多一种工厂就要多一个方法用来返回工厂。工厂的实体类似于普通工厂。
+
+----------------------
+
+代理模式，分为两种：普通代理（静态代理），动态代理
+普通代理要写三个部分：
+1.代理接口、2.代理类、3.被代理类，其中代理类和被代理类 都要实例化代理接口，
+代理类 调用 被代理类的 接口方法，这样就形成了代理。
+
+Spring的两大核心之一的AOP就是动态代理模式的经典案例，在AOP的源码中，springboot的初始化过程中，底层代码创建了大量的Proxy来创建对象。
+在Spring中的面向切面编程（AOP），我们能在一个切点之前执行一些操作，在一个切点之后执行一些操作，这个切点就是一个个方法。这些方法所在类肯定就是被代理了，在代理过程中切入了一些其他操作。
+如果代理类有很多个，那么每一处都要改一下代码，这里就可以直接使用动态代理来解决。
+
+例如：
+代理接口
+public interface Person {
+    void say();
+}
+被代理类
+public class Student implements Person {
+    @Override
+    public void say() {
+       System.out.println("hello");
+    }
+}
+代理类
+public class StudentsProxy implements Person {
+    //被代理的学生
+    Student stu;
+    public StudentsProxy(Person stu) {
+        // 只代理学生对象
+        if(stu.getClass() == Student.class) {
+            this.stu = (Student)stu;
+        }
+    }
+//代理
+    @Override
+    public void say() {
+        stu.say();
+    }
+}
+Main方法调用
+    public static void main(String[] args) {
+        //被代理的学生张三
+        Person zhangsan = new Student();
+        //生成代理对象，并将 被代理 传给代理对象
+        Person monitor = new StudentsProxy(zhangsan);
+        //班长代理上交班费
+        monitor.say();
+    }
+
+
+StudentsProxy的say方法还能在 stu.say();之前或者之后调用一些其他操作，例如
+    @Override
+    public void say() {
+	System.out.println("zhangsan saying: ");
+        stu.say();
+    }
+
+
+
+动态代理
+
+代理类在程序运行时创建的代理方式被成为动态代理。 普通的代理类是自己先定义好的，在程序运行之前就已经编译完成。
+然而动态代理，代理类并不是在Java代码中定义的，而是在运行时根据我们在Java代码中的“指示”动态生成的。
+相比于静态代理， 动态代理的优势在于可以很方便的对代理类的函数进行统一的处理，而不用修改每个代理类中的方法。
+
+在java的java.lang.reflect包下提供了一个Proxy类和一个InvocationHandler接口，通过这个类和这个接口可以生成JDK动态代理类和动态代理对象。
+
+动态代理的优势在于可以很方便的对代理类的函数进行统一的处理，而不用修改每个代理类中的方法。是因为所有被代理执行的方法，
+都是通过在InvocationHandler中的invoke方法调用的，所以我们只要在invoke方法中统一处理，就可以对所有被代理的方法进行相同的操作了
+
+总结，就是实例化InvocationHandler接口，还可以在InvocationHandler 的接口invoke()方法对Bean对象进行代理(代理前后进行日志输出)
+再放入Proxy.newProxyInstance()中，创建一个代理对象，在invoke前、后、环绕处 加入增强
+例如下面的 Person stuProxy，就是一个继承了Proxy类和实例Person接口的对象，
+由于代理类已经继承了 Proxy类，因此 动态代理技术只能针对接口进行代理。
+
+实例
+
+     public static void main(String[] args) {
+
+        //创建一个实例对象，这个对象是被代理的对象
+        Person zhangsan = new Student();
+
+        //创建一个与代理对象相关联的InvocationHandler
+        InvocationHandler stuHandler = new StuInvocationHandler<Person>(zhangsan);
+
+        //创建一个代理对象stuProxy来代理zhangsan，代理对象的每个执行方法都会替换执行Invocation中的invoke方法
+        Person stuProxy = (Person) Proxy.newProxyInstance(Person.class.getClassLoader(), new Class<?>[]{Person.class}, stuHandler);
+
+        //代理执行方法
+        stuProxy.say();
+    }
+
+    public interface Person {
+        void say();
+    }
+    public static class Student implements Person {
+        @Override
+        public void say() {
+            try {
+                //假设准备一秒时间
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("hello");
+        }
+    }
+    public static class StuInvocationHandler<T> implements InvocationHandler {
+        //invocationHandler持有的被代理对象
+        T target;
+
+        public StuInvocationHandler(T target) {
+            this.target = target;
+        }
+
+        /**
+         * proxy:代表动态代理对象
+         * method：代表正在执行的方法
+         * args：代表调用目标方法时传入的实参
+         */
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            System.out.println("代理执行" +method.getName() + "方法");
+            Object result = method.invoke(target, args);
+            return result;
+        }
+    }
+----------------------
+
+观察者模式（Observer），又叫发布-订阅模式（Publish/Subscribe），定义对象间一种一对多的依赖关系，使得每当一个对象改变状态，则所有依赖于它的对象都会得到通知并自动更新。
+
+说白了就是 被观察者对象建立一个监听器列表，当发生改变时，调用这些监听器的监听接口方法。
+
+    public static void main(String args[]){
+        //定义一个被观察者
+        Button button = new Button() ;
+        //注册其中一个观察者
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("TigerChain");
+            }
+        });
+        // 注册另一个观察者
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("never give up");
+            }
+        });
+        // 被观察者触发事件
+        button.click();
+    }
+
+public class Button extends View {
+}
+public class View {
+    //观察者的列表
+    private ArrayList<OnClickListener> onClickListeners = new ArrayList<>() ;
+    // 触发通知
+    protected void click(){
+        for(OnClickListener onClickListener:onClickListeners){
+            if(onClickListener !=null){
+                onClickListener.onClick(View.this);
+            }
+        }
+    }
+    // 注册观察者
+    public void setOnClickListener(OnClickListener onClickListener){
+        onClickListeners.add(onClickListener) ;
+    }
+
+    public interface OnClickListener{
+        // 定义通知的方法
+        void onClick(View v) ;
+    }
+
+    public void unRegister(OnClickListener onClickListener){
+        if(onClickListeners.contains(onClickListener)){
+            onClickListeners.remove(onClickListener) ;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+----------------------
+
+单例模式，两种写法，懒汉，饿汉
+
+饿汉：在定义开始，便实例化自己
+public class Single0 {
+	//私有构造方法，不允许外部new
+	private Single0() {
+	}
+	//内部创建静态方法，实例化
+	private static Single0 s=new Single0();
+	//提供静态方法，每次有其他类调用，就把当前的静态变量返回去
+	public static Single0 getsingle() {
+		return s;
+	}
+}
+
+
+懒汉：在第一次调用时实例化自己。
+public class Single1{
+	//私有构造方法，不允许外部调用构造方法
+	private Single1() {
+	}
+	public static Single1 s=null;
+	// Single1类在getsingle方法里面，调用了自己的构造方法，new了一个自己的对象
+	public static Single1 getsingle() {
+		if (s == null) {
+		s=new Single1(); 
+		}
+		return s;
+	}
+}
+
+1）饿汉式是空间换时间，懒汉式是空间换时间。
+2）在多线程访问的时候，懒汉式可能会创建多个对象，而饿汉式不会。
+3）懒汉是在第一次调用过之后才会创建对象。如果从来没有线程调用过，懒汉不存在内存开销，因为这个对象从未被创建。
+     饿汉是在类初始化阶段，在主函数执行时就创建了这个静态变量。
+
+----------------------
+
+
+序列化与反序列化
+
+序列化：指堆内存中的java对象数据，通过某种方式把对存储到磁盘文件中，或者传递给其他网络节点（网络传输）。这个过程称为序列化，通常是指将数据结构或对象转化成二进制的过程。
+即将对象转化为二进制，用于保存，或者网络传输。
+
+反序列化：把磁盘文件中的对象数据或者把网络节点上的对象数据，恢复成Java对象模型的过程。也就是将在序列化过程中所生成的二进制串转换成数据结构或者对象的过程
+与序列化相反，将二进制转化成对象。
+
+序列化和反序列化实现：
+
+要实现对象的序列化，最直接的操作就是实现Serializable接口
+使用IO流中的对象流可以实现序列化操作，将对象保存到文件，再读取出来。
+首先创建一个对象，并实现Serializable接口：
+import java.io.Serializable;
+public class User implements Serializable{
+    private static final long serialVersionUID = 1L;
+    private String name;
+    private int age;
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public int getAge() {
+        return age;
+    }
+    public void setAge(int age) {
+        this.age = age;
+    }
+    @Override
+    public String toString() {
+        return "User [name=" + name + ", age=" + age + "]";
+    }
+}
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+public class SerializeUtil {
+    // 保存对象，序列化
+    public static void saveObject(Object object) throws Exception {
+        ObjectOutputStream out = null;
+        FileOutputStream fout = null;
+        try {
+            fout = new FileOutputStream("D:/1.txt");
+            out = new ObjectOutputStream(fout);
+            out.writeObject(object);
+        } finally {
+            fout.close();
+            out.close();
+        }
+    }
+    // 读取对象，反序列化
+    public static Object readObject() throws Exception {
+        ObjectInputStream in = null;
+        FileInputStream fin = null;
+        try {
+            fin = new FileInputStream("D:/1.txt");
+            in = new ObjectInputStream(fin);
+            Object object = in.readObject();
+            return object;
+        } finally {
+            fin.close();
+            in.close();
+        }
+    }
+}
+
+
+
+
 
 
 

@@ -1,21 +1,22 @@
-TCP/IPЭ��㼶�ṹ��
-��·�㣨�����ӿڣ�
-�����(IP,ICMP,IGMP)
-�����(TCP,UDP)
-Ӧ�ò�(FTP,HTTP)
+
+TCP/IP协议层级结构：
+链路层（物理接口）
+网络层(IP,ICMP,IGMP)
+运输层(TCP,UDP)
+应用层(FTP,HTTP)
 
 ***************************************************************************************************
 
 
 Cookie
-Cookie����ʱҲ���临����ʽ Cookies��ָĳЩ��վΪ�˱���û����ݡ����� session ���ٶ��������û������ն��ϵ����ݣ�ͨ���������ܣ���
-���Խ�����������棬 �� Web �������������û���������ͻ��ˣ��ϵ�С�ı��ļ�
+Cookie，有时也用其复数形式 Cookies，指某些网站为了辨别用户身份、进行 session 跟踪而储存在用户本地终端上的数据（通常经过加密）。
+可以叫做浏览器缓存， 是 Web 服务器保存在用户浏览器（客户端）上的小文本文件
 
 session
-�û���Ӧ�ó���� Web ҳ֮����תʱ���洢�� Session �����еı��������ᶪʧ�������������û��Ự��һֱ������ȥ
-�˳����������session������
+用户在应用程序的 Web 页之间跳转时，存储在 Session 对象中的变量将不会丢失，而是在整个用户会话中一直存在下去
+退出浏览器，则session不保存
 
-session�Ƿ��ڷ������˵ģ���cookie���ڿͻ��˵�
+session是放在服务器端的，而cookie是在客户端的
 
 
 ***************************************************************************************************
@@ -23,79 +24,79 @@ session�Ƿ��ڷ������˵ģ���cookie���ڿͻ��˵�
 
 java ee for eclipse
 
-1.��eclipse�У�windows->show view ->���Դ򿪹�����
-2.��servers��˫���������������÷�����
-3.��Ҫ����Ŀ��ʹ��jstl��ǩ����Ҫ��\apache-tomcat-7.0.63\webapps\WebTest3\lib���ֶ�����jstl��jar����������eclipse�е����jar��
+1.在eclipse中，windows->show view ->可以打开工具栏
+2.在servers中双击服务器可以配置服务器
+3.想要在项目中使用jstl标签库需要在\apache-tomcat-7.0.63\webapps\WebTest3\lib下手动拷入jstl的jar包，并且在eclipse中导入该jar包
 
 
 
-��Ȼ������jsp��ʹ��<%%>������java���뵫����Ҫ����servlet��ִ������������ٰ����ݷ�浽���У���ת����jsp�У���ʹ��EL����ʽ��jsp�ж����ݶ�ȡ����ʾ
+虽然可以再jsp中使用<%%>来运行java代码但是主要是在servlet中执行运算操作，再把数据封存到域中，再转发到jsp中，再使用EL表达式在jsp中对数据读取并显示
 
 
-ת����ҳ���ض�����ҳ�ǲ�ͬ�ģ�
-ת����ҳ��һ��request���������ַ�������ʾ�ĵ�ַ����ԭ��ҳ
-�ض�����ҳ������request���������ַ�������ʾ�ĵ�ַ�����ָ�����ҳ
+转发网页和重定向网页是不同的，
+转发网页有一条request，浏览器地址栏最后显示的地址还是原网页
+重定向网页有两条request，浏览器地址栏最后显示的地址是最后被指向的网页
 
-��.jsp��������keyΪusername��valuesΪxxx�����˲����ĵ�ַ��ʹLogin.jsp��û�д�����Ӧ�Ĵ��룬ҳ��Ҳ�ճ���ʾ
+给.jsp传参数：key为username，values为xxx，加了参数的地址即使Login.jsp中没有处理对应的代码，页面也照常显示
 http://localhost:8080/WebTest3/SessionTest/Login.jsp?username=xxx
-keyΪusername��valuesΪxxx������keyΪpassword��valuesΪddd
+key为username，values为xxx，还有key为password，values为ddd
 http://localhost:8080/WebTest3/SessionTest/Login.jsp?username=xxx&password=ddd
 
-javaWeb ������Ҫ����servlet��filter��listener
+javaWeb 三大重要部分servlet，filter，listener
 
-ʹ��tomcat������ʱĬ�϶˿�8080����ҳ�����Ĭ�϶˿�80
-��conf��server��Connector���޸�Ĭ�϶˿ںţ����Բ�������˿ں�
+使用tomcat服务器时默认端口8080，网页浏览器默认端口80
+在conf的server的Connector中修改默认端口号，可以不用输入端口号
 
-server.xml�Ľṹ��
-��Ԫ�أ�<Service>
-<Service>����<Connector>��������Э��
-��<Engine>��������������
-<Engine>���ж������<host>
-<host>�����ж��������<Context>(web��Ŀ)
+server.xml的结构：
+根元素：<Service>
+<Service>中有<Connector>负责网络协议
+有<Engine>负责处理各种请求
+<Engine>中有多个主机<host>
+<host>可以有多个上下文<Context>(web项目)
 
-chromeץ����
-�����õĸ��๤�ߵĿ����߹���
-network�����Կ������̣���name���Ҽ�web��Ŀ���Ը��������ĺ���Ӧ����
-key/value��ʽ
-��Ӧ���ģ���Ӧ�е�״̬�룺200�ɹ���300ת�ӣ�400�ͻ��˴�����������ַ����500����������
+chrome抓包：
+在设置的更多工具的开发者工具
+network，可以看到工程，在name中右键web项目可以复制请求报文和响应报文
+key/value格式
+相应报文：相应行的状态码：200成功，300转接，400客户端错误（例如打错网址），500服务器错误
 
-URL���ʺ�֮�����Ϊ��������
-getRequestURI()����ȡ����URI��������Ŀ��+Servlet·����/day10_2/AServlet
-getRequestURL()����ȡ����URL�����ڲ�������������������·����http://localhost:8080/day10_2/AServlet
+URL中问号之后的是为参数部分
+getRequestURI()：获取请求URI，等于项目名+Servlet路径。/day10_2/AServlet
+getRequestURL()：获取请求URL，等于不包含参数的整个请求路径。http://localhost:8080/day10_2/AServlet
 
 
-ִ��
+执行
 super.doPost(req, resp);
-��ʹresp���ύ����ʱ��������ת�������������
+会使resp被提交，这时不能请求转发和请求包含。
 
-��tomcat/work���Բ鿴���ɳ�����.java�ļ�
-
-
-һ������£������Ҫ���������Ϊʱ�䣬int����һ�㶼���룬long����һ�㶼�Ǻ���
+在tomcat/work可以查看生成出来的.java文件
 
 
-��Ӧͷ��Content-Type���������ͣ�һ����ָ��ҳ�д��ڵ�Content-Type�����ڶ��������ļ������ͺ���ҳ�ı��룬
-�������������ʲô��ʽ��ʲô�����ȡ����ļ�������Ǿ�������һЩAsp��ҳ����Ľ��ȴ�����ص���һ���ļ���һ��ͼƬ��ԭ��
+一般情况下，如果需要输入参数作为时间，int类型一般都是秒，long类型一般都是毫秒
+
+
+响应头：Content-Type，内容类型，一般是指网页中存在的Content-Type，用于定义网络文件的类型和网页的编码，
+决定浏览器将以什么形式、什么编码读取这个文件，这就是经常看到一些Asp网页点击的结果却是下载到的一个文件或一张图片的原因。
 
 
 
 ***************************************************************************************************
 
-javaBean�Ĺ淶��
-  1. ����Ҫ��һ��Ĭ�Ϲ�����
-  2. �ṩget/set���������ֻ��get��������ô���������ֻ�����ԣ�
-  3. ���ԣ���get/set�����ĳ�Ա��������û�г�Ա��ֻ��get/set����������������get/set�����������������ǳ�Ա���ƣ�
-  4. ������������һ���Ĺ淶����ô���������ԣ�boolean���͵����ԣ����Ķ�����������is��ͷ��Ҳ������get��ͷ��
+javaBean的规范：
+  1. 必须要有一个默认构造器
+  2. 提供get/set方法，如果只有get方法，那么这个属性是只读属性！
+  3. 属性：有get/set方法的成员，还可以没有成员，只有get/set方法。属性名称由get/set方法来决定！而不是成员名称！
+  4. 方法名称满足一定的规范，那么它就是属性！boolean类型的属性，它的读方法可以是is开头，也可以是get开头！
   
   
-�̳�java.lang.Object�࣬��д��
+继承java.lang.Object类，重写：
 	@Override
 	public String toString() {
 		return "";
-		//Դ�룺return getClass().getName() + "@" + Integer.toHexString(hashCode());
+		//源码：return getClass().getName() + "@" + Integer.toHexString(hashCode());
 	}
-������System.out.println��ֱ�����toString�������ص��ַ���
-		OutputString outputString = new OutputString();//����
+可以在System.out.println中直接输出toString方法返回的字符串
+		OutputString outputString = new OutputString();//类名
 		System.out.println(outputString);
 	
 ***************************************************************************************************
@@ -124,18 +125,18 @@ javaBean�Ĺ淶��
 
 
 MySQL
-�����У�
+命令行：
 
 show databases;
-��ʾ�������ݿ�
+显示所有数据库
 
 
-use ���ݿ���;
-ʹ�����ݿ�
+use 数据库名;
+使用数据库
 
 
 show tables;
-��ʾ���ݿ������еı�
+显示数据库下所有的表
 
 
 
@@ -143,31 +144,31 @@ show tables;
 
 
 
-ͼ�ν��滯����
+图形界面化工具
 Navicat for MySQL
 
 
 
 procedure
-CREATE PROCEDURE ������ ([���̲���[,...]])
+CREATE PROCEDURE 过程名 ([过程参数[,...]])
 
-���磺
-// �����û�
+例如：
+// 所有用户
 create procedure all_customer() select * from testtable2;
-// ���Ŵ��루�൱�ڴ��룺select * from testtable2; ��
+// 接着打入（相当于打入：select * from testtable2; ）
 call all_customer();
-// ���������˱�testtable2�����е�����
+// 看到查找了表testtable2中所有的数据
 
-// ɾ��
+// 删除
 DROP PROCEDURE IF EXISTS 'proc_adder';
 
-�����������Ĳ��뷽��
+创建带参数的插入方法
 create procedure insertTable2(in myid int, in myname varchar(20)) insert into testtable2(id, name) value(myid, myname);
-���ã�call insertTable2(101, 'ooo');
+调用：call insertTable2(101, 'ooo');
 
-����������������ֵ�Ĳ��뷽��
+创建带参数，返回值的插入方法
 create procedure selecttable2(in myid int, out rname varchar(20)) select name into rname from testtable2 where id = myid;
-���ã�call selecttable2(101, @rname);
+调用：call selecttable2(101, @rname);
 
 
 
@@ -175,7 +176,7 @@ create procedure selecttable2(in myid int, out rname varchar(20)) select name in
 ***************************************************************************************************
 
 
-DAO���ģʽ
+DAO设计模式
 
 
 
@@ -196,31 +197,31 @@ JDBC
 
 java web SSH
 
-Struts������ֲ㣬Hibernate����־ò㣬Spring�����м��ҵ���
+Struts负责表现层，Hibernate负责持久层，Spring负责中间的业务层
 
-���ֲ㣨��ʾ�㣩
-����MVCģʽ�� 
-M��Ϊģ�ͣ�Ҳ����ʵ���ࡣ�������ݵķ�װ�����ݵĴ��䡣 
-VΪ��ͼ��Ҳ����GUI������������ݵ�չʾ�� 
-CΪ���ƣ�Ҳ�����¼����������̵Ŀ��ơ�
-Struts��ܣ�ʵ��MVC��Struts����ҵ�����������߼���ҵ����ٵ��ó־ò�������ݿ�Ķ�д��
-
-
-ҵ��㣨�߼��㡢service�㣩
-Spring��һ��ҵ����ܣ���һ�����ϵĿ�ܣ��ܹ��ܺõ��ϱ�ʾ����־ò㡣
-����ע��Ϳ��Ʒ�ת��������֮���������ϵ�������ʾ����־ò㡣
+表现层（显示层）
+采用MVC模式。 
+M称为模型，也就是实体类。用于数据的封装和数据的传输。 
+V为视图，也就是GUI组件，用于数据的展示。 
+C为控制，也就是事件，用于流程的控制。
+Struts框架，实现MVC，Struts调用业务层完成运算逻辑，业务层再调用持久层完成数据库的读写。
 
 
-�־ò㣨DAO Data Access Object��
-����DAOģʽ������ʵ��������ݿ��ӳ�䣨ORMӳ�䣩����ɶ������ݺ͹�ϵ���ݵ�ת����
-Hibernate��ܣ��־û���Ķ��󣬾��ǽ����ݿ��е�����ת������Ķ��󣬻��߽�������޸��ύ�����ݿ�
+业务层（逻辑层、service层）
+Spring是一个业务层框架，是一个整合的框架，能够很好地黏合表示层与持久层。
+依赖注射和控制反转，解耦类之间的依赖关系，解耦表示层与持久层。
+
+
+持久层（DAO Data Access Object）
+采用DAO模式，建立实体类和数据库表映射（ORM映射）。完成对象数据和关系数据的转换。
+Hibernate框架，持久化类的对象，就是将数据库中的数据转换成类的对象，或者将对象的修改提交到数据库
 
 
 ********************
 
 
-Ҳ���Գ�Ϊ��
-��ʾ��(web��)��ҵ���߼���(service��)�����ݷ��ʲ�(dao��)
+也可以称为：
+表示层(web层)、业务逻辑层(service层)、数据访问层(dao层)
 
 
 
@@ -253,10 +254,10 @@ Hibernate��ܣ��־û���Ķ��󣬾��ǽ����ݿ��е�����ת������Ķ��󣬻��߽�������
 
 
 
-eclipse �¿�
+eclipse 新坑
 ***************************************************************************************************
 
-��Servlet 3.0�У��´�����HttpServlet���࣬�Ѿ�����Ҫ��web.xml������
+在Servlet 3.0中，新创建的HttpServlet子类，已经不需要在web.xml中配置
   <servlet>
     <servlet-name>MyTestServlet</servlet-name>
     <servlet-class>com.wrx.testweb.MyTestServlet</servlet-class>
@@ -266,36 +267,18 @@ eclipse �¿�
     <url-pattern>/MyTestServlet</url-pattern>
   </servlet-mapping>
 
-ֻҪ����������ע�⣬���Զ�ʶ��HttpServlet
+只要添加了以下注解，将自动识别HttpServlet
 @WebServlet("/MyTestServlet2")
 
 
 ***************************************************************************************************
 
-�½���java web��Ŀ������ʱ��WEB-INF�µ�classes�в������� .class�ļ�����ʱ�ᵼ��HttpServlet class not found ����
-��Ҫ�޸� class�ļ������·����
+新建的java web项目，编译时在WEB-INF下的classes中不会编译出 .class文件，此时会导致HttpServlet class not found 报错
+需要修改 class文件的输出路径‘
 
-��˵���Զ��������ܹ�ѡ�ϣ���������
+据说把自动发布功能勾选上，会解决问题
 
 ***************************************************************************************************
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

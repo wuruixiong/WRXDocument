@@ -735,17 +735,204 @@ mysql>ALTER TABLE `table_name` ADD INDEX index_name ( `column1`, `column2`, `col
 ------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+MySQL 5.0 版本开始支持存储过程。
+
+存储过程（Stored Procedure）是一种在数据库中存储复杂程序，以便外部程序调用的一种数据库对象。
+存储过程是为了完成特定功能的SQL语句集，经编译创建并保存在数据库中，用户可通过指定存储过程的名字并给定参数(需要时)来调用执行。
+
+说白了，存储过程就是 SQL语言的代码封装与重用。
+
+----------
+
+查看全部存储过程
+show procedure status; 
+
+查看单个存储过程的详情，
+show create procedure 存储过程名称;
+例如可以查看到他的编码格式，他的sql模式，最重要的是可以查看他的 SQL语句集。
+知道了他的SQL语句集，就可以知道这个 存储过程是执行什么sql语句的，是干什么用的。
+
+
+其他：
+查看全部函数  show function status;
+查看单个函数  show create function 函数名称;
+
+----------
+
+CREATE PROCEDURE  过程名([[IN|OUT|INOUT] 参数名 数据类型[,[IN|OUT|INOUT] 参数名 数据类型…]]) [特性 ...] 过程体
+
+
+创建一个简单的存储过程
+create procedure testa()
+begin
+    select * from users;
+    select * from orders;
+end;
+
+调用存储过程
+call testa();   
+
+----------
+
+存储过程的参数：
+MySQL存储过程的参数用在存储过程的定义，共有三种参数类型,IN,OUT,INOUT,形式如：
+
+CREATEPROCEDURE 存储过程名([[IN |OUT |INOUT ] 参数名 数据类形...])
+IN 输入参数：表示调用者向过程传入值（传入值可以是字面量或变量）
+OUT 输出参数：表示过程向调用者传出值(可以返回多个值)（传出值只能是变量）
+INOUT 输入输出参数：既表示调用者向过程传入值，又表示过程向调用者传出值（值只能是变量）
+
+
+例如：
+mysql> create table PLAYERS as select * from TENNIS.PLAYERS;
+mysql> create table MATCHES  as select * from TENNIS.MATCHES;
+
+删除给定球员参加的所有比赛：
+mysql> delimiter $$　　#将语句的结束符号从分号;临时改为两个$$(可以是自定义)
+mysql> CREATE PROCEDURE delete_matches(IN p_playerno INTEGER)
+    -> BEGIN
+    -> 　　DELETE FROM MATCHES
+    ->    WHERE playerno = p_playerno;
+    -> END$$
+Query OK, 0 rows affected (0.01 sec)
+ 
+mysql> delimiter;　　#将语句的结束符号恢复为分号
+
+
+查询：
+mysql> create procedure p3(IN nameid int, OUT person_name varchar(10))  
+-> begin  
+-> select * from test.zzm;  
+-> select zzm.name into person_name from test.zzm where zzm.id = nameid;  
+-> end  
+-> $  
+Query OK, 0 rows affected (0.00 sec) 
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+mysql 授权和解除权限
+grant命令可以用来创建用户和给用户授权
+
+
+创建用户：
+CREATE USER 'user_name'@'host_name' IDENTIFIED BY 'my password';
+指定创建用户账号，格式为 'user_name'@'host_name'。
+
+user_name是用户名。
+
+host_name为主机名，即用户连接 MySQL 时所在主机的名字，注意这里指的不是mysql那台机器，是指 当前用户所在的那台机器的名字。
+表示要这个新创建的用户允许从哪台机登陆，如果只允许从本机登陆，则 填　‘localhost’ ，如果允许从远程登陆，则填 ‘%’
+若在创建的过程中，只给出了账户的用户名，而没指定主机名，则主机名默认为“%”，表示一组主机。
+
+两个例子：
+CREATE USER 'dog'@'localhost' IDENTIFIED BY '123456';
+CREATE USER 'pig'@'192.168.1.101' IDENDIFIED BY '123456';
+
+
+使用grant创建用户：
+使用GRANT语句
+语法：mysql> grant 权限1,权限2,...权限n on 数据库名称.表名称 to 用户名@用户地址 identified by '连接口令';
+权限1,权限2,...权限n代表
+select,insert,update,delete,create,drop,index,alter,grant,references,reload,shutdown,process,file等14个权限
+
+4个实例：
+mysql>grant select,insert,update,delete,create,drop on vtdc.employee to joe@10.163.225.87 identified by '123';
+给来自10.163.225.87的 用户joe 分配可对 数据库vtdc 的employee表进行select,insert,update,delete,create,drop等操作的权限，并设定密码为123。
+
+mysql>grant all privileges on vtdc.* to joe@10.163.225.87 identified by '123';
+给来自10.163.225.87的用户joe分配可对数据库vtdc所有表进行所有操作的权限，并设定口令为123。
+
+mysql>grant all privileges on *.* to joe@10.163.225.87 identified by '123';
+给来自10.163.225.87的用户joe分配可对所有数据库的所有表进行所有操作的权限，并设定口令为123。
+
+mysql>grant all privileges on *.* to joe@localhost identified by '123';
+给本机用户joe分配可对所有数据库的所有表进行所有操作的权限，并设定口令为123。
+
+
+
+
+--------------
+
+grant添加权限，revoke删除权限
+
+授予用户所有权限，这可能是你现在最想要的语句
+grant all privileges on *.* to vien@'%'
+这句话是授予一个已经存在的、用户名为vien的用户，通过所有的host连接都有所有的权限。
+
+添加权限（和已有权限合并，不会覆盖已有权限）
+GRANT Insert ON `your database`.* TO `user`@`host`;
+
+删除权限
+REVOKE Delete ON `your database`.* FROM `user`@`host`;
+
+用户详情的权限列表请参考MySQL官网说明
+http://dev.mysql.com/doc/refman/5.7/en/privileges-provided.html
+
+--------------
+
+改密码
+方式1，不用登录
+格式：mysqladmin -u用户名 -p旧密码 password 新密码 
+例子：mysqladmin -uroot -p123456 password 123 
+
+方式2
+用SET PASSWORD命令 
+登录MySQL。 
+格式：mysql> set password for 用户名@localhost = password('新密码'); 
+例子：mysql> set password for root@localhost = password('123'); 
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+mysqldump
+
+mysql自带工具，用于备份，导出数据。
+它的备份原理是通过协议连接到 MySQL 数据库，将需要备份的数据查询出来，将查询出的数据转换成对应的insert 语句，当我们需要还原这些数据时，只要执行这些 insert 语句，即可将对应的数据还原。
+
+命令格式：
+mysqldump [选项] --数据库名 [选项 表名] > 脚本名
+mysqldump [选项] --all-databases [选项]  > 脚本名
+
+例子，进入mysql/bin下面，打开终端，执行mysqldump，备份远程的数据库next_all 下面的两张表t_org_org和t_meta_form，备份到D盘目录下，生成一个org_meta.sql文件作为备用源
+mysqldump -unext -p --host 172.20.165.52 --port 3306 --databases next_all --tables t_org_org t_meta_form >D:/org_meta.sql
+
+
+选项说明
+参数名	缩写	含义
+--host	-h	服务器IP地址
+--port	-P	服务器端口号
+--user	-u	MySQL 用户名
+--pasword	-p	MySQL 密码
+
+--databases		指定要备份的数据库
+--all-databases		备份mysql服务器上的所有数据库
+--compact		压缩模式，产生更少的输出
+--comments		添加注释信息
+--complete-insert		输出完成的插入语句
+--lock-tables		备份前，锁定所有数据库表
+--no-create-db/--no-create-info  禁止生成创建数据库语句
+--force			当出现错误时仍然继续备份操作
+--default-character-set	指定默认字符集
+--add-locks		备份数据库表时锁定数据库表
 
 
 
 
 
+-----------------------------------------
+
+xtrabakackup有2个工具，分别是xtrabakup、innobakupe
+MySQL冷备、mysqldump、MySQL热拷贝都无法实现对数据库进行增量备份。在实际生产环境中增量备份是非常实用的，
+如果数据大于50G或100G，存储空间足够的情况下，可以每天进行完整备份，如果每天产生的数据量较大，需要定制数据备份策略。
+例如每周实用完整备份，周一到周六实用增量备份。而Percona-Xtrabackup就是为了实现增量备份而出现的一款主流备份工具。
 
 
 
 
 
-
+------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 

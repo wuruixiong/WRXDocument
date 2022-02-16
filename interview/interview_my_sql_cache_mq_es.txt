@@ -1987,7 +1987,7 @@ connectionFactory建立rabbitmq连接，设置地址和用户名密码
 路由模式就是 生产者和消费者指定一个 路由名称，双方各自发送和接收这个带有这个名称的数据，非该名称就丢弃
 
 
-5.topic模式：通配符模式，类似于路由模式, topic也算是订阅的一种
+5.topic模式：通配符模式，类似于路由模式, topic也算是订阅的一种。
 基于通配符的方式，将一个消息推送给不同消费者。
 通配符有*和#，*表示匹配一个单词，#表示匹配一个或多个单词，单词之间通过‘.’进行区分。如消息发送者的routing-key为log.error，那么消费者绑定routing-key为log.#或log.*时，都可以接收到发送的信息。但消息发送者的routing-key为log.error.out_of_memory时，只有routing-key为log.#的消费者能接受到消息。
 需要设置为topic模式 ： channel.exchangeDeclare(EXCHANGE_NAME, "topic");
@@ -2008,6 +2008,9 @@ direct比topic少了通配符，因此可能会有两个以上的队列满足通
 
 Worker模式，简单模式没有 exchange type，所以不需要声明
 这两者的区别就是 调用了 basicQos()方法，表明消息唯一，即消息不会 被不同的消费者消费，只有一个消费者可以得到这条消息。
+
+
+如果要使用交换机+队列，那么需要声明交换机和队列，这个声明的操作可以都在消费者上做。
 
 
 步骤
@@ -2173,9 +2176,25 @@ rabbitMQ 集群 镜像模式 + 方向代理
 镜像集群基于普通集群，保证消息不丢失，
 如果主节点宕机，从节点可以转为主节点，故障转移，从节点可以同步主节点的所有信息
 
+------------------------
 
+本地安装 RabbitMQ
 
+主要端口说明
+4369 -- erlang发现口，（erlang是rabbitMQ的开发语言）
 
+5672 --client端通信口
+
+15672 -- 管理界面ui端口
+
+25672 -- server间内部通信口
+
+举例说明
+访问RabbitMQ管理界面可以访问如下：
+http://localhost:15672/
+
+连接RabbitMQ的话就要用client端通信口：
+server: amqp://guest:guest@localhost:5672/    
 
 
 

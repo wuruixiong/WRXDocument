@@ -1,0 +1,156 @@
+
+
+
+
+
+zookeeper数据模型
+
+Zookeeper维护着一个树形层次结构，树中的节点被称为znode。
+Znode可以用于存储数据，默认配置限制1MB，不建议用来存大量数据，并且有一个与之关联的ACL（access control list，访问控制列表）。
+Zookeeper被设计为用来实现协调服务(通常使用小数据文件)，而不是用于大容量数据存储。
+
+zookeeper的节点树类似于linux的文件系统，连命令都很像linux的终端命令。
+
+Znode是Zookeeper中数据的最小单元，每个Znode上都可以保存数据，同时还可以挂载子节点，
+znode之间的层级关系就像文件系统的目录结构一样，zookeeper将全部的数据存储在内存中以此来提高服务器吞吐量、减少延迟的目的。
+
+每个数据节点除了存储数据内容之外，还存储了数据节点本身的一些状态信息。Znode的状态(Stat)信息
+状态属性	说明
+cZxid	Created ZXID表示该数据节点被创建时的事务ID
+ctime	Created Time表示节点被创建的时间
+mZxid	Modified ZXID 表示该节点最后一次被更新时的事务ID
+mtime	Modified Time表示节点最后一次被更新的时间
+pZxid	表示该节点的子节点列表最后一次被修改时的事务ID。只有子节点列表变更了才会变更pZxid,子节点内容变更不会影响pZxid
+cversion	子节点的版本号
+dataVersion	数据节点版本号
+aclVersion	节点的ACL版本号
+ephemeralOwner	创建该临时节点的会话的SessionID。如果节点是持久节点，这个属性为0
+dataLength	数据内容的长度
+numChildren	当前节点的子节点个数
+
+
+---------------------------------------------------------------------------------------------------
+
+zookeeper命令行
+
+zkCli连接
+./zkCli.sh -server 127.0.0.1:2181
+
+连接之后
+
+查看根节点下的子节点
+ls /
+
+查看ierp节点的子节点
+ls /ierp
+
+查看config节点的子节点
+ls /ierp/config
+
+
+查看节点
+ls /ierp/config/common/prop/mc.properties
+[]
+
+
+执行get命令
+get /ierp/config/common/prop/mc.properties
+输入节点数据
+mc.type=ZK
+mc.server.url=http://172.20.165.52:8090/mc
+
+
+执行stat命令，插件mc.properties节点的节点信息
+stat /ierp/config/common/prop/mc.properties
+输出节点信息
+cZxid = 0x22b
+ctime = Tue Aug 18 16:19:59 CST 2020
+mZxid = 0x106c9df
+mtime = Mon Sep 28 10:20:21 CST 2020
+pZxid = 0x22b
+cversion = 0
+dataVersion = 3
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 53
+numChildren = 0
+
+在有些版本里面，get和stat的区别是：get比stat（第一行）多返回节点的数据信息
+get可以取到节点内容
+
+
+---------------------------------------------------------------------------------------------------
+
+
+zookeeper 客户端命令行，查看dubbo服务的生产者和消费者
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

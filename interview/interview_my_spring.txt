@@ -205,6 +205,64 @@ findAutowiringMetadata(beanName, bean.getClass(), pvs);方法会寻找在当前�
 IOC工厂模式详情
 反射与工厂模式
 
+
+-------------------
+
+代码案例：
+@Component
+public class MyComponentBean {
+    @Value("003")
+    String id;
+    @Value("wrx")
+    String name;
+
+   //get和set方法 。。。。。。
+}
+
+@RestController
+public class MyControl {
+    @Autowired
+    MyComponentBean myComponentBean;
+}
+
+下断点，可知，BeanFactory是从AbstractApplicationContext的invokeBeanFactoryPostProcessors方法开始的（当前类是AnnotationConfigServletWebServerApplicationContext）
+DefaultListableBeanFactory会在AnnotationConfigServletWebServerApplicationContext的初始化过程中创建（AnnotationConfigServletWebServerApplicationContext的父类GenericApplicationContext中）
+
+创建完了bean工厂之后，ApplicationContext调用DefaultListableBeanFactory.finishBeanFactoryInitialization，开始创建bean
+
+DefaultListableBeanFactory. preInstantiateSingletons()这个方法里面，取到了全部的list列表
+List<String> beanNames = new ArrayList(this.beanDefinitionNames);
+然后在一个while循环体里面，遍历列表，进行bean创建，这个创建过程非常复杂，因为其中还涉及到@autowrite依赖注入，三级缓存创建等等
+
+关键代码：AbstractAutowireCapableBeanFactory的doCreateBean方法里面有三个关键方法
+（1）createBeanInstance：实例化，其实也就是调用对象的构造方法实例化对象，最后会走到ConstructorResolver的autowireConstructor，执行bean的构造方法，创建出一个对象
+（2）populateBean：填充属性，这一步主要是对bean的依赖属性进行填充
+（3）initializeBean：调用spring xml中的init 方法（或者是@Bean注解的initMethod参数）
+
+在这个方法里面，完成Bean的属性的依赖注入，AutowiredAnnotationBeanPostProcessor.inject
+
+创建完了之后
+存储已经创建好的bean，在DefaultSingletonBeanRegistry的addSingletonFactory()里面
+
+(继承关系，父->子：DefaultSingletonBeanRegistry->AbstractBeanFactory->AbstractAutowireCapableBeanFactory->DefaultListableBeanFactory)
+(DefaultSingletonBeanRegistry里面有三级缓存列表，singletonObjects、earlySingletonObjects、singletonFactories)
+
+创建单例模式的bean：
+DefaultListableBeanFactory，getSingleton
+
+加上了@Configuration注解的类，会被EnhancerBySpringCGLIB代理
+
+
+-----------------
+@Bean 和 @Component的区别
+注解作用
+@Component注解表明一个类会作为组件类，并告知Spring要为这个类创建bean。
+@Bean注解告诉Spring这个方法将会返回一个对象，这个对象要注册为Spring应用上下文中的bean。通常方法体中包含了最终产生bean实例的逻辑。
+两者对比
+相同点：两者的结果都是为spring容器注册Bean.
+不同点：@Component 通常是通过类路径扫描来自动侦测以及自动装配到Spring容器中。
+　　　　@Bean 注解通常是我们在标有该注解的方法中定义产生这个bean的逻辑。
+
 -------------------
 
 AOP
@@ -269,7 +327,7 @@ JdkDynamicAopProxy实现了InvocationHanlder，使用Proxy.newProxyInstance(clas
 2、CGLIB动态代理
 利用ASM开源包，对代理对象类的class文件加载进来，通过修改其字节码生成子类来处理。
 
-3、动态代理技术必须依托接口来实现，代码里面也写得很清楚targetClass.isInterface()，如果代理类没有实例化任何接口，那么使用CGlib
+3、动态代理技术必须依托接口来实现，代码里面也写得很清楚targetClass.isInterface()，如果代理类没有实例化任何接口，那么使用CGlib。
 如果使用了接口，就使用JDK。
 还可以配置强制使用CGLIB动态代理
 具体可以去查看java动态代理的实现。
@@ -421,6 +479,10 @@ DefaultSingletonBeanRegistry.class
 Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256); //一级缓存
 Map<String, Object> earlySingletonObjects = new HashMap<>(16); // 二级缓存
 Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16); // 三级缓存
+
+singletonObjects	    第一级缓存，存放可用的完全初始化，成品的Bean。
+earlySingletonObjects   第二级缓存，存放半成品的Bean，半成品的Bean是已创建对象，但是未注入属性和初始化。用以解决循环依赖。
+singletonFactories	    第三级缓存，存的是Bean工厂对象，用来生成半成品的Bean并放入到二级缓存中。用以解决循环依赖。如果Bean存在AOP的话，返回的是AOP的代理对象。
 
 补充：
 1.要区分一下第三级缓存和其他缓存的区别，三级缓存Map的value是ObjectFactory，缓存的是一个用来生产对应bean的工厂
