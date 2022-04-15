@@ -392,6 +392,9 @@ show tables;
 查看表结构：
 desc table_name;
 
+查看建表语句：
+show create table table_name;
+
 自带四个默认数据库：
 information_schema、mysql、performance_schema、sys
 
@@ -581,7 +584,18 @@ mysql> select id, if(id>2,'ok', 'no') as isChecked from pms_base_sale_attr;
 |  4 | ok        |
 
 
+--------------------------
 
+自定义函数，创建函数
+
+create function myf() returns int
+begin
+    declare c int;
+    select COUNT(fid) as billcount from tk_kdec_t_bill_1 into c;
+    return c;
+end;
+show create function myf;
+select myf() as billcount;
 
 ------------------------------------------------------------------------------
 

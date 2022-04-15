@@ -319,6 +319,37 @@ git tag -l
 利用tag回滚代码
 git checkout v1.01
 
+------------
+
+
+显示所有远程仓库：
+git remote -v
+
+添加远程版本库：
+git remote add [shortname] [url]
+显示某个远程仓库的信息：
+
+git remote show [remote]
+例如：
+$ git remote show https://github.com/tianqixin/runoob-git-test
+* remote https://github.com/tianqixin/runoob-git-test
+  Fetch URL: https://github.com/tianqixin/runoob-git-test
+  Push  URL: https://github.com/tianqixin/runoob-git-test
+  HEAD branch: master
+  Local ref configured for 'git push':
+    master pushes to master (local out of date)
+
+添加远程版本库：
+git remote add [shortname] [url]
+shortname 为本地的版本库，例如：
+
+# 提交到 Github
+$ git remote add origin git@github.com:tianqixin/runoob-git-test.git
+$ git push -u origin master
+
+其他相关命令
+git remote rm name  # 删除远程仓库
+git remote rename old_name new_name  # 修改仓库名
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 
